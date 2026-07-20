@@ -9,14 +9,12 @@ const app: Application = express();
 
 app.use(express.json());
 
-app.options(
-  "*",
+app.use(
   cors({
-    origin: ["http://localhost:3000", "https://itvata.vercel.app"],
+    origin: ["https://itvata.vercel.app"],
     credentials: true,
   }),
 );
-
 app.use(cookieParser());
 app.use("/api/v1", applicationRoutes);
 
