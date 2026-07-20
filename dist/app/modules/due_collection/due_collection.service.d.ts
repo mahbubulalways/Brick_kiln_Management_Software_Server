@@ -21,7 +21,7 @@ export declare const DueCollectionService: {
         customerId: number;
         collect: number;
         newDue: number;
-        nextDate: Date;
+        nextDate: Date | null;
         season: string | null;
     }>;
     todayPayDueService: (date: string) => Promise<({
@@ -66,7 +66,7 @@ export declare const DueCollectionService: {
         customerId: number;
         collect: number;
         newDue: number;
-        nextDate: Date;
+        nextDate: Date | null;
         season: string | null;
     })[]>;
     getAllDueListService: (startDate?: string, endDate?: string) => Promise<({
@@ -110,7 +110,7 @@ export declare const DueCollectionService: {
         customerId: number;
         collect: number;
         newDue: number;
-        nextDate: Date;
+        nextDate: Date | null;
         season: string | null;
     }) | null>;
     updateDueCollectionService: (id: number, payload: Due_Collection) => Promise<{
@@ -122,7 +122,7 @@ export declare const DueCollectionService: {
         customerId: number;
         collect: number;
         newDue: number;
-        nextDate: Date;
+        nextDate: Date | null;
         season: string | null;
     }>;
 };

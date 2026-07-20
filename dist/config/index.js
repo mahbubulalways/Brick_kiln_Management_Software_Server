@@ -10,5 +10,7 @@ dotenv_1.default.config({ path: path_1.default.join(process.cwd(), ".env") });
 exports.Config = {
     PORT: process.env.PORT,
     NODE_ENV: process.env.NODE_ENV,
+    ACCESS_TOKEN_SECRET: process.env.ACCESS_TOKEN_SECRET,
+    REFRESH_TOKEN_SECRET: process.env.REFRESH_TOKEN_SECRET,
 };
 //# sourceMappingURL=index.js.map
