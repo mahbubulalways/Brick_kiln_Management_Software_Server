@@ -16,4 +16,3 @@ exports.bcryptHelper = {
     hashPassword,
     comparePassword,
 };
-//# sourceMappingURL=bcryptHelper.js.map

@@ -4,8 +4,7 @@ const http_status_codes_1 = require("http-status-codes");
 const config_1 = require("../../config");
 const zod_1 = require("zod");
 const handleZodError_1 = require("./handleZodError");
-const library_1 = require("@prisma/client/runtime/library");
-const handlePrismaError_1 = require("./handlePrismaError");
+// import { handlePrismaError } from "./handlePrismaError";
 const globalErrorHandler = (error, req, res, next) => {
     let message = error.message || "Something went wrong";
     let statusCode = error.statusCode || http_status_codes_1.StatusCodes.INTERNAL_SERVER_ERROR;
@@ -22,13 +21,13 @@ const globalErrorHandler = (error, req, res, next) => {
         message = simplifiedError.message;
         errorSources = simplifiedError.errorSources;
     }
-    if (error instanceof library_1.PrismaClientKnownRequestError) {
-        console.log(error);
-        const simplifiedError = (0, handlePrismaError_1.handlePrismaError)(error);
-        statusCode = simplifiedError.statusCode;
-        message = simplifiedError.message;
-        errorSources = simplifiedError.errorSources;
-    }
+    // if (error instanceof PrismaClientUnknownRequestError) {
+    //   console.log(error);
+    //   const simplifiedError = handlePrismaError(error);
+    //   statusCode = simplifiedError.statusCode;
+    //   message = simplifiedError.message;
+    //   errorSources = simplifiedError.errorSources;
+    // }
     res.status(statusCode).json({
         statusCode: statusCode,
         success: false,
@@ -38,4 +37,3 @@ const globalErrorHandler = (error, req, res, next) => {
     });
 };
 exports.default = globalErrorHandler;
-//# sourceMappingURL=globalErrorHandler.js.map

@@ -1,0 +1,154 @@
+
+// MODEL
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @default("admin@gmail.com")
+  password  String   @default("12345678")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+}
+
+model ClassAndRate {
+  id        Int      @id @default(autoincrement())
+  classType String
+  className String
+  rate      Float
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+  isDeleted Boolean  @default(false)
+
+  @@map("classAndRates")
+}
+
+// Challan Model
+model Challan {
+  id             Int           @id @default(autoincrement())
+  serial         Int
+  chalanType     String
+  deliveryDate   DateTime
+  challanDate    DateTime
+  duePaymentDate DateTime?
+  note           String?
+  createdBy      String
+  productPrice   Float
+  discount       Float?
+  carRent        Float?
+  totalPrice     Float
+  cash           Float?
+  due            Float?
+  items          ChallanItem[] @relation("ChallanItems")
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  customerId     Int
+  customer       Customer      @relation(fields: [customerId], references: [id])
+  isDeleted      Boolean       @default(false)
+  deliveries     Delivery[]
+
+  @@map("chllans")
+}
+
+model ChallanItem {
+  id           Int      @id @default(autoincrement())
+  class        String
+  rate         Float
+  quantity     Int
+  delivered    Int      @default(0)
+  price        Float
+  challanId    Int
+  deliveryDate DateTime
+  challan      Challan  @relation("ChallanItems", fields: [challanId], references: [id])
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  isDeleted    Boolean  @default(false)
+
+  @@map("challanItems")
+}
+
+// Customer
+
+model Customer {
+  id              Int              @id @default(autoincrement())
+  name            String
+  address         String
+  phoneNumber     String
+  totalPurchased  Float            @default(0)
+  totalPaid       Float            @default(0)
+  nextPaymentDate DateTime?
+  challans        Challan[]
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  isDeleted       Boolean          @default(false)
+  dueCollections  Due_Collection[]
+}
+
+// DELIVERY SCHEMA 
+
+model Delivery {
+  id                Int       @id @default(autoincrement())
+  deliveryDate      DateTime
+  deliveryNo        Int       @unique
+  nextDeliveryDate  DateTime?
+  quantity          Int
+  deliveryReceived  Int
+  class             String
+  deliveryRemaining Int
+  driverName        String?
+  driverPhoneNumber String?
+  carNo             String?
+  carRent           Float?
+  invoiceId         Int
+  invoice           Challan   @relation(fields: [invoiceId], references: [id])
+  isDeleted         Boolean   @default(false)
+  createdAt         DateTime  @default(now())
+
+  @@map("deliveries")
+}
+
+// due Collection
+
+model Due_Collection {
+  id         Int       @id @default(autoincrement())
+  due        Float
+  collect    Float
+  newDue     Float
+  nextDate   DateTime?
+  customerId Int
+  customer   Customer  @relation(fields: [customerId], references: [id])
+  season     String?
+  isDeleted  Boolean   @default(false)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+}
+
+model LedgerGroup {
+  id        Int      @id @default(autoincrement())
+  name      String
+  ledgers   Ledger[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Ledger {
+  id        Int         @id @default(autoincrement())
+  name      String?
+  serial    Int         @unique
+  groupId   Int
+  group     LedgerGroup @relation(fields: [groupId], references: [id])
+  payments  Payment[]
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+}
+
+model Payment {
+  id          Int      @id @default(autoincrement())
+  description String
+  type        String
+  quantity    Float
+  totalBil    Float
+  cutting     Float
+  payment     Float
+  ledgerId    Int
+  ledger      Ledger   @relation(fields: [ledgerId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}

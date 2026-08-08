@@ -165,4 +165,3 @@ exports.InvoiceController = {
     updateInvoiceDeliveryDateController,
     updateInvoiceItemDeliveryDateController,
 };
-//# sourceMappingURL=challan.controller.js.map

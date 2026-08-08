@@ -38,4 +38,3 @@ exports.API_ENDPOINTS = {
         COLLECTION: "/collection",
     },
 };
-//# sourceMappingURL=api_endpoints.js.map

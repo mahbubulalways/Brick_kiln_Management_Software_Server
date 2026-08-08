@@ -9,7 +9,6 @@ const VALIDATE_REQUEST = (payload) => {
             throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.BAD_REQUEST, "Credentials are required.");
         }
         try {
-            await payload.parseAsync(body);
             next();
         }
         catch (error) {
@@ -18,4 +17,3 @@ const VALIDATE_REQUEST = (payload) => {
     };
 };
 exports.default = VALIDATE_REQUEST;
-//# sourceMappingURL=validateRequest.js.map

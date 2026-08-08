@@ -1,18 +1,15 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AuthService = void 0;
 const http_status_codes_1 = require("http-status-codes");
 const config_1 = require("../../../config");
-const prisma_1 = __importDefault(require("../../../helpers/prisma"));
 const ApplicationError_1 = require("../../errors/ApplicationError");
 const auth_utils_1 = require("./auth.utils");
+const prisma_1 = require("../../../helpers/prisma");
 const loginUserToSystemService = async (payload) => {
     // const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(payload.auth);
     //  where: isEmail ? { email: payload.auth } : { phone: payload.auth },
-    const user = await prisma_1.default.user.findFirst({
+    const user = await prisma_1.prisma.user.findFirst({
         where: { email: payload.email },
     });
     console.log(user);
@@ -43,4 +40,3 @@ exports.AuthService = { loginUserToSystemService };
 //   data: { email: "admin@gmail.com", password: "12345678" },
 // });
 // console.log(res);
-//# sourceMappingURL=auth.service.js.map

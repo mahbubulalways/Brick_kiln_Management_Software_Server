@@ -1,5 +1,5 @@
-import { Due_Collection, Prisma } from "@prisma/client";
-import prisma from "../../../helpers/prisma";
+import { Due_Collection, Prisma } from "../../../generated/prisma/client";
+import { prisma } from "../../../helpers/prisma";
 
 const getDueOfCustomerService = async (customerId: number) => {
   const result = await prisma.customer.findFirst({
@@ -35,7 +35,7 @@ const collectDueService = async (payload: Due_Collection) => {
         },
       });
       return result;
-    }
+    },
   );
   return result;
 };
@@ -128,7 +128,7 @@ const getSingleDueCollectionService = async (id: number) => {
 
 const updateDueCollectionService = async (
   id: number,
-  payload: Due_Collection
+  payload: Due_Collection,
 ) => {
   const data = {
     customerId: Number(payload.customerId),
@@ -161,7 +161,7 @@ const updateDueCollectionService = async (
         },
       });
       return update;
-    }
+    },
   );
   return result;
 };

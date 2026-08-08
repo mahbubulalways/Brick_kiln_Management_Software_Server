@@ -118,4 +118,3 @@ exports.DueCollectionController = {
     getSingleDueCollectionController,
     updateDueCollectionController,
 };
-//# sourceMappingURL=due_collection.controller.js.map

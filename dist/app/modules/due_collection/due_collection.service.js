@@ -1,12 +1,9 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.DueCollectionService = void 0;
-const prisma_1 = __importDefault(require("../../../helpers/prisma"));
+const prisma_1 = require("../../../helpers/prisma");
 const getDueOfCustomerService = async (customerId) => {
-    const result = await prisma_1.default.customer.findFirst({
+    const result = await prisma_1.prisma.customer.findFirst({
         where: { id: customerId },
     });
     return result;
@@ -21,7 +18,7 @@ const collectDueService = async (payload) => {
         season: payload.season,
         nextDate: payload.nextDate,
     };
-    const result = await prisma_1.default.$transaction(async (tx) => {
+    const result = await prisma_1.prisma.$transaction(async (tx) => {
         const result = await tx.due_Collection.create({
             data: data,
         });
@@ -43,7 +40,7 @@ const todayPayDueService = async (date) => {
     const parsedDate = new Date(date);
     const startOfDay = new Date(parsedDate.setHours(0, 0, 0, 0));
     const endOfDay = new Date(parsedDate.setHours(23, 59, 59, 999));
-    const result = await prisma_1.default.customer.findMany({
+    const result = await prisma_1.prisma.customer.findMany({
         where: {
             nextPaymentDate: { gte: startOfDay, lte: endOfDay },
             isDeleted: false,
@@ -64,7 +61,7 @@ const getTodaysDuePaidService = async (date) => {
     const parsedDate = new Date(date);
     const startOfDay = new Date(parsedDate.setHours(0, 0, 0, 0));
     const endOfDay = new Date(parsedDate.setHours(23, 59, 59, 999));
-    const result = await prisma_1.default.due_Collection.findMany({
+    const result = await prisma_1.prisma.due_Collection.findMany({
         where: {
             createdAt: { gte: startOfDay, lte: endOfDay },
             isDeleted: false,
@@ -89,7 +86,7 @@ const getAllDueListService = async (startDate, endDate) => {
             isDeleted: false,
         }
         : { isDeleted: false };
-    const result = await prisma_1.default.customer.findMany({
+    const result = await prisma_1.prisma.customer.findMany({
         where: dateFilter,
         include: {
             challans: {
@@ -109,7 +106,7 @@ const getAllDueListService = async (startDate, endDate) => {
 };
 // GET SINGLE
 const getSingleDueCollectionService = async (id) => {
-    const result = await prisma_1.default.due_Collection.findFirst({
+    const result = await prisma_1.prisma.due_Collection.findFirst({
         where: { id, isDeleted: false },
         include: { customer: true },
     });
@@ -124,7 +121,7 @@ const updateDueCollectionService = async (id, payload) => {
         season: payload.season,
         nextDate: payload.nextDate,
     };
-    const result = await prisma_1.default.$transaction(async (tx) => {
+    const result = await prisma_1.prisma.$transaction(async (tx) => {
         const getDueFirst = await tx.due_Collection.findFirst({
             where: { id },
             select: { collect: true },
@@ -156,4 +153,3 @@ exports.DueCollectionService = {
     getSingleDueCollectionService,
     updateDueCollectionService,
 };
-//# sourceMappingURL=due_collection.service.js.map

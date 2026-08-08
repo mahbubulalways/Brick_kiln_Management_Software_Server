@@ -25,4 +25,3 @@ router.patch(api_endpoints_1.API_ENDPOINTS.INVOICE.UPDATE_INVOICE_ITEM_DELIVERY_
 // DELETE INVOICE
 router.patch(api_endpoints_1.API_ENDPOINTS.INVOICE.DELETE_INVOICE, challan_controller_1.InvoiceController.deleteInvoiceController);
 exports.default = router;
-//# sourceMappingURL=challan.route.js.map

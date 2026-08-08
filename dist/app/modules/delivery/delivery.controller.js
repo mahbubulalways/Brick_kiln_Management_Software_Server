@@ -93,4 +93,3 @@ exports.DeliveryController = {
     getAllDeliveryListController,
     getSingleDeliveryController,
 };
-//# sourceMappingURL=delivery.controller.js.map

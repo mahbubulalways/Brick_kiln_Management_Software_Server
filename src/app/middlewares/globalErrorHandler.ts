@@ -4,14 +4,13 @@ import { Config } from "../../config";
 import { ZodError } from "zod";
 import { IErrorSources } from "../../interface/error";
 import { handleZodError } from "./handleZodError";
-import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
-import { handlePrismaError } from "./handlePrismaError";
+// import { handlePrismaError } from "./handlePrismaError";
 
 const globalErrorHandler = (
   error: any,
   req: Request,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   let message = error.message || "Something went wrong";
   let statusCode = error.statusCode || StatusCodes.INTERNAL_SERVER_ERROR;
@@ -31,13 +30,13 @@ const globalErrorHandler = (
     errorSources = simplifiedError.errorSources;
   }
 
-  if (error instanceof PrismaClientKnownRequestError) {
-    console.log(error);
-    const simplifiedError = handlePrismaError(error);
-    statusCode = simplifiedError.statusCode;
-    message = simplifiedError.message;
-    errorSources = simplifiedError.errorSources;
-  }
+  // if (error instanceof PrismaClientUnknownRequestError) {
+  //   console.log(error);
+  //   const simplifiedError = handlePrismaError(error);
+  //   statusCode = simplifiedError.statusCode;
+  //   message = simplifiedError.message;
+  //   errorSources = simplifiedError.errorSources;
+  // }
 
   res.status(statusCode).json({
     statusCode: statusCode,

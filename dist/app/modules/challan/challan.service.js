@@ -1,15 +1,12 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.InvoiceService = void 0;
-const prisma_1 = __importDefault(require("../../../helpers/prisma"));
+const prisma_1 = require("../../../helpers/prisma");
 const ApplicationError_1 = require("../../errors/ApplicationError");
 const http_status_codes_1 = require("http-status-codes");
 // CREATE CUSTOMER AND INVOICE AND INVOICE ITEMS
 const createInvoiceService = async (createdBy, customer, invoiceItems, invoice) => {
-    const isSerialExist = await prisma_1.default.challan.findFirst({
+    const isSerialExist = await prisma_1.prisma.challan.findFirst({
         where: {
             serial: invoice.serial,
         },
@@ -17,7 +14,7 @@ const createInvoiceService = async (createdBy, customer, invoiceItems, invoice) 
     if (isSerialExist) {
         throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.CONFLICT, "এই সিরিয়াল নম্বর ইতিমধ্যেই বিদ্যমান।");
     }
-    const result = await prisma_1.default.$transaction(async (tx) => {
+    const result = await prisma_1.prisma.$transaction(async (tx) => {
         // CHECK CUSTOMER EXIST OR NOT
         let existingCustomer = await tx.customer.findFirst({
             where: {
@@ -75,7 +72,7 @@ const createInvoiceService = async (createdBy, customer, invoiceItems, invoice) 
 };
 // GET AL INVOICE WITH CUSTOMER NAME AND ADDRESS
 const getAllInvoiceService = async () => {
-    const result = await prisma_1.default.challan.findMany({
+    const result = await prisma_1.prisma.challan.findMany({
         where: { isDeleted: false },
         orderBy: {
             createdAt: "desc",
@@ -89,7 +86,7 @@ const getAllInvoiceService = async () => {
 };
 //  GET SINGLE INVOICE
 const getSingleInvoiceService = async (id) => {
-    const result = await prisma_1.default.challan.findFirst({
+    const result = await prisma_1.prisma.challan.findFirst({
         where: { id: id, isDeleted: false },
         orderBy: {
             createdAt: "desc",
@@ -105,7 +102,7 @@ const getSingleInvoiceService = async (id) => {
 const getSingleInvoiceItemsService = async (id, query) => {
     const splitIds = query.split(",");
     const parsedNumber = splitIds.map((id) => Number(id));
-    const result = await prisma_1.default.challanItem.findMany({
+    const result = await prisma_1.prisma.challanItem.findMany({
         where: {
             challanId: id,
             id: { in: parsedNumber },
@@ -130,7 +127,7 @@ const getSingleInvoiceItemsService = async (id, query) => {
 };
 // UPDATE INVOICE
 const updateInvoiceController = async (invoiceId, invoice, items) => {
-    const result = await prisma_1.default.$transaction(async (tx) => {
+    const result = await prisma_1.prisma.$transaction(async (tx) => {
         // update invoice
         const updateInvoice = await tx.challan.update({
             data: invoice,
@@ -183,7 +180,7 @@ const updateInvoiceController = async (invoiceId, invoice, items) => {
 };
 // DELETE INVOICE
 const deleteInvoiceService = async (invoiceId) => {
-    const result = await prisma_1.default.challan.update({
+    const result = await prisma_1.prisma.challan.update({
         data: {
             isDeleted: true,
         },
@@ -191,7 +188,7 @@ const deleteInvoiceService = async (invoiceId) => {
             id: invoiceId,
         },
     });
-    const deleteItem = await prisma_1.default.challanItem.updateMany({
+    const deleteItem = await prisma_1.prisma.challanItem.updateMany({
         data: {
             isDeleted: true,
         },
@@ -229,7 +226,7 @@ const getItemsWithInvoiceService = async (startDate, endDate) => {
             lte: end,
         };
     }
-    const result = await prisma_1.default.challanItem.findMany({
+    const result = await prisma_1.prisma.challanItem.findMany({
         where: whereCondition,
         include: {
             challan: {
@@ -251,7 +248,7 @@ const getItemsWithInvoiceService = async (startDate, endDate) => {
 };
 // UPDATE INVOICE DELIVERY
 const updateInvoiceDeliveryDateService = async (id, updateDate) => {
-    const result = await prisma_1.default.challan.update({
+    const result = await prisma_1.prisma.challan.update({
         data: {
             deliveryDate: updateDate,
             items: {
@@ -271,7 +268,7 @@ const updateInvoiceDeliveryDateService = async (id, updateDate) => {
 };
 // UPDATE PARTICULAR ITEMS DELIVERY DATE
 const updateItemsDateService = async (id, updatedDate) => {
-    const result = await prisma_1.default.challanItem.update({
+    const result = await prisma_1.prisma.challanItem.update({
         data: {
             deliveryDate: updatedDate,
         },
@@ -292,4 +289,3 @@ exports.InvoiceService = {
     updateItemsDateService,
     updateInvoiceDeliveryDateService,
 };
-//# sourceMappingURL=challan.service.js.map

@@ -12,4 +12,3 @@ const sendResponse = (res, payload) => {
     });
 };
 exports.sendResponse = sendResponse;
-//# sourceMappingURL=sendResponse.js.map

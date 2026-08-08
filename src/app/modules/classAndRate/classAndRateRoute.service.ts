@@ -1,5 +1,5 @@
-import { ClassAndRate } from "@prisma/client";
-import prisma from "../../../helpers/prisma";
+import { ClassAndRate } from "../../../generated/prisma/client";
+import { prisma } from "../../../helpers/prisma";
 import { AppError } from "../../errors/ApplicationError";
 import { StatusCodes } from "http-status-codes";
 
@@ -14,7 +14,7 @@ const createClassAndRateService = async (payload: ClassAndRate) => {
   if (isExist) {
     throw new AppError(
       StatusCodes.CONFLICT,
-      "এই শ্রেণী ও রেট ইতিমধ্যে বিদ্যমান"
+      "এই শ্রেণী ও রেট ইতিমধ্যে বিদ্যমান",
     );
   }
   const result = await prisma.classAndRate.create({

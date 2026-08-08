@@ -28,4 +28,3 @@ app.get("/", (req, res) => {
 app.use(globalErrorHandler_1.default);
 app.use(notFound_1.default);
 exports.default = app;
-//# sourceMappingURL=app.js.map

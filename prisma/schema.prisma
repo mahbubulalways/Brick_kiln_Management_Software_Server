@@ -1,10 +1,10 @@
 generator client {
-  provider = "prisma-client-js"
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 // MODEL
@@ -128,35 +128,41 @@ model Due_Collection {
   updatedAt  DateTime  @updatedAt
 }
 
-model LedgerGroup {
-  id        Int      @id @default(autoincrement())
-  name      String
-  ledgers   Ledger[]
+model Ledger {
+  id     Int    @id @default(autoincrement())
+  name   String
+  serial Int    @unique
+
+  // Parent Group
+  parentId Int?
+  parent   Ledger? @relation("LedgerHierarchy", fields: [parentId], references: [id])
+
+  // Child Ledgers
+  children Ledger[] @relation("LedgerHierarchy")
+
+  payments Payment[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
-model Ledger {
-  id        Int         @id @default(autoincrement())
-  name      String?
-  serial    Int         @unique
-  groupId   Int
-  group     LedgerGroup @relation(fields: [groupId], references: [id])
-  payments  Payment[]
-  createdAt DateTime    @default(now())
-  updatedAt DateTime    @updatedAt
-}
-
 model Payment {
-  id          Int      @id @default(autoincrement())
-  description String
-  type        String
-  quantity    Float
-  totalBil    Float
-  cutting     Float
-  payment     Float
-  ledgerId    Int
-  ledger      Ledger   @relation(fields: [ledgerId], references: [id])
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id Int @id @default(autoincrement())
+
+  // Ledger relation
+  ledgerId Int
+  ledger   Ledger @relation(fields: [ledgerId], references: [id], onDelete: Cascade)
+
+  paymentType       String
+  paymentDetails    String?
+  quantity          Float
+  rate              Float
+  totalBill         Float
+  cutting           Float   @default(0)
+  payment           Float
+  paymentDifference Float   @default(0)
+  document          String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

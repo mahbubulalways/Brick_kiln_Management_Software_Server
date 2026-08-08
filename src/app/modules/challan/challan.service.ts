@@ -1,5 +1,10 @@
-import { Challan, ChallanItem, Customer, Prisma } from "@prisma/client";
-import prisma from "../../../helpers/prisma";
+import {
+  Challan,
+  ChallanItem,
+  Customer,
+  Prisma,
+} from "../../../generated/prisma/client";
+import { prisma } from "../../../helpers/prisma";
 import { AppError } from "../../errors/ApplicationError";
 import { StatusCodes } from "http-status-codes";
 
@@ -8,7 +13,7 @@ const createInvoiceService = async (
   createdBy: string,
   customer: Customer,
   invoiceItems: ChallanItem[],
-  invoice: Challan
+  invoice: Challan,
 ) => {
   const isSerialExist = await prisma.challan.findFirst({
     where: {
@@ -19,7 +24,7 @@ const createInvoiceService = async (
   if (isSerialExist) {
     throw new AppError(
       StatusCodes.CONFLICT,
-      "এই সিরিয়াল নম্বর ইতিমধ্যেই বিদ্যমান।"
+      "এই সিরিয়াল নম্বর ইতিমধ্যেই বিদ্যমান।",
     );
   }
   const result = await prisma.$transaction(
@@ -80,7 +85,7 @@ const createInvoiceService = async (
         data: invokeInvoiceId,
       });
       return newInvoice;
-    }
+    },
   );
   return result;
 };
@@ -148,7 +153,7 @@ const getSingleInvoiceItemsService = async (id: number, query: string) => {
 const updateInvoiceController = async (
   invoiceId: number,
   invoice: Challan,
-  items: ChallanItem[]
+  items: ChallanItem[],
 ) => {
   const result = await prisma.$transaction(
     async (tx: Prisma.TransactionClient) => {
@@ -186,8 +191,8 @@ const updateInvoiceController = async (
               price: Number(item.price),
               deliveryDate: invoice.deliveryDate,
             },
-          })
-        )
+          }),
+        ),
       );
 
       // CREATE NEW INVOICE AFTER UPDATE IF THERE ANY NEW ITEM ADDED
@@ -207,7 +212,7 @@ const updateInvoiceController = async (
         });
       }
       return updateInvoice;
-    }
+    },
   );
   return result;
 };
@@ -238,7 +243,7 @@ const deleteInvoiceService = async (invoiceId: number) => {
 // GET ITEMS WITH INVOICE
 const getItemsWithInvoiceService = async (
   startDate?: string,
-  endDate?: string
+  endDate?: string,
 ) => {
   const whereCondition: any = {
     isDeleted: false,
@@ -295,7 +300,7 @@ const getItemsWithInvoiceService = async (
 // UPDATE INVOICE DELIVERY
 const updateInvoiceDeliveryDateService = async (
   id: number,
-  updateDate: string
+  updateDate: string,
 ) => {
   const result = await prisma.challan.update({
     data: {

@@ -12,4 +12,3 @@ router.get(api_endpoints_1.API_ENDPOINTS.DUE_COLLECTION.GET_CUSTOMER_DUE, due_co
 router.get(api_endpoints_1.API_ENDPOINTS.DUE_COLLECTION.GET_SINGLE, due_collection_controller_1.DueCollectionController.getSingleDueCollectionController);
 router.patch(api_endpoints_1.API_ENDPOINTS.DUE_COLLECTION.UPDATE_DUE_COLLECTION, due_collection_controller_1.DueCollectionController.updateDueCollectionController);
 exports.default = router;
-//# sourceMappingURL=due_collection.route.js.map

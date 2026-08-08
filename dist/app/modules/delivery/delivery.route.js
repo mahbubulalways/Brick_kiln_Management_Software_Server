@@ -11,4 +11,3 @@ router.get(api_endpoints_1.API_ENDPOINTS.DELIVERY.ALL_DELIVERY_LIST, delivery_co
 router.get(api_endpoints_1.API_ENDPOINTS.DELIVERY.TODAYS_DELIVERY, delivery_controller_1.DeliveryController.getTodaysDeliveryThatDoneController);
 router.get(api_endpoints_1.API_ENDPOINTS.DELIVERY.GET_SINGLE_DELIVERY, delivery_controller_1.DeliveryController.getSingleDeliveryController);
 exports.default = router;
-//# sourceMappingURL=delivery.route.js.map

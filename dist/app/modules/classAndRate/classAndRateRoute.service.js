@@ -1,14 +1,11 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ClassAndRateService = void 0;
-const prisma_1 = __importDefault(require("../../../helpers/prisma"));
+const prisma_1 = require("../../../helpers/prisma");
 const ApplicationError_1 = require("../../errors/ApplicationError");
 const http_status_codes_1 = require("http-status-codes");
 const createClassAndRateService = async (payload) => {
-    const isExist = await prisma_1.default.classAndRate.findFirst({
+    const isExist = await prisma_1.prisma.classAndRate.findFirst({
         where: {
             className: payload.className,
             // classType: payload.classType,
@@ -17,24 +14,24 @@ const createClassAndRateService = async (payload) => {
     if (isExist) {
         throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.CONFLICT, "এই শ্রেণী ও রেট ইতিমধ্যে বিদ্যমান");
     }
-    const result = await prisma_1.default.classAndRate.create({
+    const result = await prisma_1.prisma.classAndRate.create({
         data: payload,
     });
     return result;
 };
 // GET ALL CLASS AND RATE
 const getClassAndRateService = async () => {
-    const result = await prisma_1.default.classAndRate.findMany();
+    const result = await prisma_1.prisma.classAndRate.findMany();
     return result;
 };
 // GET SINGLE CLASS AND RATE
 const getSingleClassAndRateService = async (id) => {
-    const result = await prisma_1.default.classAndRate.findFirst({ where: { id } });
+    const result = await prisma_1.prisma.classAndRate.findFirst({ where: { id } });
     return result;
 };
 // GET SINGLE CLASS AND RATE
 const updateClassAndRateService = async (id, data) => {
-    const result = await prisma_1.default.classAndRate.update({
+    const result = await prisma_1.prisma.classAndRate.update({
         data: data,
         where: { id },
     });
@@ -46,4 +43,3 @@ exports.ClassAndRateService = {
     getSingleClassAndRateService,
     updateClassAndRateService,
 };
-//# sourceMappingURL=classAndRateRoute.service.js.map

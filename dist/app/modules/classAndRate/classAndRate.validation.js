@@ -11,4 +11,3 @@ exports.CLASS_AND_RATE_VALIDATION = zod_1.z.object({
         .min(1, "Class name cannot be empty"),
     rate: zod_1.z.number({ error: "Rate is required" }),
 });
-//# sourceMappingURL=classAndRate.validation.js.map

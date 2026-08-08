@@ -32,4 +32,3 @@ const loginUserToSystemController = (0, catchAsync_1.default)(async (req, res) =
     }
 });
 exports.AuthController = { loginUserToSystemController };
-//# sourceMappingURL=auth.controller.js.map

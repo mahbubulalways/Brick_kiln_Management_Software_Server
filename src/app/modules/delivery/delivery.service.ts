@@ -1,8 +1,8 @@
-import { Delivery, Prisma } from "@prisma/client";
-import prisma from "../../../helpers/prisma";
 import { TDelivery } from "./deliveryinterface";
 import { AppError } from "../../errors/ApplicationError";
 import { StatusCodes } from "http-status-codes";
+import { prisma } from "../../../helpers/prisma";
+import { Prisma } from "../../../generated/prisma/client";
 
 const getNextDeliveryNo = async () => {
   const result = await prisma.delivery.findFirst({
@@ -169,7 +169,7 @@ const createDeliveryService = async (payload: TDelivery) => {
       });
 
       return createDelivery;
-    }
+    },
   );
   return result;
 };
@@ -207,7 +207,7 @@ const getTodaysDeliveryThatDone = async (date: string) => {
 
 const getAllDeliveryListService = async (
   startDate?: string,
-  endDate?: string
+  endDate?: string,
 ) => {
   const dateFilter =
     startDate && endDate

@@ -10,7 +10,6 @@ const VALIDATE_REQUEST = (payload: ZodObject) => {
       throw new AppError(StatusCodes.BAD_REQUEST, "Credentials are required.");
     }
     try {
-      await payload.parseAsync(body);
       next();
     } catch (error) {
       next(error);

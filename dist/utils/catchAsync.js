@@ -11,4 +11,3 @@ const catchAsync = (fn) => {
     };
 };
 exports.default = catchAsync;
-//# sourceMappingURL=catchAsync.js.map

@@ -1,7 +1,7 @@
-import { Customer } from "@prisma/client";
-import prisma from "../../../helpers/prisma";
 import { StatusCodes } from "http-status-codes";
 import { AppError } from "../../errors/ApplicationError";
+import { Customer } from "../../../generated/prisma/client";
+import { prisma } from "../../../helpers/prisma";
 
 const createCustomer = async (payload: Customer) => {
   const isExist = await prisma.customer.findFirst({

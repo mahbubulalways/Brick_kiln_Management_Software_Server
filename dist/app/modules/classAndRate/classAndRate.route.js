@@ -17,4 +17,3 @@ router.get(api_endpoints_1.API_ENDPOINTS.CLASS_AND_RATE.GET_ALL_ClASS, classAndR
 router.get(api_endpoints_1.API_ENDPOINTS.CLASS_AND_RATE.GET_CLASS_BY_ID, classAndRateRoute_controller_1.ClassAndRateController.getSingleClassAndRateController);
 router.patch(api_endpoints_1.API_ENDPOINTS.CLASS_AND_RATE.UPDATE_CLASS_BY_ID, classAndRateRoute_controller_1.ClassAndRateController.updateClassAndRateController);
 exports.default = router;
-//# sourceMappingURL=classAndRate.route.js.map

@@ -31,4 +31,3 @@ process.on("uncaughtException", (err) => {
     console.error("😈 uncaughtException detected, shutting down...", err);
     process.exit(1);
 });
-//# sourceMappingURL=index.js.map

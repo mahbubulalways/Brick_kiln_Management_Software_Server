@@ -78,4 +78,3 @@ exports.ClassAndRateController = {
     getSingleClassAndRateController,
     updateClassAndRateController,
 };
-//# sourceMappingURL=classAndRateRoute.controller.js.map

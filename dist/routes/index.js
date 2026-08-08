@@ -19,4 +19,3 @@ const applicationRoutes = [
 ];
 applicationRoutes.forEach((route) => router.use(route.path, route.route));
 exports.default = router;
-//# sourceMappingURL=index.js.map

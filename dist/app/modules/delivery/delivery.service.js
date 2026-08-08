@@ -1,14 +1,11 @@
 "use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.DeliveryService = void 0;
-const prisma_1 = __importDefault(require("../../../helpers/prisma"));
 const ApplicationError_1 = require("../../errors/ApplicationError");
 const http_status_codes_1 = require("http-status-codes");
+const prisma_1 = require("../../../helpers/prisma");
 const getNextDeliveryNo = async () => {
-    const result = await prisma_1.default.delivery.findFirst({
+    const result = await prisma_1.prisma.delivery.findFirst({
         orderBy: {
             deliveryNo: "desc",
         },
@@ -24,7 +21,7 @@ const getDeliveryThatGoTodayService = async (date) => {
     const startOfDay = new Date(parsedDate.setHours(0, 0, 0, 0));
     const endOfDay = new Date(parsedDate.setHours(23, 59, 59, 999));
     // Fetch deliveries within the day
-    const result = await prisma_1.default.challan.findMany({
+    const result = await prisma_1.prisma.challan.findMany({
         where: {
             isDeleted: false,
         },
@@ -50,7 +47,7 @@ const getDeliveryThatGoTodayService = async (date) => {
 };
 // CREATE DELIVERY
 const createDeliveryService = async (payload) => {
-    const isDeliveryNoExist = await prisma_1.default.delivery.findFirst({
+    const isDeliveryNoExist = await prisma_1.prisma.delivery.findFirst({
         where: {
             deliveryNo: Number(payload?.deliveryNo),
         },
@@ -115,7 +112,7 @@ const createDeliveryService = async (payload) => {
     //     }
     //   );
     // }
-    const result = await prisma_1.default.$transaction(async (tx) => {
+    const result = await prisma_1.prisma.$transaction(async (tx) => {
         const createDelivery = await tx.delivery.create({
             data: {
                 deliveryDate: data.deliveryDate,
@@ -163,7 +160,7 @@ const getTodaysDeliveryThatDone = async (date) => {
     // Create start and end of day boundaries
     const startOfDay = new Date(parsedDate.setHours(0, 0, 0, 0));
     const endOfDay = new Date(parsedDate.setHours(23, 59, 59, 999));
-    const result = await prisma_1.default.delivery.findMany({
+    const result = await prisma_1.prisma.delivery.findMany({
         where: {
             deliveryDate: {
                 gte: startOfDay,
@@ -192,7 +189,7 @@ const getAllDeliveryListService = async (startDate, endDate) => {
             },
         }
         : {};
-    const result = await prisma_1.default.challan.findMany({
+    const result = await prisma_1.prisma.challan.findMany({
         where: {
             isDeleted: false,
         },
@@ -217,7 +214,7 @@ const getAllDeliveryListService = async (startDate, endDate) => {
     return result;
 };
 const getSingleDeliveryService = async (id) => {
-    const result = await prisma_1.default.delivery.findFirst({ where: { id } });
+    const result = await prisma_1.prisma.delivery.findFirst({ where: { id } });
     return result;
 };
 exports.DeliveryService = {
@@ -228,4 +225,3 @@ exports.DeliveryService = {
     getAllDeliveryListService,
     getSingleDeliveryService,
 };
-//# sourceMappingURL=delivery.service.js.map

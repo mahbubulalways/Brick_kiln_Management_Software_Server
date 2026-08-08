@@ -1,14 +1,15 @@
 import { StatusCodes } from "http-status-codes";
 import { IAuth } from "./auth.interface";
 import { Config } from "../../../config";
-import prisma from "../../../helpers/prisma";
 import { AppError } from "../../errors/ApplicationError";
 import { bcryptHelper } from "../../../helpers/bcryptHelper";
 import { jwtHelper } from "./auth.utils";
+import { prisma } from "../../../helpers/prisma";
 
 const loginUserToSystemService = async (payload: IAuth) => {
-  // const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(payload.auth);
-  //  where: isEmail ? { email: payload.auth } : { phone: payload.auth },
+  // const res = await prisma.user.create({
+  //   data: { email: "admin@gmail.com", password: "12345678" },
+  // });
 
   const user = await prisma.user.findFirst({
     where: { email: payload.email },
@@ -55,8 +56,3 @@ const loginUserToSystemService = async (payload: IAuth) => {
 };
 
 export const AuthService = { loginUserToSystemService };
-// const res = await prisma.user.create({
-//   data: { email: "admin@gmail.com", password: "12345678" },
-// });
-
-// console.log(res);

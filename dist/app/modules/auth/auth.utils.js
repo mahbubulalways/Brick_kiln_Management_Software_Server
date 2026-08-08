@@ -24,4 +24,3 @@ exports.jwtHelper = {
     generateToken,
     verifyToken,
 };
-//# sourceMappingURL=auth.utils.js.map
