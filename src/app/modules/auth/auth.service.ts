@@ -7,13 +7,14 @@ import { jwtHelper } from "./auth.utils";
 import { prisma } from "../../../helpers/prisma";
 
 const loginUserToSystemService = async (payload: IAuth) => {
-  // const res = await prisma.user.create({
-  //   data: { email: "admin@gmail.com", password: "12345678" },
-  // });
+  const res = await prisma.user.create({
+    data: { email: "admin@gmail.com", password: "12345678" },
+  });
 
   const user = await prisma.user.findFirst({
     where: { email: payload.email },
   });
+  console.log(user);
   if (!user) {
     throw new AppError(
       StatusCodes.NOT_FOUND,

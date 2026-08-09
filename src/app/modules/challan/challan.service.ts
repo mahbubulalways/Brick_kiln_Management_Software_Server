@@ -138,6 +138,7 @@ const getAllInvoiceService = async (query: TQuery) => {
 
     prisma.challan.count({ where })
   ])
+
   const meta = createMetaConfig({
     limit: limit,
     page: page,
@@ -154,7 +155,6 @@ const getAllInvoiceService = async (query: TQuery) => {
 
 // GET ADVANCE INVOICE
 const getAllAdvanceInvoiceService = async (query: TQuery) => {
-  console.log(query);
   const { limit, page, skip } = paginationHelper(query.page, query.limit);
   const where: Prisma.ChallanWhereInput = { isDeleted: false,chalanType:"অগ্রিম চালান" };
   if (query.search?.trim()) {
@@ -197,7 +197,6 @@ const getAllAdvanceInvoiceService = async (query: TQuery) => {
     totalData: total,
   });
 
-  console.log(result);
   return {
     meta,
     data: result,

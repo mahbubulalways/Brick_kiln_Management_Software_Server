@@ -7,12 +7,18 @@ import { StatusCodes } from "http-status-codes";
 
 const getNextDeliveryNoController = catchAsync(async (req, res) => {
   const result = await DeliveryService.getNextDeliveryNo();
-  sendResponse(res, {
-    message: "সফলভাবে পাওয়া গেছে।",
-    statusCode: StatusCodes.OK,
-    success: true,
-    data: result,
-  });
+  if (!result) {
+    throw new AppError(StatusCodes.NOT_FOUND, "কোনো ডেলিভারি পাওয়া যায়নি।")
+
+  } else {
+    sendResponse(res, {
+      message: "সফলভাবে পাওয়া গেছে।",
+      statusCode: StatusCodes.OK,
+      success: true,
+      data: result,
+    });
+  }
+
 });
 
 // GET DELIVERY THAT GO TODAY

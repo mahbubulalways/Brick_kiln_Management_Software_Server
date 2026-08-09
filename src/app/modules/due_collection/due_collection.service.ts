@@ -1,5 +1,9 @@
 import { Due_Collection, Prisma } from "../../../generated/prisma/client";
+import { paginationHelper } from "../../../helpers/paginationHelper";
 import { prisma } from "../../../helpers/prisma";
+import { TQuery } from "../../../interface/query";
+import { createMetaConfig } from "../../../utils/createMetaConfig";
+import { getDateRangeDbSearch } from "../../../utils/getDateRangeDbSearch";
 
 const getDueOfCustomerService = async (customerId: number) => {
   const result = await prisma.customer.findFirst({
@@ -64,38 +68,53 @@ const todayPayDueService = async (date: string) => {
 };
 
 // GET TODAYS DUE PAYMENT
-const getTodaysDuePaidService = async (date: string) => {
-  const parsedDate = new Date(date);
-  const startOfDay = new Date(parsedDate.setHours(0, 0, 0, 0));
-  const endOfDay = new Date(parsedDate.setHours(23, 59, 59, 999));
+const getTodaysDuePaidService = async (query: TQuery) => {
+  const pagination = paginationHelper(query.page, query.limit);
+  const where: Prisma.Due_CollectionWhereInput = { isDeleted: false };
+  if (query.date) {
+    const dateRange = getDateRangeDbSearch(query.date);
+    if (dateRange) {
+      where.createdAt = dateRange;
+    }
+  }
+  const [result, total] = await prisma.$transaction([
+    prisma.due_Collection.findMany({
+      where,
+      include: {
+        customer: true,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+      skip: pagination.skip,
+      take: pagination.limit
+    }),
+    prisma.due_Collection.count({ where })
 
-  const result = await prisma.due_Collection.findMany({
-    where: {
-      createdAt: { gte: startOfDay, lte: endOfDay },
-      isDeleted: false,
-    },
-    include: {
-      customer: true,
-    },
-    orderBy: {
-      createdAt: "desc",
-    },
+  ]);
+  const meta = createMetaConfig({
+    limit: pagination.limit,
+    page: pagination.page,
+    totalData: total,
   });
 
-  return result;
+  return {
+    meta,
+    data: result,
+  };
 };
 
 // GET ALL DUE
-const getAllDueListService = async (startDate?: string, endDate?: string) => {
+const getAllDueListService = async (startDate, endDate) => {
   const dateFilter =
     startDate && endDate
       ? {
-          nextPaymentDate: {
-            gte: startDate,
-            lte: endDate,
-          },
-          isDeleted: false,
-        }
+        nextPaymentDate: {
+          gte: startDate,
+          lte: endDate,
+        },
+        isDeleted: false,
+      }
       : { isDeleted: false };
 
   const result = await prisma.customer.findMany({

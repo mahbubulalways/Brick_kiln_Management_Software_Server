@@ -60,12 +60,14 @@ const getAllInvoiceController = catchAsync(async (req, res) => {
     });
 
   }
-  sendResponse(res, {
-    message: "চ্যালান সফলভাবে পাওয়া গেছে।",
-    statusCode: StatusCodes.OK,
-    success: true,
-    data: result,
-  });
+  else {
+    sendResponse(res, {
+      message: "চ্যালান সফলভাবে পাওয়া গেছে।",
+      statusCode: StatusCodes.OK,
+      success: true,
+      data: result,
+    });
+  }
 });
 
 // GET ADVANVCE INVOICE
@@ -86,35 +88,38 @@ const getAllAdvanceInvoiceController = catchAsync(async (req, res) => {
     });
 
   }
-  sendResponse(res, {
-    message: "চ্যালান সফলভাবে পাওয়া গেছে।",
-    statusCode: StatusCodes.OK,
-    success: true,
-    data: result,
-  });
+  else {
+    sendResponse(res, {
+      message: "চ্যালান সফলভাবে পাওয়া গেছে।",
+      statusCode: StatusCodes.OK,
+      success: true,
+      data: result,
+    });
+  }
 });
 
 //  GET SINGLE INVOICE
 const getSingleInvoiceController = catchAsync(async (req, res) => {
   const id = req?.params?.id;
   const result = await InvoiceService.getSingleInvoiceService(Number(id));
-  // if (!result?.id) {
-  //   throw new AppError(StatusCodes.BAD_REQUEST, "চ্যালান পাওয়া যায়নি।");
-  // }
-  sendResponse(res, {
-    message: !result?.id
-      ? "চ্যালান পাওয়া যায়নি।"
-      : "চ্যালান সফলভাবে পাওয়া গেছে।",
-    statusCode: StatusCodes.OK,
-    success: true,
-    data: result,
-  });
+  if (!result?.id) {
+    throw new AppError(StatusCodes.BAD_REQUEST, "চ্যালান পাওয়া যায়নি।");
+  }
+  else {
+    sendResponse(res, {
+      message: !result?.id
+        ? "চ্যালান পাওয়া যায়নি।"
+        : "চ্যালান সফলভাবে পাওয়া গেছে।",
+      statusCode: StatusCodes.OK,
+      success: true,
+      data: result,
+    });
+  }
 });
 
 //  GET SINGLE INVOICE ITEMS
 const getSingleInvoiceItemsController = catchAsync(async (req, res) => {
   const id = req?.params?.id;
-  console.log(id);
   const query = req.query;
 
   const result = await InvoiceService.getSingleInvoiceItemsService(
@@ -122,14 +127,21 @@ const getSingleInvoiceItemsController = catchAsync(async (req, res) => {
     query?.ids as string
   );
   if (!result?.length) {
-    throw new AppError(StatusCodes.BAD_REQUEST, "চ্যালান পাওয়া যায়নি।");
+    sendResponse(res, {
+      message: "চ্যালান পাওয়া যায়নি।",
+      statusCode: StatusCodes.OK,
+      success: true,
+      data: {},
+    });
   }
-  sendResponse(res, {
-    message: "চ্যালান সফলভাবে পাওয়া গেছে।",
-    statusCode: StatusCodes.OK,
-    success: true,
-    data: result,
-  });
+  else {
+    sendResponse(res, {
+      message: "চ্যালান সফলভাবে পাওয়া গেছে।",
+      statusCode: StatusCodes.OK,
+      success: true,
+      data: result,
+    });
+  }
 });
 
 // UPDATE INVOICE
@@ -149,12 +161,14 @@ const updateInvoiceController = catchAsync(async (req, res) => {
     );
   }
 
-  sendResponse(res, {
-    message: "চ্যালান সফলভাবে হালনাগাদ হয়েছে।",
-    statusCode: StatusCodes.OK,
-    success: true,
-    data: result,
-  });
+  else {
+    sendResponse(res, {
+      message: "চ্যালান সফলভাবে হালনাগাদ হয়েছে।",
+      statusCode: StatusCodes.OK,
+      success: true,
+      data: result,
+    });
+  }
 });
 
 // DELETE INVOICE
@@ -166,14 +180,16 @@ const deleteInvoiceController = catchAsync(async (req, res) => {
       StatusCodes.BAD_REQUEST,
       "চ্যালান মুছে ফেলতে ব্যর্থ হয়েছে।"
     );
+  } else {
+    sendResponse(res, {
+      message: "চ্যালান সফলভাবে মুছে ফেলা হয়েছে।",
+      statusCode: StatusCodes.OK,
+      success: true,
+      data: result,
+    });
   }
 
-  sendResponse(res, {
-    message: "চ্যালান সফলভাবে মুছে ফেলা হয়েছে।",
-    statusCode: StatusCodes.OK,
-    success: true,
-    data: result,
-  });
+
 });
 
 // GET ITEMS WITH INVOICE
@@ -185,14 +201,16 @@ const getItemsWithInvoiceController = catchAsync(async (req, res) => {
   );
   if (!result?.length) {
     throw new AppError(StatusCodes.BAD_REQUEST, "চ্যালান পাওয়া যায়নি।");
+  } else {
+    sendResponse(res, {
+      message: " চ্যালান সফলভাবে পাওয়া গেছে।",
+      statusCode: StatusCodes.OK,
+      success: true,
+      data: result,
+    });
   }
 
-  sendResponse(res, {
-    message: " চ্যালান সফলভাবে পাওয়া গেছে।",
-    statusCode: StatusCodes.OK,
-    success: true,
-    data: result,
-  });
+
 });
 
 // CHANGE INVOICE DELIVERY DATE
@@ -208,14 +226,13 @@ const updateInvoiceDeliveryDateController = catchAsync(async (req, res) => {
       StatusCodes.BAD_REQUEST,
       "চ্যালান আপডেট করতে ব্যর্থ হয়েছে।"
     );
-  }
-
-  sendResponse(res, {
+  }else{
+    sendResponse(res, {
     message: " চ্যালান সফলভাবে আপডেট হয়েছে",
     statusCode: StatusCodes.OK,
     success: true,
-    data: result,
   });
+  }
 });
 
 // CHANGE INVOICE ITEM DELIVERY DATE
@@ -232,13 +249,14 @@ const updateInvoiceItemDeliveryDateController = catchAsync(async (req, res) => {
       "চ্যালান আপডেট করতে ব্যর্থ হয়েছে।"
     );
   }
-
+else{
+  
   sendResponse(res, {
     message: " চ্যালান সফলভাবে আপডেট হয়েছে",
     statusCode: StatusCodes.OK,
     success: true,
-    data: result,
   });
+}
 });
 
 export const InvoiceController = {
