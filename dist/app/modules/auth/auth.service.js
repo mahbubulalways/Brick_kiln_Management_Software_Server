@@ -13,7 +13,6 @@ const loginUserToSystemService = async (payload) => {
     const user = await prisma_1.prisma.user.findFirst({
         where: { email: payload.email },
     });
-    console.log(user);
     if (!user) {
         throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.NOT_FOUND, "No account found with the provided credentials.");
     }

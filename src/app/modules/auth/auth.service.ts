@@ -14,7 +14,6 @@ const loginUserToSystemService = async (payload: IAuth) => {
   const user = await prisma.user.findFirst({
     where: { email: payload.email },
   });
-  console.log(user);
   if (!user) {
     throw new AppError(
       StatusCodes.NOT_FOUND,
