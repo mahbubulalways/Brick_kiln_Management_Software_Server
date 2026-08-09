@@ -1,14 +1,12 @@
 generator client {
-  provider     = "prisma-client"
-  output       = "../src/generated/prisma"
-  moduleFormat = "cjs"
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"
 }
 
-// MODEL
 model User {
   id        Int      @id @default(autoincrement())
   email     String   @default("admin@gmail.com")
@@ -29,7 +27,6 @@ model ClassAndRate {
   @@map("classAndRates")
 }
 
-// Challan Model
 model Challan {
   id             Int           @id @default(autoincrement())
   serial         Int
@@ -45,12 +42,12 @@ model Challan {
   totalPrice     Float
   cash           Float?
   due            Float?
-  items          ChallanItem[] @relation("ChallanItems")
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
   customerId     Int
-  customer       Customer      @relation(fields: [customerId], references: [id])
   isDeleted      Boolean       @default(false)
+  items          ChallanItem[] @relation("ChallanItems")
+  customer       Customer      @relation(fields: [customerId], references: [id])
   deliveries     Delivery[]
 
   @@map("chllans")
@@ -65,15 +62,13 @@ model ChallanItem {
   price        Float
   challanId    Int
   deliveryDate DateTime
-  challan      Challan  @relation("ChallanItems", fields: [challanId], references: [id])
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
   isDeleted    Boolean  @default(false)
+  challan      Challan  @relation("ChallanItems", fields: [challanId], references: [id])
 
   @@map("challanItems")
 }
-
-// Customer
 
 model Customer {
   id              Int              @id @default(autoincrement())
@@ -83,14 +78,12 @@ model Customer {
   totalPurchased  Float            @default(0)
   totalPaid       Float            @default(0)
   nextPaymentDate DateTime?
-  challans        Challan[]
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
   isDeleted       Boolean          @default(false)
   dueCollections  Due_Collection[]
+  challans        Challan[]
 }
-
-// DELIVERY SCHEMA 
 
 model Delivery {
   id                Int       @id @default(autoincrement())
@@ -106,14 +99,12 @@ model Delivery {
   carNo             String?
   carRent           Float?
   invoiceId         Int
-  invoice           Challan   @relation(fields: [invoiceId], references: [id])
   isDeleted         Boolean   @default(false)
   createdAt         DateTime  @default(now())
+  invoice           Challan   @relation(fields: [invoiceId], references: [id])
 
   @@map("deliveries")
 }
-
-// due Collection
 
 model Due_Collection {
   id         Int       @id @default(autoincrement())
@@ -122,50 +113,40 @@ model Due_Collection {
   newDue     Float
   nextDate   DateTime?
   customerId Int
-  customer   Customer  @relation(fields: [customerId], references: [id])
   season     String?
   isDeleted  Boolean   @default(false)
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
+  customer   Customer  @relation(fields: [customerId], references: [id])
 }
 
 model Ledger {
-  id     Int    @id @default(autoincrement())
-  name   String
-  serial Int    @unique
-
-  // Parent Group
-  parentId Int?
-  parent   Ledger? @relation("LedgerHierarchy", fields: [parentId], references: [id])
-
-  // Child Ledgers
-  children Ledger[] @relation("LedgerHierarchy")
-
-  payments Payment[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id        Int       @id @default(autoincrement())
+  name      String
+  serial    Int       @unique
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  parentId  Int?
+  parent    Ledger?   @relation("LedgerHierarchy", fields: [parentId], references: [id])
+  children  Ledger[]  @relation("LedgerHierarchy")
+  payments  Payment[]
 }
 
 model Payment {
-  id Int @id @default(autoincrement())
-
-  // Ledger relation
-  ledgerId Int
-  ledger   Ledger @relation(fields: [ledgerId], references: [id], onDelete: Cascade)
-
-  paymentType       String
-  paymentDetails    String?
+  id                Int      @id @default(autoincrement())
   quantity          Float
+  cutting           Float    @default(0)
+  payment           Float
+  ledgerId          Int
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  document          String?
+  paymentDetails    String?
+  paymentDifference Float    @default(0)
+  paymentType       String
   rate              Float
   totalBill         Float
-  cutting           Float   @default(0)
-  payment           Float
-  paymentDifference Float   @default(0)
-  document          String?
-
-  paymentDate DateTime @default(now())
-  isDeleted   Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  isDeleted         Boolean  @default(false)
+  paymentDate       DateTime @default(now())
+  ledger            Ledger   @relation(fields: [ledgerId], references: [id], onDelete: Cascade)
 }
