@@ -48,7 +48,7 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.NullsOrder = exports.QueryMode = exports.SortOrder = exports.PaymentScalarFieldEnum = exports.LedgerScalarFieldEnum = exports.LedgerGroupScalarFieldEnum = exports.Due_CollectionScalarFieldEnum = exports.DeliveryScalarFieldEnum = exports.CustomerScalarFieldEnum = exports.ChallanItemScalarFieldEnum = exports.ChallanScalarFieldEnum = exports.ClassAndRateScalarFieldEnum = exports.UserScalarFieldEnum = exports.TransactionIsolationLevel = exports.ModelName = exports.AnyNull = exports.JsonNull = exports.DbNull = exports.NullTypes = exports.Decimal = void 0;
+exports.NullsOrder = exports.QueryMode = exports.SortOrder = exports.PaymentScalarFieldEnum = exports.LedgerScalarFieldEnum = exports.Due_CollectionScalarFieldEnum = exports.DeliveryScalarFieldEnum = exports.CustomerScalarFieldEnum = exports.ChallanItemScalarFieldEnum = exports.ChallanScalarFieldEnum = exports.ClassAndRateScalarFieldEnum = exports.UserScalarFieldEnum = exports.TransactionIsolationLevel = exports.ModelName = exports.AnyNull = exports.JsonNull = exports.DbNull = exports.NullTypes = exports.Decimal = void 0;
 const runtime = __importStar(require("@prisma/client/runtime/index-browser"));
 exports.Decimal = runtime.Decimal;
 exports.NullTypes = {
@@ -82,7 +82,6 @@ exports.ModelName = {
     Customer: 'Customer',
     Delivery: 'Delivery',
     Due_Collection: 'Due_Collection',
-    LedgerGroup: 'LedgerGroup',
     Ledger: 'Ledger',
     Payment: 'Payment'
 };
@@ -185,29 +184,28 @@ exports.Due_CollectionScalarFieldEnum = {
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
 };
-exports.LedgerGroupScalarFieldEnum = {
-    id: 'id',
-    name: 'name',
-    createdAt: 'createdAt',
-    updatedAt: 'updatedAt'
-};
 exports.LedgerScalarFieldEnum = {
     id: 'id',
     name: 'name',
     serial: 'serial',
-    groupId: 'groupId',
+    parentId: 'parentId',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
 };
 exports.PaymentScalarFieldEnum = {
     id: 'id',
-    description: 'description',
-    type: 'type',
+    ledgerId: 'ledgerId',
+    paymentType: 'paymentType',
+    paymentDetails: 'paymentDetails',
     quantity: 'quantity',
-    totalBil: 'totalBil',
+    rate: 'rate',
+    totalBill: 'totalBill',
     cutting: 'cutting',
     payment: 'payment',
-    ledgerId: 'ledgerId',
+    paymentDifference: 'paymentDifference',
+    document: 'document',
+    paymentDate: 'paymentDate',
+    isDeleted: 'isDeleted',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
 };

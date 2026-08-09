@@ -9,6 +9,8 @@ const challan_route_1 = __importDefault(require("../app/modules/challan/challan.
 const delivery_route_1 = __importDefault(require("../app/modules/delivery/delivery.route"));
 const due_collection_route_1 = __importDefault(require("../app/modules/due_collection/due_collection.route"));
 const auth_route_1 = __importDefault(require("../app/modules/auth/auth.route"));
+const ledger_route_1 = __importDefault(require("../app/modules/ledger/ledger.route"));
+const payment_route_1 = __importDefault(require("../app/modules/payment/payment.route"));
 const router = (0, express_1.Router)();
 const applicationRoutes = [
     { path: "/class", route: classAndRate_route_1.default },
@@ -16,6 +18,8 @@ const applicationRoutes = [
     { path: "/delivery", route: delivery_route_1.default },
     { path: "/due", route: due_collection_route_1.default },
     { path: "/auth", route: auth_route_1.default },
+    { path: "/ledger", route: ledger_route_1.default },
+    { path: "/payment", route: payment_route_1.default },
 ];
 applicationRoutes.forEach((route) => router.use(route.path, route.route));
 exports.default = router;

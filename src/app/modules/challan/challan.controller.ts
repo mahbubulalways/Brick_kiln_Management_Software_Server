@@ -3,7 +3,9 @@ import catchAsync from "../../../utils/catchAsync";
 import { AppError } from "../../errors/ApplicationError";
 import { InvoiceService } from "./challan.service";
 import { sendResponse } from "../../../utils/sendResponse";
-import prisma from "../../../helpers/prisma";
+import { prisma } from "../../../helpers/prisma";
+import { parseListQuery } from "../../../utils/parseListQuery";
+
 
 // GET INVOICE SERIAL
 const getInvoiceSerial = catchAsync(async (req, res) => {
@@ -42,9 +44,47 @@ const createInvoiceController = catchAsync(async (req, res) => {
 
 // GET AL INVOICE WITH CUSTOMER NAME AND ADDRESS
 const getAllInvoiceController = catchAsync(async (req, res) => {
-  const result = await InvoiceService.getAllInvoiceService();
-  if (!result?.length) {
-    throw new AppError(StatusCodes.BAD_REQUEST, "চ্যালান পাওয়া যায়নি।");
+  const { limit, page, search, date } = await parseListQuery(req.query);
+  const result = await InvoiceService.getAllInvoiceService({
+    limit,
+    page,
+    search,
+    date
+  });
+  if (!result?.data.length) {
+    sendResponse(res, {
+      message: "চ্যালান পাওয়া যায়নি।",
+      statusCode: StatusCodes.OK,
+      success: true,
+      data: [],
+    });
+
+  }
+  sendResponse(res, {
+    message: "চ্যালান সফলভাবে পাওয়া গেছে।",
+    statusCode: StatusCodes.OK,
+    success: true,
+    data: result,
+  });
+});
+
+// GET ADVANVCE INVOICE
+const getAllAdvanceInvoiceController = catchAsync(async (req, res) => {
+  const { limit, page, search, date } = await parseListQuery(req.query);
+  const result = await InvoiceService.getAllAdvanceInvoiceService({
+    limit,
+    page,
+    search,
+    date
+  });
+  if (!result?.data.length) {
+    sendResponse(res, {
+      message: "চ্যালান পাওয়া যায়নি।",
+      statusCode: StatusCodes.OK,
+      success: true,
+      data: [],
+    });
+
   }
   sendResponse(res, {
     message: "চ্যালান সফলভাবে পাওয়া গেছে।",
@@ -212,4 +252,5 @@ export const InvoiceController = {
   getSingleInvoiceItemsController,
   updateInvoiceDeliveryDateController,
   updateInvoiceItemDeliveryDateController,
+  getAllAdvanceInvoiceController
 };

@@ -1,0 +1,10 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const ledger_controller_1 = require("./ledger.controller");
+const router = (0, express_1.Router)();
+router.get("/count", ledger_controller_1.LedgerController.getLedgerCountController);
+router.get("/options", ledger_controller_1.LedgerController.getLedgerOptionController);
+router.get("/all", ledger_controller_1.LedgerController.getAllLedgerWithController);
+router.post("/create", ledger_controller_1.LedgerController.createLedgerController);
+exports.default = router;

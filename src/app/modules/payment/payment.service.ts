@@ -7,7 +7,6 @@ import { AppError } from "../../errors/ApplicationError";
 import { StatusCodes } from "http-status-codes";
 import { paginationHelper } from "../../../helpers/paginationHelper";
 import { TQuery } from "../../../interface/query";
-import { modifySearch } from "../../../utils/modifySearch";
 import { createMetaConfig } from "../../../utils/createMetaConfig";
 
 const createPaymentService = async (req: Request) => {
@@ -35,25 +34,28 @@ const createPaymentService = async (req: Request) => {
   const result = await prisma.payment.create({ data });
   return result;
 };
-
 // GET ALL PAYMENTS
-const geAllPaymentService = async (query: TQuery) => {
+const getAllPaymentService = async (query: TQuery) => {
   const pagination = paginationHelper(query.page, query.limit);
-  const where: Prisma.PaymentWhereInput = {
-    ledger: query.search
-      ? {
-          is: {
-            name: {
-              contains: query.search,
-              mode: "insensitive",
-            },
-          },
-        }
-      : undefined,
-  };
 
+  const where: Prisma.PaymentWhereInput = {isDeleted:false};
+
+  // Search by ledger name
+  if (query.search?.trim()) {
+    where.ledger = {
+      is: {
+        name: {
+          contains: query.search.trim(),
+          mode: "insensitive",
+        },
+      },
+    };
+  }
+
+  // Filter by date
   if (query.date) {
     const date = new Date(query.date);
+
     if (!isNaN(date.getTime())) {
       const startOfDay = new Date(date);
       startOfDay.setHours(0, 0, 0, 0);
@@ -70,16 +72,26 @@ const geAllPaymentService = async (query: TQuery) => {
 
   const [result, total] = await prisma.$transaction([
     prisma.payment.findMany({
-      where,
+      where: where,
       include: {
-        ledger: { select: { name: true } },
+        ledger: {
+          select: {
+            name: true,
+          },
+        },
       },
       skip: pagination.skip,
       take: pagination.limit,
-      orderBy: { createdAt: "desc" },
+      orderBy: {
+        createdAt: "desc",
+      },
     }),
-    prisma.payment.count({ where: {} }),
+
+    prisma.payment.count({
+      where: where,
+    }),
   ]);
+
   const meta = createMetaConfig({
     limit: pagination.limit,
     page: pagination.page,
@@ -95,6 +107,7 @@ const geAllPaymentService = async (query: TQuery) => {
 // GET PAYMENT REPORT GROUP VIA DATE
 const paymentReportViaGroupService = async () => {
   const result = await prisma.payment.findMany({
+    where:{isDeleted:false},
     include: { ledger: { include: { parent: true } } },
   });
   const groupedPayments = Object.values(
@@ -146,12 +159,106 @@ const paymentReportViaGroupService = async () => {
     ),
   );
 
-  console.log(groupedPayments);
   return groupedPayments;
 };
 
+// GET SINGLE PAYMENT 
+const getSinglePaymentService = async (id: string) => {
+  return prisma.payment.findFirst({ where: { id: Number(id) }, include: { ledger: { select: { name: true } } } })
+}
+
+
+// UPDATE PAYMENT
+const updatePaymentService = async (req: Request) => {
+  const id = Number(req.params.id);
+
+  const file = req.file as IUploadFile | undefined;
+
+  const body = JSON.parse(req.body.data) as IPayment;
+
+  // ============================================
+  // 1. Check existing payment
+  // ============================================
+  const existingPayment = await prisma.payment.findUnique({
+    where: {
+      id,
+    },
+  });
+
+  if (!existingPayment) {
+    throw new AppError(
+      StatusCodes.NOT_FOUND,
+      "পেমেন্ট পাওয়া যায়নি।",
+    );
+  }
+
+  // ============================================
+  // 2. Find ledger
+  // ============================================
+  const ledger = await prisma.ledger.findFirst({
+    where: {
+      name: body.ledger,
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  if (!ledger) {
+    throw new AppError(
+      StatusCodes.NOT_FOUND,
+      "খতিয়ান পাওয়া যায়নি।",
+    );
+  }
+
+  // ============================================
+  // 3. Prepare update data
+  // ============================================
+  const data:any = {
+    ledgerId: ledger.id,
+    paymentType: body.paymentType,
+    paymentDetails: body.paymentDetails,
+    quantity: Number(body.quantity)||0,
+    rate: Number(body.rate)||0,
+    totalBill: Number(body.totalBill)||0,
+    cutting: Number(body.cutting)||0,
+    payment: Number(body.payment)||0,
+    paymentDifference: Number(body.paymentDifference)||0,
+    paymentDate:body.paymentDate
+  };
+
+  // ============================================
+  // 4. New file থাকলে শুধু তখন document update
+  // ============================================
+  if (file?.filename) {
+    data.document = file.filename;
+  }
+
+  // ============================================
+  // 5. Update
+  // ============================================
+  const result = await prisma.payment.update({
+    where: {
+      id,
+    },
+    data,
+  });
+
+  return result;
+};
+
+
+// DELETE PAYMENT 
+const deletePaymentServie =async(id:string)=>{
+  return await prisma.payment.update({where:{id:Number(id)},data:{isDeleted:true}})
+
+}
+
 export const PaymentService = {
   createPaymentService,
-  geAllPaymentService,
+  getAllPaymentService,
   paymentReportViaGroupService,
+  getSinglePaymentService,
+  updatePaymentService,
+  deletePaymentServie
 };

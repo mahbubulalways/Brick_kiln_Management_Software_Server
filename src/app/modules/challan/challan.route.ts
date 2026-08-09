@@ -21,6 +21,13 @@ router.get(
   InvoiceController.getAllInvoiceController
 );
 
+// GET ALL ADVANCE INVOICE
+router.get(
+  API_ENDPOINTS.INVOICE.GET_ADVANCE_INVOICE,
+  InvoiceController.getAllAdvanceInvoiceController
+);
+
+
 // GET ITEMS WITH INVOICE
 router.get(
   API_ENDPOINTS.INVOICE.GET_ITEMS_WITH_INVOICE,

@@ -10,10 +10,24 @@ router.post(
   fileUploader.upload.single("file"),
   PaymentController.createPaymentController,
 );
-
 // GET ALL PAYMENT
 router.get("/all", PaymentController.getAllPaymentController);
 
 // GET PAYMENT REPORT
 router.get("/report/:date", PaymentController.paymentReportViaGroupController);
+
+// GET SINGLE PAYMENT
+router.get("/single/:id",
+  PaymentController.getSinglePaymentController);
+
+router.patch("/update/:id",
+  fileUploader.upload.single("file"),
+  PaymentController.updatePaymentController);
+  
+//  DELETE PAYMENT
+router.patch(
+  "/delete/:id",
+  PaymentController.deletePaymentController
+);
+
 export default router;

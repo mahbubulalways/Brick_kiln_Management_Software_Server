@@ -18,14 +18,14 @@ const createPaymentController = catchAsync(async (req, res) => {
     statusCode: StatusCodes.CREATED,
     success: true,
     message: "পেমেন্ট সফলভাবে তৈরি করা হয়েছে।",
-    data: result,
+ 
   });
 });
 
 // GET ALL PAYMENT PAGINATE AND SEARCH
 const getAllPaymentController = catchAsync(async (req, res) => {
   const { limit, page, search, date } = await parseListQuery(req.query);
-  const result = await PaymentService.geAllPaymentService({
+  const result = await PaymentService.getAllPaymentService({
     limit,
     page,
     search,
@@ -71,8 +71,71 @@ const paymentReportViaGroupController = catchAsync(async (req, res) => {
     data: result,
   });
 });
+
+
+// GET SINGLE PAYMENT
+const getSinglePaymentController = catchAsync(async (req, res) => {
+  const id = req.params.id
+  const result = await PaymentService.getSinglePaymentService(id);
+  if (!result) {
+   throw new AppError(StatusCodes.NOT_FOUND,"কোনো পেমেন্ট পাওয়া যায়নি।")
+  }
+
+  sendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: "পেমেন্ট সফলভাবে পাওয়া গেছে।",
+    data: result,
+  });
+});
+
+
+// UPDATE PAYMENT
+const updatePaymentController = catchAsync(async (req, res) => {
+  const result = await PaymentService.updatePaymentService(req);
+
+  if (!result) {
+    throw new AppError(
+      StatusCodes.BAD_REQUEST,
+      "পেমেন্ট আপডেট করা যায়নি। অনুগ্রহ করে আবার চেষ্টা করুন।",
+    );
+  }
+
+  sendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: "পেমেন্ট সফলভাবে আপডেট করা হয়েছে।",
+
+  });
+});
+
+
+// DELETE PAYMENT (SOFT)
+const deletePaymentController = catchAsync(async (req, res) => {
+  const id = req.params.id;
+
+  const result =
+    await PaymentService.deletePaymentServie(id);
+
+  if (!result) {
+    throw new AppError(
+      StatusCodes.BAD_REQUEST,
+      "পেমেন্ট মুছে ফেলা যায়নি। অনুগ্রহ করে আবার চেষ্টা করুন।",
+    );
+  }
+
+  sendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: "পেমেন্ট সফলভাবে মুছে ফেলা হয়েছে।",
+  });
+});
+
 export const PaymentController = {
   createPaymentController,
   getAllPaymentController,
   paymentReportViaGroupController,
+  getSinglePaymentController,
+  updatePaymentController,
+  deletePaymentController
 };

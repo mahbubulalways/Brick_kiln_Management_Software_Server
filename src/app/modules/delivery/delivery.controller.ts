@@ -1,4 +1,5 @@
 import catchAsync from "../../../utils/catchAsync";
+import { parseListQuery } from "../../../utils/parseListQuery";
 import { sendResponse } from "../../../utils/sendResponse";
 import { AppError } from "../../errors/ApplicationError";
 import { DeliveryService } from "./delivery.service";
@@ -13,41 +14,52 @@ const getNextDeliveryNoController = catchAsync(async (req, res) => {
     data: result,
   });
 });
-const getDeliveryThatGoTodayController = catchAsync(async (req, res) => {
-  const { date } = req.query;
-  if (!date || typeof date !== "string") {
-    throw new AppError(
-      StatusCodes.BAD_REQUEST,
-      "তারিখ প্রদান করা হয়নি বা তারিখের ফরম্যাট সঠিক নয়।"
-    );
-  }
 
-  const result = await DeliveryService.getDeliveryThatGoTodayService(date);
-  sendResponse(res, {
-    message: result?.length
-      ? "আজকের ডেলিভারি সফলভাবে পাওয়া গেছে।"
-      : "আজকের জন্য কোনো ডেলিভারি পাওয়া যায়নি।",
-    statusCode: StatusCodes.OK,
-    success: true,
-    data: result,
-  });
+// GET DELIVERY THAT GO TODAY
+const getDeliveryThatGoTodayController = catchAsync(async (req, res) => {
+  const { limit, page, date, search } = await parseListQuery(req.query);
+  const result = await DeliveryService.getDeliveryThatGoTodayService({ date, limit, page, search });
+  if (!result?.data?.length) {
+    sendResponse(res, {
+      message: "আজকের জন্য কোনো ডেলিভারি পাওয়া যায়নি।",
+      statusCode: StatusCodes.OK,
+      success: true,
+      data: [],
+    });
+  }
+  else {
+    sendResponse(res, {
+      message: "আজকের ডেলিভারি পাওয়া গেছে",
+      statusCode: StatusCodes.OK,
+      success: true,
+      data: result,
+    });
+  }
 });
 
 const getAllDeliveryListController = catchAsync(async (req, res) => {
-  const { startDate, endDate } = req.query;
-
+  const { limit, page, date, search } = await parseListQuery(req.query);
   const result = await DeliveryService.getAllDeliveryListService(
-    startDate as string,
-    endDate as string
+    { date, limit, page, search }
   );
-  sendResponse(res, {
-    message: result?.length
-      ? " ডেলিভারি সফলভাবে পাওয়া গেছে।"
-      : " জন্য কোনো ডেলিভারি পাওয়া যায়নি।",
-    statusCode: StatusCodes.OK,
-    success: true,
-    data: result,
-  });
+
+  if (!result?.data?.length) {
+    sendResponse(res, {
+      message: "কোনো ডেলিভারি পাওয়া যায়নি।",
+      statusCode: StatusCodes.OK,
+      success: true,
+      data: [],
+    });
+  }
+  else {
+    sendResponse(res, {
+      message: "ডেলিভারি সফলভাবে পাওয়া গেছে।",
+      statusCode: StatusCodes.OK,
+      success: true,
+      data: result,
+    });
+  }
+
 });
 
 const createDeliveryController = catchAsync(async (req, res) => {
@@ -64,36 +76,42 @@ const createDeliveryController = catchAsync(async (req, res) => {
 });
 
 const getTodaysDeliveryThatDoneController = catchAsync(async (req, res) => {
-  const { date } = req.query;
-  if (!date || typeof date !== "string") {
-    throw new AppError(
-      StatusCodes.BAD_REQUEST,
-      "তারিখ প্রদান করা হয়নি বা তারিখের ফরম্যাট সঠিক নয়।"
-    );
+  const { limit, page, date } = await parseListQuery(req.query);
+  const result = await DeliveryService.getTodaysDeliveryThatDone({ date, limit, page });
+  if (!result?.data?.length) {
+    sendResponse(res, {
+      message: "আজকের জন্য কোনো ডেলিভারি পাওয়া যায়নি।",
+      statusCode: StatusCodes.OK,
+      success: true,
+      data: [],
+    });
   }
-  const result = await DeliveryService.getTodaysDeliveryThatDone(date);
-  sendResponse(res, {
-    message: result?.length
-      ? "আজকের ডেলিভারি পাওয়া গেছে"
-      : "আজকের জন্য কোনো ডেলিভারি পাওয়া যায়নি।",
-    statusCode: StatusCodes.OK,
-    success: true,
-    data: result,
-  });
+  else {
+    sendResponse(res, {
+      message: "আজকের ডেলিভারি পাওয়া গেছে",
+      statusCode: StatusCodes.OK,
+      success: true,
+      data: result,
+    });
+  }
 });
 
 // GET SINGLE
 const getSingleDeliveryController = catchAsync(async (req, res) => {
   const id = req.params.id;
   const result = await DeliveryService.getSingleDeliveryService(Number(id));
-  sendResponse(res, {
-    message: result?.id
-      ? "ডেলিভারি পাওয়া গেছে"
-      : "কোনো ডেলিভারি পাওয়া যায়নি।",
-    statusCode: StatusCodes.OK,
-    success: true,
-    data: result,
-  });
+  if (!result) {
+    throw new AppError(StatusCodes.NOT_FOUND, "কোনো ডেলিভারি পাওয়া যায়নি।")
+  }
+  else {
+    sendResponse(res, {
+      message:
+        "ডেলিভারি পাওয়া গেছে",
+      statusCode: StatusCodes.OK,
+      success: true,
+      data: result,
+    });
+  }
 });
 
 export const DeliveryController = {

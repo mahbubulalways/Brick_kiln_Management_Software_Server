@@ -7,8 +7,9 @@ const ApplicationError_1 = require("../../errors/ApplicationError");
 const auth_utils_1 = require("./auth.utils");
 const prisma_1 = require("../../../helpers/prisma");
 const loginUserToSystemService = async (payload) => {
-    // const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(payload.auth);
-    //  where: isEmail ? { email: payload.auth } : { phone: payload.auth },
+    // const res = await prisma.user.create({
+    //   data: { email: "admin@gmail.com", password: "12345678" },
+    // });
     const user = await prisma_1.prisma.user.findFirst({
         where: { email: payload.email },
     });
@@ -36,7 +37,3 @@ const loginUserToSystemService = async (payload) => {
     };
 };
 exports.AuthService = { loginUserToSystemService };
-// const res = await prisma.user.create({
-//   data: { email: "admin@gmail.com", password: "12345678" },
-// });
-// console.log(res);

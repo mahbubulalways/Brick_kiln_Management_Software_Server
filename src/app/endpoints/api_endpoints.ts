@@ -10,6 +10,7 @@ export const API_ENDPOINTS = {
     INVOICE_SERIAL: "/serial",
     CREATE_INVOICE: "/create",
     GET_ALL_INVOICE: "/all-invoices",
+    GET_ADVANCE_INVOICE: "/all-advance-invoices",
     GET_ITEMS_WITH_INVOICE: "/items",
     GET_SINGLE_INVOICE: "/single-invoice/:id",
     GET_SINGLE_INVOICE_ITEMS: "/single-invoice-items/:id",

@@ -4,7 +4,11 @@ import {
   Customer,
   Prisma,
 } from "../../../generated/prisma/client";
+import { paginationHelper } from "../../../helpers/paginationHelper";
 import { prisma } from "../../../helpers/prisma";
+import { TQuery } from "../../../interface/query";
+import { createMetaConfig } from "../../../utils/createMetaConfig";
+import { getDateRangeDbSearch } from "../../../utils/getDateRangeDbSearch";
 import { AppError } from "../../errors/ApplicationError";
 import { StatusCodes } from "http-status-codes";
 
@@ -91,19 +95,116 @@ const createInvoiceService = async (
 };
 
 // GET AL INVOICE WITH CUSTOMER NAME AND ADDRESS
-const getAllInvoiceService = async () => {
-  const result = await prisma.challan.findMany({
-    where: { isDeleted: false },
-    orderBy: {
-      createdAt: "desc",
-    },
-    include: {
-      customer: true,
-      items: true,
-    },
+const getAllInvoiceService = async (query: TQuery) => {
+  const { limit, page, skip } = paginationHelper(query.page, query.limit);
+  const where: Prisma.ChallanWhereInput = { isDeleted: false, };
+  if (query.search?.trim()) {
+    const search = query.search.trim();
+    where.customer = {
+      OR: [
+        {
+          name: {
+            contains: search,
+            mode: "insensitive",
+          },
+        },
+        {
+          address: {
+            contains: search,
+            mode: "insensitive",
+          },
+        },
+      ],
+    };
+  }
+  if (query.date) {
+    const dateRange = getDateRangeDbSearch(query.date);
+    if (dateRange) {
+      where.createdAt = dateRange;
+    }
+  }
+
+  const [result, total] = await prisma.$transaction([
+    prisma.challan.findMany({
+      where,
+      orderBy: {
+        createdAt: "desc",
+      },
+      include: {
+        customer: true,
+        items: true,
+      }, skip, take: limit
+    }),
+
+    prisma.challan.count({ where })
+  ])
+  const meta = createMetaConfig({
+    limit: limit,
+    page: page,
+    totalData: total,
   });
-  return result;
+
+  
+  return {
+    meta,
+    data: result,
+  };
+
 };
+
+// GET ADVANCE INVOICE
+const getAllAdvanceInvoiceService = async (query: TQuery) => {
+  console.log(query);
+  const { limit, page, skip } = paginationHelper(query.page, query.limit);
+  const where: Prisma.ChallanWhereInput = { isDeleted: false,chalanType:"অগ্রিম চালান" };
+  if (query.search?.trim()) {
+    const search = query.search.trim();
+    where.customer = {
+      OR: [
+        {
+          name: {
+            contains: search,
+            mode: "insensitive",
+          },
+        },
+        {
+          address: {
+            contains: search,
+            mode: "insensitive",
+          },
+        },
+      ],
+    };
+  }
+  
+  const [result, total] = await prisma.$transaction([
+    prisma.challan.findMany({
+      where,
+      orderBy: {
+        createdAt: "desc",
+      },
+      include: {
+        customer: true,
+        items: true,
+      }, skip, take: limit
+    }),
+
+    prisma.challan.count({ where })
+  ])
+  const meta = createMetaConfig({
+    limit: limit,
+    page: page,
+    totalData: total,
+  });
+
+  console.log(result);
+  return {
+    meta,
+    data: result,
+  };
+
+};
+
 
 //  GET SINGLE INVOICE
 const getSingleInvoiceService = async (id: number) => {
@@ -155,6 +256,9 @@ const updateInvoiceController = async (
   invoice: Challan,
   items: ChallanItem[],
 ) => {
+
+  console.log("🚀 ~ file: challan.service.ts:123 ~ updateInvoiceController ~ invoice:", invoice);
+
   const result = await prisma.$transaction(
     async (tx: Prisma.TransactionClient) => {
       // update invoice
@@ -297,35 +401,37 @@ const getItemsWithInvoiceService = async (
   return result;
 };
 
-// UPDATE INVOICE DELIVERY
-const updateInvoiceDeliveryDateService = async (
+// UPDATE PARTICULAR ITEMS DELIVERY DATE
+const updateItemsDateService = async (
   id: number,
   updateDate: string,
 ) => {
-  const result = await prisma.challan.update({
+   const result = await prisma.challanItem.update({
     data: {
       deliveryDate: updateDate,
-      items: {
-        updateMany: {
-          data: {
-            deliveryDate: updateDate,
-          },
-          where: { challanId: id },
-        },
-      },
     },
     where: {
       id,
     },
   });
+  
   return result;
 };
 
-// UPDATE PARTICULAR ITEMS DELIVERY DATE
-const updateItemsDateService = async (id: number, updatedDate: string) => {
-  const result = await prisma.challanItem.update({
+
+// UPDATE INVOICE DELIVERY
+const updateInvoiceDeliveryDateService = async (id: number, updatedDate: string) => {
+ const result = await prisma.challan.update({
     data: {
       deliveryDate: updatedDate,
+      items: {
+        updateMany: {
+          data: {
+            deliveryDate: updatedDate,
+          },
+          where: { challanId: id },
+        },
+      },
     },
     where: {
       id,
@@ -344,4 +450,6 @@ export const InvoiceService = {
   getSingleInvoiceItemsService,
   updateItemsDateService,
   updateInvoiceDeliveryDateService,
+  getAllAdvanceInvoiceService
 };
+

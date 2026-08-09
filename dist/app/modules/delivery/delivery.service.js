@@ -4,6 +4,9 @@ exports.DeliveryService = void 0;
 const ApplicationError_1 = require("../../errors/ApplicationError");
 const http_status_codes_1 = require("http-status-codes");
 const prisma_1 = require("../../../helpers/prisma");
+const paginationHelper_1 = require("../../../helpers/paginationHelper");
+const createMetaConfig_1 = require("../../../utils/createMetaConfig");
+const getDateRangeDbSearch_1 = require("../../../utils/getDateRangeDbSearch");
 const getNextDeliveryNo = async () => {
     const result = await prisma_1.prisma.delivery.findFirst({
         orderBy: {
@@ -15,35 +18,89 @@ const getNextDeliveryNo = async () => {
     });
     return result ? result.deliveryNo + 1 : 1;
 };
-const getDeliveryThatGoTodayService = async (date) => {
-    const parsedDate = new Date(date);
+const getDeliveryThatGoTodayService = async (query) => {
+    const { limit, page, skip } = (0, paginationHelper_1.paginationHelper)(query.page, query.limit);
+    const where = { isDeleted: false };
     // Create start and end of day boundaries
-    const startOfDay = new Date(parsedDate.setHours(0, 0, 0, 0));
-    const endOfDay = new Date(parsedDate.setHours(23, 59, 59, 999));
-    // Fetch deliveries within the day
-    const result = await prisma_1.prisma.challan.findMany({
-        where: {
-            isDeleted: false,
-        },
-        select: {
-            id: true,
-            customer: true,
-            items: {
-                where: {
-                    deliveryDate: {
-                        gte: startOfDay,
-                        lte: endOfDay,
+    if (query.search?.trim()) {
+        const search = query.search.trim();
+        const isNumber = !isNaN(Number(search));
+        where.OR = [
+            ...(isNumber
+                ? [
+                    {
+                        id: Number(search),
+                    },
+                ]
+                : []),
+            {
+                customer: {
+                    is: {
+                        name: {
+                            contains: search,
+                            mode: "insensitive",
+                        },
                     },
                 },
             },
-        },
-        orderBy: {
-            deliveryDate: "asc",
-        },
-    });
+            {
+                customer: {
+                    is: {
+                        address: {
+                            contains: search,
+                            mode: "insensitive",
+                        },
+                    },
+                },
+            },
+        ];
+    }
+    const dateRange = query.date
+        ? (0, getDateRangeDbSearch_1.getDateRangeDbSearch)(query.date)
+        : undefined;
+    if (query.date) {
+        if (dateRange) {
+            where.items = {
+                some: {
+                    deliveryDate: dateRange,
+                },
+            };
+        }
+    }
+    // Create start and end of day boundaries
+    // Fetch deliveries within the day
+    const [result, total] = await prisma_1.prisma.$transaction([
+        prisma_1.prisma.challan.findMany({
+            where,
+            select: {
+                id: true,
+                customer: true,
+                items: {
+                    where: dateRange
+                        ? {
+                            deliveryDate: dateRange,
+                        }
+                        : undefined,
+                },
+            },
+            orderBy: {
+                deliveryDate: "asc",
+            }, skip,
+            take: limit
+        }),
+        prisma_1.prisma.challan.count({ where })
+    ]);
     // Filter out challans with no items
     const filteredResult = result.filter((challan) => challan.items.length > 0);
-    return filteredResult.length > 0 ? filteredResult : [];
+    const meta = (0, createMetaConfig_1.createMetaConfig)({
+        limit: limit,
+        page: page,
+        totalData: total,
+    });
+    return {
+        meta,
+        data: filteredResult.length > 0 ? filteredResult : [],
+    };
 };
 // CREATE DELIVERY
 const createDeliveryService = async (payload) => {
@@ -155,63 +212,144 @@ const createDeliveryService = async (payload) => {
     return result;
 };
 //
-const getTodaysDeliveryThatDone = async (date) => {
-    const parsedDate = new Date(date);
+const getTodaysDeliveryThatDone = async (query) => {
+    const { limit, page, skip } = (0, paginationHelper_1.paginationHelper)(query.page, query.limit);
+    const where = { isDeleted: false };
     // Create start and end of day boundaries
-    const startOfDay = new Date(parsedDate.setHours(0, 0, 0, 0));
-    const endOfDay = new Date(parsedDate.setHours(23, 59, 59, 999));
-    const result = await prisma_1.prisma.delivery.findMany({
-        where: {
-            deliveryDate: {
-                gte: startOfDay,
-                lte: endOfDay,
-            },
-            isDeleted: false,
-        },
-        include: {
-            invoice: {
-                select: {
-                    customer: true,
+    if (query.date) {
+        const dateRange = (0, getDateRangeDbSearch_1.getDateRangeDbSearch)(query.date);
+        if (dateRange) {
+            where.deliveryDate = dateRange;
+        }
+    }
+    const [result, total] = await prisma_1.prisma.$transaction([
+        prisma_1.prisma.delivery.findMany({
+            where,
+            include: {
+                invoice: {
+                    select: {
+                        customer: true,
+                    },
                 },
-            },
-        },
+            }, skip, take: limit, orderBy: { createdAt: "desc" }
+        }),
+        prisma_1.prisma.delivery.count({ where })
+    ]);
+    const meta = (0, createMetaConfig_1.createMetaConfig)({
+        limit: limit,
+        page: page,
+        totalData: total,
     });
-    console.log(result);
-    return result;
+    return {
+        meta,
+        data: result,
+    };
 };
 // GET ALL DELIVERY
-const getAllDeliveryListService = async (startDate, endDate) => {
-    const dateFilter = startDate && endDate
-        ? {
-            deliveryDate: {
-                gte: startDate,
-                lte: endDate,
+const getAllDeliveryListService = async (query) => {
+    console.log(query);
+    const { limit, page, skip } = (0, paginationHelper_1.paginationHelper)(query.page, query.limit);
+    const where = {
+        isDeleted: false,
+    };
+    // Date range
+    const dateRange = query.date
+        ? (0, getDateRangeDbSearch_1.getDateRangeDbSearch)(query.date)
+        : undefined;
+    // Filter challan by item delivery date
+    if (dateRange) {
+        where.items = {
+            some: {
+                deliveryDate: dateRange,
             },
-        }
-        : {};
-    const result = await prisma_1.prisma.challan.findMany({
-        where: {
-            isDeleted: false,
-        },
-        select: {
-            note: true,
-            cash: true,
-            id: true,
-            due: true,
-            customer: {
-                select: {
-                    name: true,
-                    address: true,
-                    totalPurchased: true,
-                    totalPaid: true,
+        };
+    }
+    // Search
+    if (query.search?.trim()) {
+        const search = query.search.trim();
+        const isNumber = !isNaN(Number(search));
+        where.OR = [
+            ...(isNumber
+                ? [
+                    {
+                        id: Number(search),
+                    },
+                ]
+                : []),
+            {
+                customer: {
+                    is: {
+                        name: {
+                            contains: search,
+                            mode: "insensitive",
+                        },
+                    },
                 },
             },
-            items: {
-                where: dateFilter,
+            {
+                customer: {
+                    is: {
+                        address: {
+                            contains: search,
+                            mode: "insensitive",
+                        },
+                    },
+                },
             },
-        },
+        ];
+    }
+    const [result, total] = await prisma_1.prisma.$transaction([
+        prisma_1.prisma.challan.findMany({
+            where,
+            select: {
+                id: true,
+                customer: true,
+                items: {
+                    where: dateRange
+                        ? {
+                            deliveryDate: dateRange,
+                        }
+                        : undefined,
+                },
+            },
+            orderBy: {
+                deliveryDate: "asc",
+            }, skip,
+            take: limit
+        }),
+        prisma_1.prisma.challan.findMany({
+            where,
+            select: {
+                items: {
+                    where: dateRange
+                        ? {
+                            deliveryDate: dateRange,
+                        }
+                        : undefined,
+                },
+            },
+        }),
+    ]);
+    const filteredResult = result
+        .map((challan) => ({
+        ...challan,
+        items: challan.items.filter((item) => item.quantity > item.delivered),
+    }))
+        .filter((challan) => challan.items.length > 0);
+    const totalCount = total.map((challan) => ({
+        ...challan,
+        items: challan.items.filter((item) => item.quantity > item.delivered),
+    }))
+        .filter((challan) => challan.items.length > 0).length;
+    const meta = (0, createMetaConfig_1.createMetaConfig)({
+        limit,
+        page,
+        totalData: totalCount,
     });
-    return result;
+    return {
+        meta,
+        data: filteredResult,
+    };
 };
 const getSingleDeliveryService = async (id) => {
     const result = await prisma_1.prisma.delivery.findFirst({ where: { id } });

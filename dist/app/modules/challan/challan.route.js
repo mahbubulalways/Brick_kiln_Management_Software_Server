@@ -10,6 +10,8 @@ router.post(api_endpoints_1.API_ENDPOINTS.INVOICE.CREATE_INVOICE, challan_contro
 router.get(api_endpoints_1.API_ENDPOINTS.INVOICE.INVOICE_SERIAL, challan_controller_1.InvoiceController.getInvoiceSerial);
 // GET ALL INVOICE
 router.get(api_endpoints_1.API_ENDPOINTS.INVOICE.GET_ALL_INVOICE, challan_controller_1.InvoiceController.getAllInvoiceController);
+// GET ALL ADVANCE INVOICE
+router.get(api_endpoints_1.API_ENDPOINTS.INVOICE.GET_ADVANCE_INVOICE, challan_controller_1.InvoiceController.getAllAdvanceInvoiceController);
 // GET ITEMS WITH INVOICE
 router.get(api_endpoints_1.API_ENDPOINTS.INVOICE.GET_ITEMS_WITH_INVOICE, challan_controller_1.InvoiceController.getItemsWithInvoiceController);
 // GET SINGLE INVOICE

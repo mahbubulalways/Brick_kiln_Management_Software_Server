@@ -9,10 +9,11 @@ const catchAsync_1 = __importDefault(require("../../../utils/catchAsync"));
 const ApplicationError_1 = require("../../errors/ApplicationError");
 const challan_service_1 = require("./challan.service");
 const sendResponse_1 = require("../../../utils/sendResponse");
-const prisma_1 = __importDefault(require("../../../helpers/prisma"));
+const prisma_1 = require("../../../helpers/prisma");
+const parseListQuery_1 = require("../../../utils/parseListQuery");
 // GET INVOICE SERIAL
 const getInvoiceSerial = (0, catchAsync_1.default)(async (req, res) => {
-    const result = await prisma_1.default.challan.count();
+    const result = await prisma_1.prisma.challan.count();
     (0, sendResponse_1.sendResponse)(res, {
         message: "চ্যালান পাওয়া গেছে।",
         statusCode: http_status_codes_1.StatusCodes.OK,
@@ -37,9 +38,44 @@ const createInvoiceController = (0, catchAsync_1.default)(async (req, res) => {
 });
 // GET AL INVOICE WITH CUSTOMER NAME AND ADDRESS
 const getAllInvoiceController = (0, catchAsync_1.default)(async (req, res) => {
-    const result = await challan_service_1.InvoiceService.getAllInvoiceService();
-    if (!result?.length) {
-        throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.BAD_REQUEST, "চ্যালান পাওয়া যায়নি।");
+    const { limit, page, search, date } = await (0, parseListQuery_1.parseListQuery)(req.query);
+    const result = await challan_service_1.InvoiceService.getAllInvoiceService({
+        limit,
+        page,
+        search,
+        date
+    });
+    if (!result?.data.length) {
+        (0, sendResponse_1.sendResponse)(res, {
+            message: "চ্যালান পাওয়া যায়নি।",
+            statusCode: http_status_codes_1.StatusCodes.OK,
+            success: true,
+            data: [],
+        });
+    }
+    (0, sendResponse_1.sendResponse)(res, {
+        message: "চ্যালান সফলভাবে পাওয়া গেছে।",
+        statusCode: http_status_codes_1.StatusCodes.OK,
+        success: true,
+        data: result,
+    });
+});
+// GET ADVANVCE INVOICE
+const getAllAdvanceInvoiceController = (0, catchAsync_1.default)(async (req, res) => {
+    const { limit, page, search, date } = await (0, parseListQuery_1.parseListQuery)(req.query);
+    const result = await challan_service_1.InvoiceService.getAllAdvanceInvoiceService({
+        limit,
+        page,
+        search,
+        date
+    });
+    if (!result?.data.length) {
+        (0, sendResponse_1.sendResponse)(res, {
+            message: "চ্যালান পাওয়া যায়নি।",
+            statusCode: http_status_codes_1.StatusCodes.OK,
+            success: true,
+            data: [],
+        });
     }
     (0, sendResponse_1.sendResponse)(res, {
         message: "চ্যালান সফলভাবে পাওয়া গেছে।",
@@ -164,4 +200,5 @@ exports.InvoiceController = {
     getSingleInvoiceItemsController,
     updateInvoiceDeliveryDateController,
     updateInvoiceItemDeliveryDateController,
+    getAllAdvanceInvoiceController
 };

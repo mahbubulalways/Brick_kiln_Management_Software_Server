@@ -1,7 +1,10 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.InvoiceService = void 0;
+const paginationHelper_1 = require("../../../helpers/paginationHelper");
 const prisma_1 = require("../../../helpers/prisma");
+const createMetaConfig_1 = require("../../../utils/createMetaConfig");
+const getDateRangeDbSearch_1 = require("../../../utils/getDateRangeDbSearch");
 const ApplicationError_1 = require("../../errors/ApplicationError");
 const http_status_codes_1 = require("http-status-codes");
 // CREATE CUSTOMER AND INVOICE AND INVOICE ITEMS
@@ -71,18 +74,104 @@ const createInvoiceService = async (createdBy, customer, invoiceItems, invoice) 
     return result;
 };
 // GET AL INVOICE WITH CUSTOMER NAME AND ADDRESS
-const getAllInvoiceService = async () => {
-    const result = await prisma_1.prisma.challan.findMany({
-        where: { isDeleted: false },
-        orderBy: {
-            createdAt: "desc",
-        },
-        include: {
-            customer: true,
-            items: true,
-        },
+const getAllInvoiceService = async (query) => {
+    const { limit, page, skip } = (0, paginationHelper_1.paginationHelper)(query.page, query.limit);
+    const where = { isDeleted: false, };
+    if (query.search?.trim()) {
+        const search = query.search.trim();
+        where.customer = {
+            OR: [
+                {
+                    name: {
+                        contains: search,
+                        mode: "insensitive",
+                    },
+                },
+                {
+                    address: {
+                        contains: search,
+                        mode: "insensitive",
+                    },
+                },
+            ],
+        };
+    }
+    if (query.date) {
+        const dateRange = (0, getDateRangeDbSearch_1.getDateRangeDbSearch)(query.date);
+        if (dateRange) {
+            where.createdAt = dateRange;
+        }
+    }
+    const [result, total] = await prisma_1.prisma.$transaction([
+        prisma_1.prisma.challan.findMany({
+            where,
+            orderBy: {
+                createdAt: "desc",
+            },
+            include: {
+                customer: true,
+                items: true,
+            }, skip, take: limit
+        }),
+        prisma_1.prisma.challan.count({ where })
+    ]);
+    const meta = (0, createMetaConfig_1.createMetaConfig)({
+        limit: limit,
+        page: page,
+        totalData: total,
     });
-    return result;
+    return {
+        meta,
+        data: result,
+    };
+};
+// GET ADVANCE INVOICE
+const getAllAdvanceInvoiceService = async (query) => {
+    console.log(query);
+    const { limit, page, skip } = (0, paginationHelper_1.paginationHelper)(query.page, query.limit);
+    const where = { isDeleted: false, chalanType: "অগ্রিম চালান" };
+    if (query.search?.trim()) {
+        const search = query.search.trim();
+        where.customer = {
+            OR: [
+                {
+                    name: {
+                        contains: search,
+                        mode: "insensitive",
+                    },
+                },
+                {
+                    address: {
+                        contains: search,
+                        mode: "insensitive",
+                    },
+                },
+            ],
+        };
+    }
+    const [result, total] = await prisma_1.prisma.$transaction([
+        prisma_1.prisma.challan.findMany({
+            where,
+            orderBy: {
+                createdAt: "desc",
+            },
+            include: {
+                customer: true,
+                items: true,
+            }, skip, take: limit
+        }),
+        prisma_1.prisma.challan.count({ where })
+    ]);
+    const meta = (0, createMetaConfig_1.createMetaConfig)({
+        limit: limit,
+        page: page,
+        totalData: total,
+    });
+    console.log(result);
+    return {
+        meta,
+        data: result,
+    };
 };
 //  GET SINGLE INVOICE
 const getSingleInvoiceService = async (id) => {
@@ -127,6 +216,7 @@ const getSingleInvoiceItemsService = async (id, query) => {
 };
 // UPDATE INVOICE
 const updateInvoiceController = async (invoiceId, invoice, items) => {
+    console.log("🚀 ~ file: challan.service.ts:123 ~ updateInvoiceController ~ invoice:", invoice);
     const result = await prisma_1.prisma.$transaction(async (tx) => {
         // update invoice
         const updateInvoice = await tx.challan.update({
@@ -246,19 +336,11 @@ const getItemsWithInvoiceService = async (startDate, endDate) => {
     });
     return result;
 };
-// UPDATE INVOICE DELIVERY
-const updateInvoiceDeliveryDateService = async (id, updateDate) => {
-    const result = await prisma_1.prisma.challan.update({
+// UPDATE PARTICULAR ITEMS DELIVERY DATE
+const updateItemsDateService = async (id, updateDate) => {
+    const result = await prisma_1.prisma.challanItem.update({
         data: {
             deliveryDate: updateDate,
-            items: {
-                updateMany: {
-                    data: {
-                        deliveryDate: updateDate,
-                    },
-                    where: { challanId: id },
-                },
-            },
         },
         where: {
             id,
@@ -266,11 +348,19 @@ const updateInvoiceDeliveryDateService = async (id, updateDate) => {
     });
     return result;
 };
-// UPDATE PARTICULAR ITEMS DELIVERY DATE
-const updateItemsDateService = async (id, updatedDate) => {
-    const result = await prisma_1.prisma.challanItem.update({
+// UPDATE INVOICE DELIVERY
+const updateInvoiceDeliveryDateService = async (id, updatedDate) => {
+    const result = await prisma_1.prisma.challan.update({
         data: {
             deliveryDate: updatedDate,
+            items: {
+                updateMany: {
+                    data: {
+                        deliveryDate: updatedDate,
+                    },
+                    where: { challanId: id },
+                },
+            },
         },
         where: {
             id,
@@ -288,4 +378,5 @@ exports.InvoiceService = {
     getSingleInvoiceItemsService,
     updateItemsDateService,
     updateInvoiceDeliveryDateService,
+    getAllAdvanceInvoiceService
 };
