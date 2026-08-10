@@ -153,7 +153,8 @@ exports.CustomerScalarFieldEnum = {
     nextPaymentDate: 'nextPaymentDate',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt',
-    isDeleted: 'isDeleted'
+    isDeleted: 'isDeleted',
+    note: 'note'
 };
 exports.DeliveryScalarFieldEnum = {
     id: 'id',
@@ -188,26 +189,26 @@ exports.LedgerScalarFieldEnum = {
     id: 'id',
     name: 'name',
     serial: 'serial',
-    parentId: 'parentId',
     createdAt: 'createdAt',
-    updatedAt: 'updatedAt'
+    updatedAt: 'updatedAt',
+    parentId: 'parentId'
 };
 exports.PaymentScalarFieldEnum = {
     id: 'id',
-    ledgerId: 'ledgerId',
-    paymentType: 'paymentType',
-    paymentDetails: 'paymentDetails',
     quantity: 'quantity',
-    rate: 'rate',
-    totalBill: 'totalBill',
     cutting: 'cutting',
     payment: 'payment',
-    paymentDifference: 'paymentDifference',
-    document: 'document',
-    paymentDate: 'paymentDate',
-    isDeleted: 'isDeleted',
+    ledgerId: 'ledgerId',
     createdAt: 'createdAt',
-    updatedAt: 'updatedAt'
+    updatedAt: 'updatedAt',
+    document: 'document',
+    paymentDetails: 'paymentDetails',
+    paymentDifference: 'paymentDifference',
+    paymentType: 'paymentType',
+    rate: 'rate',
+    totalBill: 'totalBill',
+    isDeleted: 'isDeleted',
+    paymentDate: 'paymentDate'
 };
 exports.SortOrder = {
     asc: 'asc',

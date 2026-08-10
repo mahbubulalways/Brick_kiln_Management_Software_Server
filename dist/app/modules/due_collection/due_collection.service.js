@@ -1,7 +1,12 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.DueCollectionService = void 0;
+const http_status_codes_1 = require("http-status-codes");
+const paginationHelper_1 = require("../../../helpers/paginationHelper");
 const prisma_1 = require("../../../helpers/prisma");
+const createMetaConfig_1 = require("../../../utils/createMetaConfig");
+const getDateRangeDbSearch_1 = require("../../../utils/getDateRangeDbSearch");
+const ApplicationError_1 = require("../../errors/ApplicationError");
 const getDueOfCustomerService = async (customerId) => {
     const result = await prisma_1.prisma.customer.findFirst({
         where: { id: customerId },
@@ -36,73 +41,200 @@ const collectDueService = async (payload) => {
     return result;
 };
 // TODAY HAVE PAY
-const todayPayDueService = async (date) => {
-    const parsedDate = new Date(date);
-    const startOfDay = new Date(parsedDate.setHours(0, 0, 0, 0));
-    const endOfDay = new Date(parsedDate.setHours(23, 59, 59, 999));
-    const result = await prisma_1.prisma.customer.findMany({
-        where: {
-            nextPaymentDate: { gte: startOfDay, lte: endOfDay },
-            isDeleted: false,
-        },
-        include: {
-            challans: {
-                select: {
-                    note: true,
-                    items: { select: { quantity: true, delivered: true } },
+const todayPayDueService = async (query) => {
+    const { limit, page, skip } = (0, paginationHelper_1.paginationHelper)(query.page, query.limit);
+    const where = {
+        isDeleted: false,
+    };
+    if (query.search?.trim()) {
+        const search = query.search.trim();
+        const isNumber = !isNaN(Number(search));
+        where.OR = [
+            ...(isNumber
+                ? [
+                    {
+                        id: Number(search),
+                    },
+                ]
+                : []),
+            {
+                name: {
+                    contains: search,
+                    mode: "insensitive",
                 },
             },
-        },
-    });
-    return result;
-};
-// GET TODAYS DUE PAYMENT
-const getTodaysDuePaidService = async (date) => {
-    const parsedDate = new Date(date);
-    const startOfDay = new Date(parsedDate.setHours(0, 0, 0, 0));
-    const endOfDay = new Date(parsedDate.setHours(23, 59, 59, 999));
-    const result = await prisma_1.prisma.due_Collection.findMany({
-        where: {
-            createdAt: { gte: startOfDay, lte: endOfDay },
-            isDeleted: false,
-        },
-        include: {
-            customer: true,
-        },
-        orderBy: {
-            createdAt: "desc",
-        },
-    });
-    return result;
-};
-// GET ALL DUE
-const getAllDueListService = async (startDate, endDate) => {
-    const dateFilter = startDate && endDate
-        ? {
-            nextPaymentDate: {
-                gte: startDate,
-                lte: endDate,
+            {
+                address: {
+                    contains: search,
+                    mode: "insensitive",
+                },
             },
-            isDeleted: false,
+        ];
+    }
+    if (query.date) {
+        const dateRange = (0, getDateRangeDbSearch_1.getDateRangeDbSearch)(query.date);
+        if (dateRange) {
+            where.nextPaymentDate = dateRange;
         }
-        : { isDeleted: false };
-    const result = await prisma_1.prisma.customer.findMany({
-        where: dateFilter,
-        include: {
-            challans: {
-                select: {
-                    items: {
-                        select: {
-                            delivered: true,
-                            quantity: true,
-                        },
+    }
+    const [result, total] = await Promise.all([
+        prisma_1.prisma.customer.findMany({
+            where,
+            include: {
+                challans: {
+                    select: {
+                        note: true,
+                        items: { select: { quantity: true, delivered: true } },
                     },
                 },
             },
-        },
+            orderBy: { nextPaymentDate: "asc" },
+            skip, take: limit
+        }),
+        prisma_1.prisma.customer.count({ where })
+    ]);
+    const meta = (0, createMetaConfig_1.createMetaConfig)({
+        limit: limit,
+        page: page,
+        totalData: total,
     });
-    const filtered = result.filter((c) => c.totalPaid !== c.totalPurchased);
-    return filtered;
+    return {
+        meta,
+        data: result,
+    };
+};
+const getTodaysDuePaidService = async (query) => {
+    const pagination = (0, paginationHelper_1.paginationHelper)(query.page, query.limit);
+    const where = {
+        isDeleted: false,
+    };
+    if (query.date) {
+        const dateRange = (0, getDateRangeDbSearch_1.getDateRangeDbSearch)(query.date);
+        if (dateRange) {
+            where.createdAt = dateRange;
+        }
+    }
+    const [result, total] = await Promise.all([
+        prisma_1.prisma.due_Collection.findMany({
+            where,
+            include: {
+                customer: true,
+            },
+            orderBy: {
+                createdAt: "desc",
+            },
+            skip: pagination.skip,
+            take: pagination.limit,
+        }),
+        prisma_1.prisma.due_Collection.count({
+            where,
+        }),
+    ]);
+    const meta = (0, createMetaConfig_1.createMetaConfig)({
+        limit: pagination.limit,
+        page: pagination.page,
+        totalData: total,
+    });
+    return {
+        meta,
+        data: result,
+    };
+};
+// GET ALL DUE
+const getAllDueListService = async (query) => {
+    const { limit, page, skip } = (0, paginationHelper_1.paginationHelper)(query.page, query.limit);
+    const where = {
+        isDeleted: false,
+    };
+    if (query.search?.trim()) {
+        const search = query.search.trim();
+        const isNumber = !isNaN(Number(search));
+        where.OR = [
+            ...(isNumber
+                ? [
+                    {
+                        id: Number(search),
+                    },
+                ]
+                : []),
+            {
+                name: {
+                    contains: search,
+                    mode: "insensitive",
+                },
+            },
+            {
+                address: {
+                    contains: search,
+                    mode: "insensitive",
+                },
+            },
+        ];
+    }
+    if (query.date) {
+        const dateRange = (0, getDateRangeDbSearch_1.getDateRangeDbSearch)(query.date);
+        if (dateRange) {
+            where.nextPaymentDate = dateRange;
+        }
+    }
+    const [result, total] = await Promise.all([
+        prisma_1.prisma.customer.findMany({
+            where,
+            include: {
+                challans: {
+                    include: { items: true }
+                }
+            },
+            skip, take: limit
+        }),
+        prisma_1.prisma.customer.findMany({
+            where,
+            include: {
+                challans: {
+                    include: { items: true }
+                }
+            },
+        }),
+    ]);
+    const customersWithRemaining = result.map((customer) => {
+        const { challans, ...customerData } = customer;
+        let totalQuantity = 0;
+        let totalDelivered = 0;
+        challans.forEach((challan) => {
+            challan.items.forEach((item) => {
+                totalQuantity += item.quantity ?? 0;
+                totalDelivered += item.delivered ?? 0;
+            });
+        });
+        return {
+            ...customerData,
+            remainingDelivery: totalQuantity - totalDelivered,
+        };
+    });
+    const totalLength = total.map((customer) => {
+        const { challans, ...customerData } = customer;
+        let totalQuantity = 0;
+        let totalDelivered = 0;
+        challans.forEach((challan) => {
+            challan.items.forEach((item) => {
+                totalQuantity += item.quantity ?? 0;
+                totalDelivered += item.delivered ?? 0;
+            });
+        });
+        return {
+            ...customerData,
+            remainingDelivery: totalQuantity - totalDelivered,
+        };
+    }).length;
+    const meta = (0, createMetaConfig_1.createMetaConfig)({
+        limit: limit,
+        page: page,
+        totalData: totalLength,
+    });
+    return {
+        meta,
+        data: customersWithRemaining,
+    };
 };
 // GET SINGLE
 const getSingleDueCollectionService = async (id) => {
@@ -131,6 +263,10 @@ const updateDueCollectionService = async (id, payload) => {
             data: data,
             where: { id },
         });
+        await tx.customer.update({
+            where: { id: data.customerId },
+            data: { nextPaymentDate: payload.nextDate }
+        });
         // NEED TO UPDATE CUSTOMER DUE
         await tx.customer.update({
             data: {
@@ -144,6 +280,21 @@ const updateDueCollectionService = async (id, payload) => {
     });
     return result;
 };
+const getSingleDueCollectionDateService = async (id) => {
+    return await prisma_1.prisma.customer.findFirst({ where: { id }, select: { nextPaymentDate: true, id: true } });
+};
+// UPDATE DUE COLLECTION DATE 
+const upDateDueCollectionDateService = async (id, info) => {
+    const due = await prisma_1.prisma.customer.findFirst({ where: { id: Number(id) } });
+    if (!due) {
+        throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.NOT_FOUND, "বাকি পাওয়া যায়নি।");
+    }
+    const result = await prisma_1.prisma.customer.update({
+        data: { nextPaymentDate: info.date, note: info.note, },
+        where: { id: Number(id) }
+    });
+    return result;
+};
 exports.DueCollectionService = {
     getDueOfCustomerService,
     collectDueService,
@@ -152,4 +303,6 @@ exports.DueCollectionService = {
     getAllDueListService,
     getSingleDueCollectionService,
     updateDueCollectionService,
+    upDateDueCollectionDateService,
+    getSingleDueCollectionDateService
 };

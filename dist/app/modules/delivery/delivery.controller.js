@@ -12,12 +12,17 @@ const delivery_service_1 = require("./delivery.service");
 const http_status_codes_1 = require("http-status-codes");
 const getNextDeliveryNoController = (0, catchAsync_1.default)(async (req, res) => {
     const result = await delivery_service_1.DeliveryService.getNextDeliveryNo();
-    (0, sendResponse_1.sendResponse)(res, {
-        message: "সফলভাবে পাওয়া গেছে।",
-        statusCode: http_status_codes_1.StatusCodes.OK,
-        success: true,
-        data: result,
-    });
+    if (!result) {
+        throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.NOT_FOUND, "কোনো ডেলিভারি পাওয়া যায়নি।");
+    }
+    else {
+        (0, sendResponse_1.sendResponse)(res, {
+            message: "সফলভাবে পাওয়া গেছে।",
+            statusCode: http_status_codes_1.StatusCodes.OK,
+            success: true,
+            data: result,
+        });
+    }
 });
 // GET DELIVERY THAT GO TODAY
 const getDeliveryThatGoTodayController = (0, catchAsync_1.default)(async (req, res) => {
@@ -63,14 +68,16 @@ const getAllDeliveryListController = (0, catchAsync_1.default)(async (req, res) 
 const createDeliveryController = (0, catchAsync_1.default)(async (req, res) => {
     const body = req.body;
     const result = await delivery_service_1.DeliveryService.createDeliveryService(body);
-    (0, sendResponse_1.sendResponse)(res, {
-        message: result?.id
-            ? "ডেলিভারি সফলভাবে তৈরি করা হয়েছে।"
-            : "ডেলিভারি তৈরি করা সম্ভব হয়নি।",
-        statusCode: http_status_codes_1.StatusCodes.OK,
-        success: !!result?.id,
-        data: result,
-    });
+    if (!result) {
+        throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.BAD_REQUEST, "ডেলিভারি তৈরি করা সম্ভব হয়নি।");
+    }
+    else {
+        (0, sendResponse_1.sendResponse)(res, {
+            message: "ডেলিভারি সফলভাবে তৈরি করা হয়েছে।",
+            statusCode: http_status_codes_1.StatusCodes.OK,
+            success: !!result?.id,
+        });
+    }
 });
 const getTodaysDeliveryThatDoneController = (0, catchAsync_1.default)(async (req, res) => {
     const { limit, page, date } = await (0, parseListQuery_1.parseListQuery)(req.query);

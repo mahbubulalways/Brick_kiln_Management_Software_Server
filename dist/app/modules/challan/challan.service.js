@@ -127,7 +127,6 @@ const getAllInvoiceService = async (query) => {
 };
 // GET ADVANCE INVOICE
 const getAllAdvanceInvoiceService = async (query) => {
-    console.log(query);
     const { limit, page, skip } = (0, paginationHelper_1.paginationHelper)(query.page, query.limit);
     const where = { isDeleted: false, chalanType: "অগ্রিম চালান" };
     if (query.search?.trim()) {
@@ -167,7 +166,6 @@ const getAllAdvanceInvoiceService = async (query) => {
         page: page,
         totalData: total,
     });
-    console.log(result);
     return {
         meta,
         data: result,
@@ -216,7 +214,6 @@ const getSingleInvoiceItemsService = async (id, query) => {
 };
 // UPDATE INVOICE
 const updateInvoiceController = async (invoiceId, invoice, items) => {
-    console.log("🚀 ~ file: challan.service.ts:123 ~ updateInvoiceController ~ invoice:", invoice);
     const result = await prisma_1.prisma.$transaction(async (tx) => {
         // update invoice
         const updateInvoice = await tx.challan.update({

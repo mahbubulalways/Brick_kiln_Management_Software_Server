@@ -9,13 +9,21 @@ import { parseListQuery } from "../../../utils/parseListQuery";
 
 // GET INVOICE SERIAL
 const getInvoiceSerial = catchAsync(async (req, res) => {
-  const result = await prisma.challan.count();
-  sendResponse(res, {
-    message: "চ্যালান পাওয়া গেছে।",
-    statusCode: StatusCodes.OK,
-    success: true,
-    data: { totalInvoice: result },
-  });
+  const result = await prisma.challan.count()+1;
+
+  if (!result) {
+    throw new AppError(
+      StatusCodes.BAD_REQUEST,
+      "চ্যালান পাওয়া যায়নি।"
+    );
+  } else {
+    sendResponse(res, {
+      message: "চ্যালান পাওয়া গেছে।",
+      statusCode: StatusCodes.OK,
+      success: true,
+      data: { totalInvoice: result },
+    });
+  }
 });
 
 // CREATE CUSTOMER AND INVOICE AND INVOICE ITEMS
@@ -33,13 +41,15 @@ const createInvoiceController = catchAsync(async (req, res) => {
       StatusCodes.BAD_REQUEST,
       "চ্যালান তৈরি করতে ব্যর্থ হয়েছে।"
     );
+  } else {
+    sendResponse(res, {
+      message: "চ্যালান সফলভাবে তৈরি হয়েছে।",
+      statusCode: StatusCodes.OK,
+      success: true,
+      data: result,
+    });
   }
-  sendResponse(res, {
-    message: "চ্যালান সফলভাবে তৈরি হয়েছে।",
-    statusCode: StatusCodes.OK,
-    success: true,
-    data: result,
-  });
+
 });
 
 // GET AL INVOICE WITH CUSTOMER NAME AND ADDRESS
@@ -226,12 +236,12 @@ const updateInvoiceDeliveryDateController = catchAsync(async (req, res) => {
       StatusCodes.BAD_REQUEST,
       "চ্যালান আপডেট করতে ব্যর্থ হয়েছে।"
     );
-  }else{
+  } else {
     sendResponse(res, {
-    message: " চ্যালান সফলভাবে আপডেট হয়েছে",
-    statusCode: StatusCodes.OK,
-    success: true,
-  });
+      message: " চ্যালান সফলভাবে আপডেট হয়েছে",
+      statusCode: StatusCodes.OK,
+      success: true,
+    });
   }
 });
 
@@ -249,14 +259,14 @@ const updateInvoiceItemDeliveryDateController = catchAsync(async (req, res) => {
       "চ্যালান আপডেট করতে ব্যর্থ হয়েছে।"
     );
   }
-else{
-  
-  sendResponse(res, {
-    message: " চ্যালান সফলভাবে আপডেট হয়েছে",
-    statusCode: StatusCodes.OK,
-    success: true,
-  });
-}
+  else {
+
+    sendResponse(res, {
+      message: " চ্যালান সফলভাবে আপডেট হয়েছে",
+      statusCode: StatusCodes.OK,
+      success: true,
+    });
+  }
 });
 
 export const InvoiceController = {

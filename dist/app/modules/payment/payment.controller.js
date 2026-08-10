@@ -16,11 +16,13 @@ const createPaymentController = (0, catchAsync_1.default)(async (req, res) => {
     if (!result) {
         throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.BAD_REQUEST, "পেমেন্ট তৈরি করা যায়নি। অনুগ্রহ করে আবার চেষ্টা করুন।");
     }
-    (0, sendResponse_1.sendResponse)(res, {
-        statusCode: http_status_codes_1.StatusCodes.CREATED,
-        success: true,
-        message: "পেমেন্ট সফলভাবে তৈরি করা হয়েছে।",
-    });
+    else {
+        (0, sendResponse_1.sendResponse)(res, {
+            statusCode: http_status_codes_1.StatusCodes.CREATED,
+            success: true,
+            message: "পেমেন্ট সফলভাবে তৈরি করা হয়েছে।",
+        });
+    }
 });
 // GET ALL PAYMENT PAGINATE AND SEARCH
 const getAllPaymentController = (0, catchAsync_1.default)(async (req, res) => {
@@ -39,12 +41,14 @@ const getAllPaymentController = (0, catchAsync_1.default)(async (req, res) => {
             data: [],
         });
     }
-    (0, sendResponse_1.sendResponse)(res, {
-        statusCode: http_status_codes_1.StatusCodes.OK,
-        success: true,
-        message: "পেমেন্টগুলো সফলভাবে পাওয়া গেছে।",
-        data: result,
-    });
+    else {
+        (0, sendResponse_1.sendResponse)(res, {
+            statusCode: http_status_codes_1.StatusCodes.OK,
+            success: true,
+            message: "পেমেন্টগুলো সফলভাবে পাওয়া গেছে।",
+            data: result,
+        });
+    }
 });
 //
 // GET ALL PAYMENT PAGINATE AND SEARCH
@@ -58,12 +62,14 @@ const paymentReportViaGroupController = (0, catchAsync_1.default)(async (req, re
             data: [],
         });
     }
-    (0, sendResponse_1.sendResponse)(res, {
-        statusCode: http_status_codes_1.StatusCodes.OK,
-        success: true,
-        message: "পেমেন্টগুলো সফলভাবে পাওয়া গেছে।",
-        data: result,
-    });
+    else {
+        (0, sendResponse_1.sendResponse)(res, {
+            statusCode: http_status_codes_1.StatusCodes.OK,
+            success: true,
+            message: "পেমেন্টগুলো সফলভাবে পাওয়া গেছে।",
+            data: result,
+        });
+    }
 });
 // GET SINGLE PAYMENT
 const getSinglePaymentController = (0, catchAsync_1.default)(async (req, res) => {
@@ -72,12 +78,14 @@ const getSinglePaymentController = (0, catchAsync_1.default)(async (req, res) =>
     if (!result) {
         throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.NOT_FOUND, "কোনো পেমেন্ট পাওয়া যায়নি।");
     }
-    (0, sendResponse_1.sendResponse)(res, {
-        statusCode: http_status_codes_1.StatusCodes.OK,
-        success: true,
-        message: "পেমেন্ট সফলভাবে পাওয়া গেছে।",
-        data: result,
-    });
+    else {
+        (0, sendResponse_1.sendResponse)(res, {
+            statusCode: http_status_codes_1.StatusCodes.OK,
+            success: true,
+            message: "পেমেন্ট সফলভাবে পাওয়া গেছে।",
+            data: result,
+        });
+    }
 });
 // UPDATE PAYMENT
 const updatePaymentController = (0, catchAsync_1.default)(async (req, res) => {
@@ -85,11 +93,13 @@ const updatePaymentController = (0, catchAsync_1.default)(async (req, res) => {
     if (!result) {
         throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.BAD_REQUEST, "পেমেন্ট আপডেট করা যায়নি। অনুগ্রহ করে আবার চেষ্টা করুন।");
     }
-    (0, sendResponse_1.sendResponse)(res, {
-        statusCode: http_status_codes_1.StatusCodes.OK,
-        success: true,
-        message: "পেমেন্ট সফলভাবে আপডেট করা হয়েছে।",
-    });
+    else {
+        (0, sendResponse_1.sendResponse)(res, {
+            statusCode: http_status_codes_1.StatusCodes.OK,
+            success: true,
+            message: "পেমেন্ট সফলভাবে আপডেট করা হয়েছে।",
+        });
+    }
 });
 // DELETE PAYMENT (SOFT)
 const deletePaymentController = (0, catchAsync_1.default)(async (req, res) => {
@@ -98,11 +108,13 @@ const deletePaymentController = (0, catchAsync_1.default)(async (req, res) => {
     if (!result) {
         throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.BAD_REQUEST, "পেমেন্ট মুছে ফেলা যায়নি। অনুগ্রহ করে আবার চেষ্টা করুন।");
     }
-    (0, sendResponse_1.sendResponse)(res, {
-        statusCode: http_status_codes_1.StatusCodes.OK,
-        success: true,
-        message: "পেমেন্ট সফলভাবে মুছে ফেলা হয়েছে।",
-    });
+    else {
+        (0, sendResponse_1.sendResponse)(res, {
+            statusCode: http_status_codes_1.StatusCodes.OK,
+            success: true,
+            message: "পেমেন্ট সফলভাবে মুছে ফেলা হয়েছে।",
+        });
+    }
 });
 exports.PaymentController = {
     createPaymentController,

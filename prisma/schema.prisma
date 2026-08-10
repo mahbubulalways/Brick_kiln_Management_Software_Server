@@ -84,6 +84,7 @@ model Customer {
   isDeleted       Boolean          @default(false)
   dueCollections  Due_Collection[]
   challans        Challan[]
+  note            String?
 }
 
 model Delivery {

@@ -9,11 +9,17 @@ const catchAsync_1 = __importDefault(require("../../../utils/catchAsync"));
 const ApplicationError_1 = require("../../errors/ApplicationError");
 const due_collection_service_1 = require("./due_collection.service");
 const sendResponse_1 = require("../../../utils/sendResponse");
+const parseListQuery_1 = require("../../../utils/parseListQuery");
 const getDueOfCustomerController = (0, catchAsync_1.default)(async (req, res) => {
     const customerId = req.params.customerId;
     const result = await due_collection_service_1.DueCollectionService.getDueOfCustomerService(Number(customerId));
     if (!result?.id) {
-        throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.NOT_FOUND, "NOT FOUND");
+        (0, sendResponse_1.sendResponse)(res, {
+            message: "সফলভাবে পাওয়া যায়নি।",
+            statusCode: http_status_codes_1.StatusCodes.OK,
+            success: true,
+            data: {},
+        });
     }
     (0, sendResponse_1.sendResponse)(res, {
         message: "সফলভাবে পাওয়া গেছে।",
@@ -37,48 +43,65 @@ const collectionNewDueController = (0, catchAsync_1.default)(async (req, res) =>
 });
 // TODAY HAVE PAY
 const todayPayDueController = (0, catchAsync_1.default)(async (req, res) => {
-    const { date } = req.query;
-    console.log(date);
-    if (!date || typeof date !== "string") {
-        throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.BAD_REQUEST, "তারিখ প্রদান করা হয়নি বা তারিখের ফরম্যাট সঠিক নয়।");
+    const { limit, page, date, search } = await (0, parseListQuery_1.parseListQuery)(req.query);
+    const result = await due_collection_service_1.DueCollectionService.todayPayDueService({ date, limit, page, search });
+    if (!result?.data?.length) {
+        (0, sendResponse_1.sendResponse)(res, {
+            message: "আজকের  জন্য কোনো বাকি পাওয়া যায়নি।",
+            statusCode: http_status_codes_1.StatusCodes.OK,
+            success: true,
+            data: result,
+        });
     }
-    const result = await due_collection_service_1.DueCollectionService.todayPayDueService(date);
-    (0, sendResponse_1.sendResponse)(res, {
-        message: result?.length
-            ? "আজকের বাকি সফলভাবে পাওয়া গেছে।"
-            : "আজকের  জন্য কোনো বাকি পাওয়া যায়নি।",
-        statusCode: http_status_codes_1.StatusCodes.OK,
-        success: true,
-        data: result,
-    });
+    else {
+        (0, sendResponse_1.sendResponse)(res, {
+            message: "আজকের বাকি সফলভাবে পাওয়া গেছে।",
+            statusCode: http_status_codes_1.StatusCodes.OK,
+            success: true,
+            data: result,
+        });
+    }
 });
 // TODAY PAID
 const getTodaysDuePaidController = (0, catchAsync_1.default)(async (req, res) => {
-    const { date } = req.query;
-    if (!date || typeof date !== "string") {
-        throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.BAD_REQUEST, "তারিখ প্রদান করা হয়নি বা তারিখের ফরম্যাট সঠিক নয়।");
+    const { limit, page, date } = await (0, parseListQuery_1.parseListQuery)(req.query);
+    const result = await due_collection_service_1.DueCollectionService.getTodaysDuePaidService({ date, limit, page });
+    if (!result.data.length) {
+        (0, sendResponse_1.sendResponse)(res, {
+            message: "আজকের  জন্য কোনো বাকি পাওয়া যায়নি।",
+            statusCode: http_status_codes_1.StatusCodes.OK,
+            success: true,
+            data: [],
+        });
     }
-    const result = await due_collection_service_1.DueCollectionService.getTodaysDuePaidService(date);
-    (0, sendResponse_1.sendResponse)(res, {
-        message: result?.length
-            ? "আজকের বাকি সফলভাবে পাওয়া গেছে।"
-            : "আজকের  জন্য কোনো বাকি পাওয়া যায়নি।",
-        statusCode: http_status_codes_1.StatusCodes.OK,
-        success: true,
-        data: result,
-    });
+    else {
+        (0, sendResponse_1.sendResponse)(res, {
+            message: "আজকের বাকি সফলভাবে পাওয়া গেছে।",
+            statusCode: http_status_codes_1.StatusCodes.OK,
+            success: true,
+            data: result,
+        });
+    }
 });
 const getAllDueListController = (0, catchAsync_1.default)(async (req, res) => {
-    const { startDate, endDate } = req.query;
-    const result = await due_collection_service_1.DueCollectionService.getAllDueListService(startDate, endDate);
-    (0, sendResponse_1.sendResponse)(res, {
-        message: result?.length
-            ? " বাকি সফলভাবে পাওয়া গেছে।"
-            : "বাকি পাওয়া যায়নি।",
-        statusCode: http_status_codes_1.StatusCodes.OK,
-        success: true,
-        data: result,
-    });
+    const { limit, page, search, date } = await (0, parseListQuery_1.parseListQuery)(req.query);
+    const result = await due_collection_service_1.DueCollectionService.getAllDueListService({ date, limit, page, search });
+    if (!result?.data?.length) {
+        (0, sendResponse_1.sendResponse)(res, {
+            message: "বাকি পাওয়া যায়নি।",
+            statusCode: http_status_codes_1.StatusCodes.OK,
+            success: true,
+            data: [],
+        });
+    }
+    else {
+        (0, sendResponse_1.sendResponse)(res, {
+            message: " বাকি সফলভাবে পাওয়া গেছে।",
+            statusCode: http_status_codes_1.StatusCodes.OK,
+            success: true,
+            data: result,
+        });
+    }
 });
 // GET SINGKE
 const getSingleDueCollectionController = (0, catchAsync_1.default)(async (req, res) => {
@@ -87,18 +110,50 @@ const getSingleDueCollectionController = (0, catchAsync_1.default)(async (req, r
     if (!result?.id) {
         throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.NOT_FOUND, "NOT FOUND");
     }
-    (0, sendResponse_1.sendResponse)(res, {
-        message: "সফলভাবে পাওয়া গেছে।",
-        statusCode: http_status_codes_1.StatusCodes.OK,
-        success: true,
-        data: result,
-    });
+    else {
+        (0, sendResponse_1.sendResponse)(res, {
+            message: "সফলভাবে পাওয়া গেছে।",
+            statusCode: http_status_codes_1.StatusCodes.OK,
+            success: true,
+            data: result,
+        });
+    }
+});
+// GET SINGLE DUE ONLY DATE
+const getSingleDueCollectionDateController = (0, catchAsync_1.default)(async (req, res) => {
+    const id = req.params.id;
+    const result = await due_collection_service_1.DueCollectionService.getSingleDueCollectionDateService(Number(id));
+    if (!result?.id) {
+        throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.NOT_FOUND, "NOT FOUND");
+    }
+    else {
+        (0, sendResponse_1.sendResponse)(res, {
+            message: "সফলভাবে পাওয়া গেছে।",
+            statusCode: http_status_codes_1.StatusCodes.OK,
+            success: true,
+            data: result,
+        });
+    }
 });
 //
 const updateDueCollectionController = (0, catchAsync_1.default)(async (req, res) => {
     const id = req.params.id;
     const body = req.body;
     const result = await due_collection_service_1.DueCollectionService.updateDueCollectionService(Number(id), body);
+    if (!result?.id) {
+        throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.BAD_REQUEST, "আপডেট করতে ব্যর্থ হয়েছে");
+    }
+    (0, sendResponse_1.sendResponse)(res, {
+        message: "সফলভাবে আপডেট করেছে",
+        statusCode: http_status_codes_1.StatusCodes.OK,
+        success: true,
+        data: result,
+    });
+});
+const updateDueCollectionDateController = (0, catchAsync_1.default)(async (req, res) => {
+    const id = req.params.id;
+    const body = req.body;
+    const result = await due_collection_service_1.DueCollectionService.upDateDueCollectionDateService(id, body);
     if (!result?.id) {
         throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.BAD_REQUEST, "আপডেট করতে ব্যর্থ হয়েছে");
     }
@@ -117,4 +172,6 @@ exports.DueCollectionController = {
     getAllDueListController,
     getSingleDueCollectionController,
     updateDueCollectionController,
+    updateDueCollectionDateController,
+    getSingleDueCollectionDateController
 };

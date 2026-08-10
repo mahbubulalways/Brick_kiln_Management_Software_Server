@@ -71,14 +71,16 @@ const getAllDeliveryListController = catchAsync(async (req, res) => {
 const createDeliveryController = catchAsync(async (req, res) => {
   const body = req.body;
   const result = await DeliveryService.createDeliveryService(body);
-  sendResponse(res, {
-    message: result?.id
-      ? "ডেলিভারি সফলভাবে তৈরি করা হয়েছে।"
-      : "ডেলিভারি তৈরি করা সম্ভব হয়নি।",
-    statusCode: StatusCodes.OK,
-    success: !!result?.id,
-    data: result,
-  });
+  if (!result) {
+    throw new AppError(StatusCodes.BAD_REQUEST, "ডেলিভারি তৈরি করা সম্ভব হয়নি।")
+  } else {
+    sendResponse(res, {
+      message: "ডেলিভারি সফলভাবে তৈরি করা হয়েছে।",
+      statusCode: StatusCodes.OK,
+      success: !!result?.id,
+    });
+  }
+
 });
 
 const getTodaysDeliveryThatDoneController = catchAsync(async (req, res) => {

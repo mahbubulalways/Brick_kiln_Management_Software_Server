@@ -1,9 +1,11 @@
+import { StatusCodes } from "http-status-codes";
 import { Due_Collection, Prisma } from "../../../generated/prisma/client";
 import { paginationHelper } from "../../../helpers/paginationHelper";
 import { prisma } from "../../../helpers/prisma";
 import { TQuery } from "../../../interface/query";
 import { createMetaConfig } from "../../../utils/createMetaConfig";
 import { getDateRangeDbSearch } from "../../../utils/getDateRangeDbSearch";
+import { AppError } from "../../errors/ApplicationError";
 
 const getDueOfCustomerService = async (customerId: number) => {
   const result = await prisma.customer.findFirst({
@@ -45,39 +47,92 @@ const collectDueService = async (payload: Due_Collection) => {
 };
 
 // TODAY HAVE PAY
-const todayPayDueService = async (date: string) => {
-  const parsedDate = new Date(date);
-  const startOfDay = new Date(parsedDate.setHours(0, 0, 0, 0));
-  const endOfDay = new Date(parsedDate.setHours(23, 59, 59, 999));
+const todayPayDueService = async (query: TQuery) => {
+  const { limit, page, skip } = paginationHelper(query.page, query.limit);
+  const where: Prisma.CustomerWhereInput = {
+    isDeleted: false,
+  };
 
-  const result = await prisma.customer.findMany({
-    where: {
-      nextPaymentDate: { gte: startOfDay, lte: endOfDay },
-      isDeleted: false,
-    },
-    include: {
-      challans: {
-        select: {
-          note: true,
-          items: { select: { quantity: true, delivered: true } },
+  if (query.search?.trim()) {
+    const search = query.search.trim();
+    const isNumber = !isNaN(Number(search));
+
+    where.OR = [
+      ...(isNumber
+        ? [
+          {
+            id: Number(search),
+          },
+        ]
+        : []),
+
+      {
+        name: {
+          contains: search,
+          mode: "insensitive",
         },
       },
-    },
-  });
-  return result;
-};
 
-// GET TODAYS DUE PAYMENT
-const getTodaysDuePaidService = async (query: TQuery) => {
-  const pagination = paginationHelper(query.page, query.limit);
-  const where: Prisma.Due_CollectionWhereInput = { isDeleted: false };
+      {
+        address: {
+          contains: search,
+          mode: "insensitive",
+        },
+      },
+    ];
+  }
+
   if (query.date) {
     const dateRange = getDateRangeDbSearch(query.date);
+    if (dateRange) {
+      where.nextPaymentDate = dateRange;
+    }
+  }
+  const [result, total] = await Promise.all([
+    prisma.customer.findMany({
+      where,
+      include: {
+        challans: {
+          select: {
+            note: true,
+            items: { select: { quantity: true, delivered: true } },
+          },
+        },
+      },
+      orderBy: { nextPaymentDate: "asc" },
+      skip, take: limit
+    }),
+    prisma.customer.count({ where })
+  ]);
+
+  const meta = createMetaConfig({
+    limit: limit,
+    page: page,
+    totalData: total,
+  });
+
+  return {
+    meta,
+    data: result,
+  };
+};
+
+const getTodaysDuePaidService = async (query: TQuery) => {
+  const pagination = paginationHelper(query.page, query.limit);
+
+  const where: Prisma.Due_CollectionWhereInput = {
+    isDeleted: false,
+  };
+
+  if (query.date) {
+    const dateRange = getDateRangeDbSearch(query.date);
+
     if (dateRange) {
       where.createdAt = dateRange;
     }
   }
-  const [result, total] = await prisma.$transaction([
+
+  const [result, total] = await Promise.all([
     prisma.due_Collection.findMany({
       where,
       include: {
@@ -87,11 +142,14 @@ const getTodaysDuePaidService = async (query: TQuery) => {
         createdAt: "desc",
       },
       skip: pagination.skip,
-      take: pagination.limit
+      take: pagination.limit,
     }),
-    prisma.due_Collection.count({ where })
 
+    prisma.due_Collection.count({
+      where,
+    }),
   ]);
+
   const meta = createMetaConfig({
     limit: pagination.limit,
     page: pagination.page,
@@ -105,35 +163,114 @@ const getTodaysDuePaidService = async (query: TQuery) => {
 };
 
 // GET ALL DUE
-const getAllDueListService = async (startDate, endDate) => {
-  const dateFilter =
-    startDate && endDate
-      ? {
-        nextPaymentDate: {
-          gte: startDate,
-          lte: endDate,
-        },
-        isDeleted: false,
-      }
-      : { isDeleted: false };
+const getAllDueListService = async (query: TQuery) => {
+  const { limit, page, skip } = paginationHelper(query.page, query.limit);
+  const where: Prisma.CustomerWhereInput = {
+    isDeleted: false,
+  };
 
-  const result = await prisma.customer.findMany({
-    where: dateFilter,
-    include: {
-      challans: {
-        select: {
-          items: {
-            select: {
-              delivered: true,
-              quantity: true,
-            },
+  if (query.search?.trim()) {
+    const search = query.search.trim();
+    const isNumber = !isNaN(Number(search));
+    where.OR = [
+      ...(isNumber
+        ? [
+          {
+            id: Number(search),
           },
+        ]
+        : []),
+
+      {
+        name: {
+          contains: search,
+          mode: "insensitive",
         },
       },
-    },
+
+      {
+        address: {
+          contains: search,
+          mode: "insensitive",
+        },
+      },
+    ];
+  }
+
+  if (query.date) {
+    const dateRange = getDateRangeDbSearch(query.date);
+    if (dateRange) {
+      where.nextPaymentDate = dateRange;
+    }
+  }
+
+  const [result, total] = await Promise.all([
+    prisma.customer.findMany({
+      where,
+      include: {
+        challans: {
+          include: { items: true }
+        }
+      },
+      skip, take: limit
+    }),
+
+    prisma.customer.findMany({
+      where,
+      include: {
+        challans: {
+          include: { items: true }
+        }
+      },
+    }),
+
+  ]);
+
+  const customersWithRemaining = result.map((customer) => {
+    const { challans, ...customerData } = customer;
+    let totalQuantity = 0;
+    let totalDelivered = 0;
+    challans.forEach((challan) => {
+      challan.items.forEach((item) => {
+        totalQuantity += item.quantity ?? 0;
+        totalDelivered += item.delivered ?? 0;
+      });
+    });
+
+    return {
+      ...customerData,
+      remainingDelivery: totalQuantity - totalDelivered,
+    };
   });
-  const filtered = result.filter((c) => c.totalPaid !== c.totalPurchased);
-  return filtered;
+
+  const totalLength = total.map((customer) => {
+    const { challans, ...customerData } = customer;
+    let totalQuantity = 0;
+    let totalDelivered = 0;
+    challans.forEach((challan) => {
+      challan.items.forEach((item) => {
+        totalQuantity += item.quantity ?? 0;
+        totalDelivered += item.delivered ?? 0;
+      });
+    });
+
+    return {
+      ...customerData,
+      remainingDelivery: totalQuantity - totalDelivered,
+    };
+  }).length;
+
+  const meta = createMetaConfig({
+    limit: limit,
+    page: page,
+    totalData: totalLength,
+  });
+
+  return {
+    meta,
+    data: customersWithRemaining,
+  };
+
 };
 
 // GET SINGLE
@@ -169,6 +306,10 @@ const updateDueCollectionService = async (
         data: data,
         where: { id },
       });
+      await tx.customer.update({
+        where: { id: data.customerId },
+        data: { nextPaymentDate: payload.nextDate }
+      })
 
       // NEED TO UPDATE CUSTOMER DUE
       await tx.customer.update({
@@ -185,6 +326,25 @@ const updateDueCollectionService = async (
   return result;
 };
 
+
+const getSingleDueCollectionDateService = async (id: number) => {
+  return await prisma.customer.findFirst({ where: { id }, select: { nextPaymentDate: true, id: true } })
+}
+
+
+// UPDATE DUE COLLECTION DATE 
+const upDateDueCollectionDateService = async (id: string, info: { date: string, note: string }) => {
+  const due = await prisma.customer.findFirst({ where: { id: Number(id) } })
+  if (!due) {
+    throw new AppError(StatusCodes.NOT_FOUND, "বাকি পাওয়া যায়নি।")
+  }
+  const result = await prisma.customer.update({
+    data: { nextPaymentDate: info.date, note: info.note, },
+    where: { id: Number(id) }
+  })
+  return result
+}
+
 export const DueCollectionService = {
   getDueOfCustomerService,
   collectDueService,
@@ -193,4 +353,6 @@ export const DueCollectionService = {
   getAllDueListService,
   getSingleDueCollectionService,
   updateDueCollectionService,
+  upDateDueCollectionDateService,
+  getSingleDueCollectionDateService
 };

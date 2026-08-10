@@ -256,8 +256,6 @@ const updateInvoiceController = async (
   items: ChallanItem[],
 ) => {
 
-  console.log("🚀 ~ file: challan.service.ts:123 ~ updateInvoiceController ~ invoice:", invoice);
-
   const result = await prisma.$transaction(
     async (tx: Prisma.TransactionClient) => {
       // update invoice

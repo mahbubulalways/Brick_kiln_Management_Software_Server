@@ -14,12 +14,14 @@ const createPaymentController = catchAsync(async (req, res) => {
       "পেমেন্ট তৈরি করা যায়নি। অনুগ্রহ করে আবার চেষ্টা করুন।",
     );
   }
-  sendResponse(res, {
-    statusCode: StatusCodes.CREATED,
-    success: true,
-    message: "পেমেন্ট সফলভাবে তৈরি করা হয়েছে।",
- 
-  });
+  else {
+    sendResponse(res, {
+      statusCode: StatusCodes.CREATED,
+      success: true,
+      message: "পেমেন্ট সফলভাবে তৈরি করা হয়েছে।",
+
+    });
+  }
 });
 
 // GET ALL PAYMENT PAGINATE AND SEARCH
@@ -41,12 +43,14 @@ const getAllPaymentController = catchAsync(async (req, res) => {
     });
   }
 
-  sendResponse(res, {
-    statusCode: StatusCodes.OK,
-    success: true,
-    message: "পেমেন্টগুলো সফলভাবে পাওয়া গেছে।",
-    data: result,
-  });
+  else {
+    sendResponse(res, {
+      statusCode: StatusCodes.OK,
+      success: true,
+      message: "পেমেন্টগুলো সফলভাবে পাওয়া গেছে।",
+      data: result,
+    });
+  }
 });
 
 //
@@ -64,12 +68,14 @@ const paymentReportViaGroupController = catchAsync(async (req, res) => {
     });
   }
 
-  sendResponse(res, {
-    statusCode: StatusCodes.OK,
-    success: true,
-    message: "পেমেন্টগুলো সফলভাবে পাওয়া গেছে।",
-    data: result,
-  });
+  else {
+    sendResponse(res, {
+      statusCode: StatusCodes.OK,
+      success: true,
+      message: "পেমেন্টগুলো সফলভাবে পাওয়া গেছে।",
+      data: result,
+    });
+  }
 });
 
 
@@ -78,15 +84,17 @@ const getSinglePaymentController = catchAsync(async (req, res) => {
   const id = req.params.id
   const result = await PaymentService.getSinglePaymentService(id);
   if (!result) {
-   throw new AppError(StatusCodes.NOT_FOUND,"কোনো পেমেন্ট পাওয়া যায়নি।")
+    throw new AppError(StatusCodes.NOT_FOUND, "কোনো পেমেন্ট পাওয়া যায়নি।")
   }
 
-  sendResponse(res, {
-    statusCode: StatusCodes.OK,
-    success: true,
-    message: "পেমেন্ট সফলভাবে পাওয়া গেছে।",
-    data: result,
-  });
+  else {
+    sendResponse(res, {
+      statusCode: StatusCodes.OK,
+      success: true,
+      message: "পেমেন্ট সফলভাবে পাওয়া গেছে।",
+      data: result,
+    });
+  }
 });
 
 
@@ -101,12 +109,14 @@ const updatePaymentController = catchAsync(async (req, res) => {
     );
   }
 
-  sendResponse(res, {
-    statusCode: StatusCodes.OK,
-    success: true,
-    message: "পেমেন্ট সফলভাবে আপডেট করা হয়েছে।",
+  else {
+    sendResponse(res, {
+      statusCode: StatusCodes.OK,
+      success: true,
+      message: "পেমেন্ট সফলভাবে আপডেট করা হয়েছে।",
 
-  });
+    });
+  }
 });
 
 
@@ -123,12 +133,14 @@ const deletePaymentController = catchAsync(async (req, res) => {
       "পেমেন্ট মুছে ফেলা যায়নি। অনুগ্রহ করে আবার চেষ্টা করুন।",
     );
   }
+  else {
 
-  sendResponse(res, {
-    statusCode: StatusCodes.OK,
-    success: true,
-    message: "পেমেন্ট সফলভাবে মুছে ফেলা হয়েছে।",
-  });
+    sendResponse(res, {
+      statusCode: StatusCodes.OK,
+      success: true,
+      message: "পেমেন্ট সফলভাবে মুছে ফেলা হয়েছে।",
+    });
+  }
 });
 
 export const PaymentController = {
