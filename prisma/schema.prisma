@@ -17,13 +17,14 @@ model User {
 }
 
 model ClassAndRate {
-  id        Int      @id @default(autoincrement())
-  classType String
-  className String
-  rate      Float
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now()) @updatedAt
-  isDeleted Boolean  @default(false)
+  id          Int          @id @default(autoincrement())
+  classType   String
+  className   String
+  rate        Float
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @default(now()) @updatedAt
+  isDeleted   Boolean      @default(false)
+  unloadItems UnloadItem[]
 
   @@map("classAndRates")
 }
@@ -172,4 +173,46 @@ model Cash {
   @@index([type])
   @@index([createdAt])
   @@map("cash")
+}
+
+model Round {
+  id   Int    @id @default(autoincrement())
+  name String @unique
+
+  loadInfos LoadInfo[]
+  unloads   Unload[]
+}
+
+model LoadInfo {
+  id        Int      @id @default(autoincrement())
+  date      DateTime
+  roundId   Int
+  round     Round    @relation(fields: [roundId], references: [id])
+  quantity  Int
+  loadType  String
+  classType String?
+  isDeleted Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Unload {
+  id        Int      @id @default(autoincrement())
+  date      DateTime
+  roundId   Int
+  round     Round    @relation(fields: [roundId], references: [id])
+  isDeleted Boolean  @default(false)
+
+  unloadItems UnloadItem[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+model UnloadItem {
+  id       Int @id @default(autoincrement())
+  unloadId Int
+  unload    Unload       @relation(fields: [unloadId], references: [id])
+  classId   Int
+  classType ClassAndRate @relation(fields: [classId], references: [id])
+  quantity  Int          @default(0)
 }

@@ -33,4 +33,4 @@ router.delete(
   CashController.deleteCash
 );
 
-export const CashRouter = router;
+export default router;

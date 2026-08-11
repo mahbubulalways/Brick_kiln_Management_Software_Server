@@ -22,6 +22,18 @@ const getAllCashService = async (query: TQuery) => {
             where.createdAt = dateRange;
         }
     }
+    if (query.search?.trim()) {
+        const search = query.search.trim();
+        // const isNumber = !isNaN(Number(search));
+        where.OR = [
+            {
+                source: {
+                    contains: search,
+                    mode: "insensitive"
+                }
+            },
+        ];
+    }
     const [result, total] = await Promise.all([
         prisma.cash.findMany({ where, skip, take: limit }),
         prisma.cash.count({ where })
@@ -49,12 +61,13 @@ const getSingleCashService = async (id: number) => {
 
 // UPDATE CASH
 const updateCashService = async (id: number, payload: Cash) => {
+    console.log(payload);
     return prisma.cash.update({ data: payload, where: { id } })
 }
 
 // DELETE CASH
 const deleteCashService = async (id: number) => {
-    return prisma.cash.update({ data: {isDeleted:true}, where: { id } })
+    return prisma.cash.update({ data: { isDeleted: true }, where: { id } })
 }
 
 export const CashService = {

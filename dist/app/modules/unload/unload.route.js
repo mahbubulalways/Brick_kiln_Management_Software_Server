@@ -1,0 +1,8 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const unload_controller_1 = require("./unload.controller");
+const router = (0, express_1.Router)();
+router.post("/create", unload_controller_1.UnloadController.createUnloadInfoController);
+router.get("/all", unload_controller_1.UnloadController.getAllUnloadInfoController);
+exports.default = router;

@@ -7,6 +7,10 @@ import dueCollectionRoute from "../app/modules/due_collection/due_collection.rou
 import authRoute from "../app/modules/auth/auth.route";
 import ledgerRoute from "../app/modules/ledger/ledger.route";
 import paymentRoute from "../app/modules/payment/payment.route";
+import cashRoute from "../app/modules/cash/cash.route";
+import loadRoute from "../app/modules/load/load.route";
+import roundRoute from "../app/modules/round/round.route";
+import unloadRoute from "../app/modules/unload/unload.route";
 const router = Router();
 const applicationRoutes: IApplicationRoute[] = [
   { path: "/class", route: classAndRateRoute },
@@ -16,6 +20,10 @@ const applicationRoutes: IApplicationRoute[] = [
   { path: "/auth", route: authRoute },
   { path: "/ledger", route: ledgerRoute },
   { path: "/payment", route: paymentRoute },
+  { path: "/cash", route: cashRoute },
+  { path: "/load-info", route: loadRoute },
+  { path: "/round", route: roundRoute },
+  { path: "/unload", route: unloadRoute },
 ];
 
 applicationRoutes.forEach((route) => router.use(route.path, route.route));

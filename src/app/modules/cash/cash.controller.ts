@@ -4,6 +4,7 @@ import { sendResponse } from "../../../utils/sendResponse";
 import catchAsync from "../../../utils/catchAsync";
 import { AppError } from "../../errors/ApplicationError";
 import { StatusCodes } from "http-status-codes";
+import { parseListQuery } from "../../../utils/parseListQuery";
 
 // CREATE CASH
 const createCash = catchAsync(async (req: Request, res: Response) => {
@@ -22,7 +23,8 @@ const createCash = catchAsync(async (req: Request, res: Response) => {
 
 // GET ALL CASH
 const getAllCash = catchAsync(async (req: Request, res: Response) => {
-    const result = await CashService.getAllCashService(req.query);
+    const { limit, page, date, search } = await parseListQuery(req.query);
+    const result = await CashService.getAllCashService({ date, limit, page, search });
     if (result.data.length > 0) {
         sendResponse(res, {
             statusCode: 200,

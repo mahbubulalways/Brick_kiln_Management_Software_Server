@@ -21,7 +21,7 @@ const createClassAndRateService = async (payload) => {
 };
 // GET ALL CLASS AND RATE
 const getClassAndRateService = async () => {
-    const result = await prisma_1.prisma.classAndRate.findMany();
+    const result = await prisma_1.prisma.classAndRate.findMany({ orderBy: { createdAt: "asc" } });
     return result;
 };
 // GET SINGLE CLASS AND RATE
