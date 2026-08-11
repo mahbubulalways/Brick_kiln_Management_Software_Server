@@ -4,6 +4,9 @@ exports.UnloadService = void 0;
 const http_status_codes_1 = require("http-status-codes");
 const prisma_1 = require("../../../helpers/prisma");
 const ApplicationError_1 = require("../../errors/ApplicationError");
+const paginationHelper_1 = require("../../../helpers/paginationHelper");
+const getDateRangeDbSearch_1 = require("../../../utils/getDateRangeDbSearch");
+const createMetaConfig_1 = require("../../../utils/createMetaConfig");
 const createNewUnloadService = async (payload) => {
     const startOfDay = new Date(payload.date);
     startOfDay.setHours(0, 0, 0, 0);
@@ -68,8 +71,68 @@ const createNewUnloadService = async (payload) => {
 };
 // gert
 // GET ALL UNLOAD
-const getAllUnloadService = async () => {
+const getAllUnloadService = async (query) => {
+    const { limit, page, skip } = (0, paginationHelper_1.paginationHelper)(query.page, query.limit);
+    const where = {
+        isDeleted: false,
+    };
+    // DATE FILTER
+    if (query.date) {
+        const dateRange = (0, getDateRangeDbSearch_1.getDateRangeDbSearch)(query.date);
+        if (dateRange) {
+            where.date = dateRange;
+        }
+    }
+    if (query.search?.trim()) {
+        const search = query.search.trim();
+        where.OR = [
+            {
+                round: {
+                    name: {
+                        contains: search,
+                        mode: "insensitive",
+                    }
+                }
+            }
+        ];
+    }
+    const [result, total] = await Promise.all([
+        prisma_1.prisma.unload.findMany({
+            where,
+            include: {
+                round: true,
+                unloadItems: {
+                    include: {
+                        classType: {
+                            select: {
+                                className: true,
+                                id: true
+                            }
+                        }
+                    }
+                }
+            },
+            skip,
+            take: limit
+        }),
+        prisma_1.prisma.unload.count({ where })
+    ]);
+    const meta = (0, createMetaConfig_1.createMetaConfig)({
+        limit,
+        page,
+        totalData: total,
+    });
+    return {
+        meta,
+        data: result,
+    };
+};
+//  GET ALL DATA NOT PAGINATE
+const getAllUnloadDataNoPaginateService = async () => {
     const result = await prisma_1.prisma.unload.findMany({
+        where: {
+            isDeleted: false,
+        },
         include: {
             round: true,
             unloadItems: {
@@ -77,18 +140,27 @@ const getAllUnloadService = async () => {
                     classType: {
                         select: {
                             className: true,
-                            id: true
+                            id: true,
+                            classType: true
                         }
                     }
                 }
             }
-        }
+        },
     });
-    return {
-        data: result
-    };
+    return result;
+};
+const deleteUnloadService = async (id) => {
+    const isExist = await prisma_1.prisma.unload.findFirst({ where: { id } });
+    if (!isExist) {
+        throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.NOT_FOUND, "আনলোডের তথ্য পাওয়া যায়নি");
+    }
+    const result = await prisma_1.prisma.unload.update({ where: { id }, data: { isDeleted: true } });
+    return result;
 };
 exports.UnloadService = {
     createNewUnloadService,
-    getAllUnloadService
+    getAllUnloadService,
+    deleteUnloadService,
+    getAllUnloadDataNoPaginateService
 };

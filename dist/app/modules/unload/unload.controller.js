@@ -9,6 +9,7 @@ const catchAsync_1 = __importDefault(require("../../../utils/catchAsync"));
 const sendResponse_1 = require("../../../utils/sendResponse");
 const unload_service_1 = require("./unload.service");
 const ApplicationError_1 = require("../../errors/ApplicationError");
+const parseListQuery_1 = require("../../../utils/parseListQuery");
 const createUnloadInfoController = (0, catchAsync_1.default)(async (req, res) => {
     const result = await unload_service_1.UnloadService.createNewUnloadService(req.body);
     if (result) {
@@ -24,8 +25,8 @@ const createUnloadInfoController = (0, catchAsync_1.default)(async (req, res) =>
 });
 // GET ALL UNLOAD
 const getAllUnloadInfoController = (0, catchAsync_1.default)(async (req, res) => {
-    // const { limit, page, search, date } = await parseListQuery(req.query); { date, limit, page, search }
-    const result = await unload_service_1.UnloadService.getAllUnloadService();
+    const { limit, page, search, date } = await (0, parseListQuery_1.parseListQuery)(req.query);
+    const result = await unload_service_1.UnloadService.getAllUnloadService({ date, limit, page, search });
     if (result.data.length) {
         (0, sendResponse_1.sendResponse)(res, {
             statusCode: http_status_codes_1.StatusCodes.OK,
@@ -43,7 +44,45 @@ const getAllUnloadInfoController = (0, catchAsync_1.default)(async (req, res) =>
         });
     }
 });
+//  GET ALL DATA NOT PAGINATE 
+const getAllUnloadDataNoPaginateController = (0, catchAsync_1.default)(async (req, res) => {
+    const result = await unload_service_1.UnloadService.getAllUnloadDataNoPaginateService();
+    if (result.length) {
+        (0, sendResponse_1.sendResponse)(res, {
+            statusCode: http_status_codes_1.StatusCodes.OK,
+            success: true,
+            message: "আনলোডের তথ্য সফলভাবে পাওয়া গেছে",
+            data: result,
+        });
+    }
+    else {
+        (0, sendResponse_1.sendResponse)(res, {
+            statusCode: http_status_codes_1.StatusCodes.OK,
+            success: false,
+            message: "কোনো আনলোডের তথ্য পাওয়া যায়নি",
+            data: [],
+        });
+    }
+});
+// DELETE
+const deleteUnloadInfoController = (0, catchAsync_1.default)(async (req, res) => {
+    const id = Number(req.params.id);
+    const result = await unload_service_1.UnloadService.deleteUnloadService(id);
+    if (result) {
+        (0, sendResponse_1.sendResponse)(res, {
+            statusCode: http_status_codes_1.StatusCodes.OK,
+            success: true,
+            message: "আনলোডের তথ্য সফলভাবে ডিলেট হয়েছে",
+            data: result,
+        });
+    }
+    else {
+        throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.BAD_REQUEST, "আনলোডের তথ্য ডিলেট করতে ব্যর্থ হয়েছে");
+    }
+});
 exports.UnloadController = {
     createUnloadInfoController,
-    getAllUnloadInfoController
+    getAllUnloadInfoController,
+    deleteUnloadInfoController,
+    getAllUnloadDataNoPaginateController
 };

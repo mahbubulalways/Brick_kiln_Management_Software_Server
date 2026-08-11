@@ -5,4 +5,6 @@ const unload_controller_1 = require("./unload.controller");
 const router = (0, express_1.Router)();
 router.post("/create", unload_controller_1.UnloadController.createUnloadInfoController);
 router.get("/all", unload_controller_1.UnloadController.getAllUnloadInfoController);
+router.get("/report", unload_controller_1.UnloadController.getAllUnloadDataNoPaginateController);
+router.delete("/delete/:id", unload_controller_1.UnloadController.getAllUnloadInfoController);
 exports.default = router;

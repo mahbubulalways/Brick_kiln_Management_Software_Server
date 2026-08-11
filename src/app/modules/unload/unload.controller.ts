@@ -3,6 +3,7 @@ import catchAsync from "../../../utils/catchAsync";
 import { sendResponse } from "../../../utils/sendResponse";
 import { UnloadService } from "./unload.service";
 import { AppError } from "../../errors/ApplicationError";
+import { parseListQuery } from "../../../utils/parseListQuery";
 
 const createUnloadInfoController = catchAsync(
     async (req, res) => {
@@ -28,9 +29,9 @@ const createUnloadInfoController = catchAsync(
 // GET ALL UNLOAD
 const getAllUnloadInfoController = catchAsync(
     async (req, res) => {
-        // const { limit, page, search, date } = await parseListQuery(req.query); { date, limit, page, search }
+        const { limit, page, search, date } = await parseListQuery(req.query);
         const result =
-            await UnloadService.getAllUnloadService();
+            await UnloadService.getAllUnloadService({ date, limit, page, search });
 
         if (result.data.length) {
             sendResponse(res, {
@@ -50,8 +51,58 @@ const getAllUnloadInfoController = catchAsync(
     }
 );
 
+//  GET ALL DATA NOT PAGINATE 
+const getAllUnloadDataNoPaginateController = catchAsync(
+    async (req, res) => {
+        const result =
+            await UnloadService.getAllUnloadDataNoPaginateService()
+
+        if (result.length) {
+            sendResponse(res, {
+                statusCode: StatusCodes.OK,
+                success: true,
+                message: "আনলোডের তথ্য সফলভাবে পাওয়া গেছে",
+                data: result,
+            });
+        } else {
+            sendResponse(res, {
+                statusCode: StatusCodes.OK,
+                success: false,
+                message: "কোনো আনলোডের তথ্য পাওয়া যায়নি",
+                data: [],
+            });
+        }
+    }
+);
+
+
+// DELETE
+const deleteUnloadInfoController = catchAsync(
+    async (req, res) => {
+        const id = Number(req.params.id);
+        const result =
+            await UnloadService.deleteUnloadService(id);
+
+        if (result) {
+            sendResponse(res, {
+                statusCode: StatusCodes.OK,
+                success: true,
+                message: "আনলোডের তথ্য সফলভাবে ডিলেট হয়েছে",
+                data: result,
+            });
+        } else {
+            throw new AppError(
+                StatusCodes.BAD_REQUEST,
+                "আনলোডের তথ্য ডিলেট করতে ব্যর্থ হয়েছে"
+            );
+        }
+    }
+);
+
 
 export const UnloadController = {
     createUnloadInfoController,
-    getAllUnloadInfoController
+    getAllUnloadInfoController,
+    deleteUnloadInfoController,
+    getAllUnloadDataNoPaginateController
 }
