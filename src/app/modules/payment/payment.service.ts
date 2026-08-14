@@ -77,6 +77,7 @@ const getAllPaymentService = async (query: TQuery) => {
         ledger: {
           select: {
             name: true,
+            id:true
           },
         },
       },

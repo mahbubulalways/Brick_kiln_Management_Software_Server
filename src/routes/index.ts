@@ -11,6 +11,8 @@ import cashRoute from "../app/modules/cash/cash.route";
 import loadRoute from "../app/modules/load/load.route";
 import roundRoute from "../app/modules/round/round.route";
 import unloadRoute from "../app/modules/unload/unload.route";
+import CustomerRoute from "../app/modules/customer/customer.route";
+
 const router = Router();
 const applicationRoutes: IApplicationRoute[] = [
   { path: "/class", route: classAndRateRoute },
@@ -24,6 +26,7 @@ const applicationRoutes: IApplicationRoute[] = [
   { path: "/load-info", route: loadRoute },
   { path: "/round", route: roundRoute },
   { path: "/unload", route: unloadRoute },
+  { path: "/customer", route: CustomerRoute },
 ];
 
 applicationRoutes.forEach((route) => router.use(route.path, route.route));

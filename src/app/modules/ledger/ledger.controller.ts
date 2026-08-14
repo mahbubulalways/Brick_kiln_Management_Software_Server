@@ -3,6 +3,7 @@ import catchAsync from "../../../utils/catchAsync";
 import { sendResponse } from "../../../utils/sendResponse";
 import { AppError } from "../../errors/ApplicationError";
 import { LedgerService } from "./ledger..service";
+import { parseListQuery } from "../../../utils/parseListQuery";
 
 // GET LEDGER COUNT
 const getLedgerCountController = catchAsync(async (req, res) => {
@@ -73,9 +74,49 @@ const getAllLedgerWithController = catchAsync(async (req, res) => {
   });
 });
 
+
+// GET ALL LEDGER WITH AMOUNT
+// GET GROUP OPTION
+const getLedgerWithAmountController = catchAsync(async (req, res) => {
+  const result = await LedgerService.getAllLedgerWithAmountService();
+  if (!result) {
+    sendResponse(res, {
+      statusCode: StatusCodes.OK,
+      success: true,
+      message: "লেজার অপশনের তালিকা পাওয়া যায়নি।",
+    });
+  }
+  sendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: "লেজার অপশন সফলভাবে পাওয়া গেছে।",
+    data: result,
+  });
+});
+const getLedgerDetailsController = catchAsync(async (req, res) => {
+  const id = req.params.id
+   const { limit, page, date } = await parseListQuery(req.query);
+  const result = await LedgerService.getDetailsLedgerService(Number(id),{limit, page,date});
+  if (!result.data.data.length) {
+    sendResponse(res, {
+      statusCode: StatusCodes.OK,
+      success: true,
+      message: "লেজার অপশনের তালিকা পাওয়া যায়নি।",
+    });
+  }
+  sendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: "লেজার অপশন সফলভাবে পাওয়া গেছে।",
+    data: result,
+  });
+});
+
 export const LedgerController = {
   getLedgerCountController,
   createLedgerController,
   getLedgerOptionController,
   getAllLedgerWithController,
+  getLedgerWithAmountController,
+  getLedgerDetailsController
 };
