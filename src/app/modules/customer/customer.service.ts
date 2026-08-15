@@ -274,27 +274,49 @@ const getCustomerAllChallanService = async (id: number, query: TQuery) => {
 // GET CUSTOMER CHALLANS
 const getCustomerAllDeliveryService = async (id: number, query: TQuery) => {
   const { limit, page, skip } = paginationHelper(query.page, query.limit);
-  const where: Prisma.ChallanWhereInput = { customerId: id, isDeleted: false };
-  // Create start and end of day boundaries
+
+  const chalans = await prisma.challan.findMany({
+    where: { customerId: id },
+    select: { id: true },
+  });
+  const chalanIds = chalans.map((c) => c.id);
+
+  const where: Prisma.DeliveryWhereInput = {
+    invoiceId: { in: chalanIds },
+    isDeleted: false,
+  };
+
   if (query.date) {
     const dateRange = getDateRangeDbSearch(query.date);
     if (dateRange) {
-      where.challanDate = dateRange;
+      where.deliveryDate = dateRange;
     }
   }
 
   const [result, total] = await Promise.all([
-    prisma.challan.findMany({
+    prisma.delivery.findMany({
       where,
-      include: { deliveries: true },
       skip,
-      take: limit
+      take: limit,
+      include: {
+        invoice: {
+          select: {
+            customer: {
+              select: {
+                name: true,
+                address: true,
+              },
+            },
+          },
+        },
+      },
     }),
-    prisma.challan.count({ where })
-  ])
+    prisma.delivery.count({ where }),
+  ]);
+
   const meta = createMetaConfig({
-    limit: limit,
-    page: page,
+    limit,
+    page,
     totalData: total,
   });
 
@@ -302,28 +324,29 @@ const getCustomerAllDeliveryService = async (id: number, query: TQuery) => {
     meta,
     data: result,
   };
-}
+};
 
 // GET CUSTOMER ALL DUES
 const getCustomerAllDuesService = async (id: number, query: TQuery) => {
   const { limit, page, skip } = paginationHelper(query.page, query.limit);
-  const where: Prisma.ChallanWhereInput = { customerId: id, isDeleted: false };
+  const where: Prisma.Due_CollectionWhereInput = { customerId: id, isDeleted: false };
   // Create start and end of day boundaries
   if (query.date) {
     const dateRange = getDateRangeDbSearch(query.date);
     if (dateRange) {
-      where.challanDate = dateRange;
+      where.createdAt = dateRange;
     }
   }
 
   const [result, total] = await Promise.all([
     prisma.due_Collection.findMany({
-      // where,
-      include: { customer: true },
+      where,
+      // include: { customer: true },
       skip,
-      take: limit
+      take: limit,
+      orderBy: { createdAt: "asc" }
     }),
-    prisma.challan.count({ where })
+    prisma.due_Collection.count({ where })
   ])
   const meta = createMetaConfig({
     limit: limit,

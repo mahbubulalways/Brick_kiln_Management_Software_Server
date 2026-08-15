@@ -34,6 +34,7 @@ const collectDueService = async (payload: Due_Collection) => {
       await tx.customer.update({
         data: {
           totalPaid: { increment: data?.collect },
+        
           nextPaymentDate: data.nextDate,
         },
         where: {
