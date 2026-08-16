@@ -6,45 +6,33 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.fileUploader = void 0;
 const multer_1 = __importDefault(require("multer"));
 const path_1 = __importDefault(require("path"));
-// cloudinary.config({
-//   cloud_name: "dt4kwpzfk",
-//   api_key: "881498193527174",
-//   api_secret: "rO8e7-cw179mOfgrTBI8ZJYR70Q",
-// });
 const storage = multer_1.default.diskStorage({
     destination: function (req, file, cb) {
         cb(null, path_1.default.join(process.cwd(), "uploads"));
     },
     filename: function (req, file, cb) {
-        const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-        // ✅ EXTENSION FIX (ADDED)
-        const ext = path_1.default.extname(file.originalname);
-        cb(null, file.fieldname + "-" + uniqueSuffix + ext);
+        const uniqueSuffix = Date.now() +
+            "-" +
+            Math.round(Math.random() * 1e9);
+        // =========================
+        // Fix Bangla / UTF-8 filename
+        // =========================
+        const originalName = Buffer.from(file.originalname, "latin1").toString("utf8");
+        // =========================
+        // Get extension
+        // =========================
+        const ext = path_1.default.extname(originalName);
+        // Remove extension from filename
+        const nameWithoutExt = path_1.default.basename(originalName, ext);
+        // =========================
+        // Final filename
+        // =========================
+        const finalName = `${nameWithoutExt}-${uniqueSuffix}${ext}`;
+        cb(null, finalName);
     },
 });
-const upload = (0, multer_1.default)({ storage });
-// CLOUDINARY
-// const uploadToCloudinary = async (
-//   file: IUploadFile,
-// ): Promise<ICloudinaryResponse | undefined> => {
-//   return new Promise((resolve, reject) => {
-//     cloudinary.uploader.upload(
-//       file.path,
-//       {
-//         resource_type: "video", // 👈 REQUIRED for audio files (m4a, mp3, wav, etc.)
-//       },
-//       (
-//         error: UploadApiErrorResponse | undefined,
-//         result: UploadApiResponse | undefined,
-//       ) => {
-//         fs.unlinkSync(file.path);
-//         if (error) {
-//           reject(error);
-//         } else {
-//           resolve(result as ICloudinaryResponse | undefined);
-//         }
-//       },
-//     );
-//   });
-// };
+const upload = (0, multer_1.default)({
+    storage,
+});
+exports.default = upload;
 exports.fileUploader = { upload };

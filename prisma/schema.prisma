@@ -209,10 +209,55 @@ model Unload {
 }
 
 model UnloadItem {
-  id       Int @id @default(autoincrement())
-  unloadId Int
+  id        Int          @id @default(autoincrement())
+  unloadId  Int
   unload    Unload       @relation(fields: [unloadId], references: [id])
   classId   Int
   classType ClassAndRate @relation(fields: [classId], references: [id])
   quantity  Int          @default(0)
+}
+
+// DOCUMENT
+
+enum DocumentType {
+  FILE
+  FOLDER
+}
+
+model Document {
+  id   String       @id @default(cuid())
+  name String
+  type DocumentType
+
+  // Folder relation
+  parentId String?
+  parent   Document?  @relation("DocumentParent", fields: [parentId], references: [id])
+  children Document[] @relation("DocumentParent")
+
+  // File information
+  fileUrl   String?
+  fileKey   String?
+  mimeType  String?
+  size      BigInt?
+  extension String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([parentId, name])
+  @@index([type])
+  @@index([parentId])
+}
+
+// CAR RENT
+
+model CarRent {
+  id        Int      @id @default(autoincrement())
+  address   String
+  area      String
+  rent      Float
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("carrents")
 }

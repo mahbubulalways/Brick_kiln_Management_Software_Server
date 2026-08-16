@@ -6,5 +6,7 @@ const router = (0, express_1.Router)();
 router.get("/count", ledger_controller_1.LedgerController.getLedgerCountController);
 router.get("/options", ledger_controller_1.LedgerController.getLedgerOptionController);
 router.get("/all", ledger_controller_1.LedgerController.getAllLedgerWithController);
+router.get("/all-amount", ledger_controller_1.LedgerController.getLedgerWithAmountController);
 router.post("/create", ledger_controller_1.LedgerController.createLedgerController);
+router.get("/details/:id", ledger_controller_1.LedgerController.getLedgerDetailsController);
 exports.default = router;

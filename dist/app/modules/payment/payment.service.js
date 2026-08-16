@@ -67,6 +67,7 @@ const getAllPaymentService = async (query) => {
                 ledger: {
                     select: {
                         name: true,
+                        id: true
                     },
                 },
             },

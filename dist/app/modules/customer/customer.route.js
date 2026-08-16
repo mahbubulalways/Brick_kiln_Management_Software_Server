@@ -1,5 +1,13 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
+const customer_controller_1 = require("./customer.controller");
 const router = (0, express_1.Router)();
+router.get("/all", customer_controller_1.CustomerController.getAllCustomertController);
+router.get("/single/:id", customer_controller_1.CustomerController.getSingleCustomertController);
+router.get("/info/:id", customer_controller_1.CustomerController.getSingleCustomerInfoController);
+router.get("/invoices/:id", customer_controller_1.CustomerController.getCustomertAllChallanController);
+router.get("/deliveries/:id", customer_controller_1.CustomerController.getCustomerAllDeliveryController);
+router.get("/dues/:id", customer_controller_1.CustomerController.getCustomerAllDuesController);
+router.patch("/update/:id", customer_controller_1.CustomerController.updateCustomerInfoController);
 exports.default = router;

@@ -15,6 +15,10 @@ const cash_route_1 = __importDefault(require("../app/modules/cash/cash.route"));
 const load_route_1 = __importDefault(require("../app/modules/load/load.route"));
 const round_route_1 = __importDefault(require("../app/modules/round/round.route"));
 const unload_route_1 = __importDefault(require("../app/modules/unload/unload.route"));
+const customer_route_1 = __importDefault(require("../app/modules/customer/customer.route"));
+const report_route_1 = __importDefault(require("../app/modules/report/report.route"));
+const document_route_1 = __importDefault(require("../app/modules/document/document.route"));
+const car_rent_route_1 = __importDefault(require("../app/modules/car_rent/car_rent.route"));
 const router = (0, express_1.Router)();
 const applicationRoutes = [
     { path: "/class", route: classAndRate_route_1.default },
@@ -28,6 +32,10 @@ const applicationRoutes = [
     { path: "/load-info", route: load_route_1.default },
     { path: "/round", route: round_route_1.default },
     { path: "/unload", route: unload_route_1.default },
+    { path: "/customer", route: customer_route_1.default },
+    { path: "/report", route: report_route_1.default },
+    { path: "/document", route: document_route_1.default },
+    { path: "/car-rent", route: car_rent_route_1.default },
 ];
 applicationRoutes.forEach((route) => router.use(route.path, route.route));
 exports.default = router;

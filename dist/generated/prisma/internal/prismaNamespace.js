@@ -48,7 +48,7 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.defineExtension = exports.NullsOrder = exports.QueryMode = exports.SortOrder = exports.UnloadItemScalarFieldEnum = exports.UnloadScalarFieldEnum = exports.LoadInfoScalarFieldEnum = exports.RoundScalarFieldEnum = exports.CashScalarFieldEnum = exports.PaymentScalarFieldEnum = exports.LedgerScalarFieldEnum = exports.Due_CollectionScalarFieldEnum = exports.DeliveryScalarFieldEnum = exports.CustomerScalarFieldEnum = exports.ChallanItemScalarFieldEnum = exports.ChallanScalarFieldEnum = exports.ClassAndRateScalarFieldEnum = exports.UserScalarFieldEnum = exports.TransactionIsolationLevel = exports.ModelName = exports.AnyNull = exports.JsonNull = exports.DbNull = exports.NullTypes = exports.prismaVersion = exports.getExtensionContext = exports.Decimal = exports.Sql = exports.raw = exports.join = exports.empty = exports.sql = exports.PrismaClientValidationError = exports.PrismaClientInitializationError = exports.PrismaClientRustPanicError = exports.PrismaClientUnknownRequestError = exports.PrismaClientKnownRequestError = void 0;
+exports.defineExtension = exports.NullsOrder = exports.QueryMode = exports.SortOrder = exports.CarRentScalarFieldEnum = exports.DocumentScalarFieldEnum = exports.UnloadItemScalarFieldEnum = exports.UnloadScalarFieldEnum = exports.LoadInfoScalarFieldEnum = exports.RoundScalarFieldEnum = exports.CashScalarFieldEnum = exports.PaymentScalarFieldEnum = exports.LedgerScalarFieldEnum = exports.Due_CollectionScalarFieldEnum = exports.DeliveryScalarFieldEnum = exports.CustomerScalarFieldEnum = exports.ChallanItemScalarFieldEnum = exports.ChallanScalarFieldEnum = exports.ClassAndRateScalarFieldEnum = exports.UserScalarFieldEnum = exports.TransactionIsolationLevel = exports.ModelName = exports.AnyNull = exports.JsonNull = exports.DbNull = exports.NullTypes = exports.prismaVersion = exports.getExtensionContext = exports.Decimal = exports.Sql = exports.raw = exports.join = exports.empty = exports.sql = exports.PrismaClientValidationError = exports.PrismaClientInitializationError = exports.PrismaClientRustPanicError = exports.PrismaClientUnknownRequestError = exports.PrismaClientKnownRequestError = void 0;
 const runtime = __importStar(require("@prisma/client/runtime/client"));
 /**
  * Prisma Errors
@@ -116,7 +116,9 @@ exports.ModelName = {
     Round: 'Round',
     LoadInfo: 'LoadInfo',
     Unload: 'Unload',
-    UnloadItem: 'UnloadItem'
+    UnloadItem: 'UnloadItem',
+    Document: 'Document',
+    CarRent: 'CarRent'
 };
 /**
  * Enums
@@ -281,6 +283,27 @@ exports.UnloadItemScalarFieldEnum = {
     unloadId: 'unloadId',
     classId: 'classId',
     quantity: 'quantity'
+};
+exports.DocumentScalarFieldEnum = {
+    id: 'id',
+    name: 'name',
+    type: 'type',
+    parentId: 'parentId',
+    fileUrl: 'fileUrl',
+    fileKey: 'fileKey',
+    mimeType: 'mimeType',
+    size: 'size',
+    extension: 'extension',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+};
+exports.CarRentScalarFieldEnum = {
+    id: 'id',
+    address: 'address',
+    area: 'area',
+    rent: 'rent',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
 };
 exports.SortOrder = {
     asc: 'asc',

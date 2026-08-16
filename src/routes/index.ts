@@ -12,6 +12,9 @@ import loadRoute from "../app/modules/load/load.route";
 import roundRoute from "../app/modules/round/round.route";
 import unloadRoute from "../app/modules/unload/unload.route";
 import CustomerRoute from "../app/modules/customer/customer.route";
+import reportRoute from "../app/modules/report/report.route";
+import documentRoute from "../app/modules/document/document.route";
+import carRentRoute from "../app/modules/car_rent/car_rent.route";
 
 const router = Router();
 const applicationRoutes: IApplicationRoute[] = [
@@ -27,6 +30,9 @@ const applicationRoutes: IApplicationRoute[] = [
   { path: "/round", route: roundRoute },
   { path: "/unload", route: unloadRoute },
   { path: "/customer", route: CustomerRoute },
+  { path: "/report", route: reportRoute },
+  { path: "/document", route: documentRoute },
+  { path: "/car-rent", route: carRentRoute },
 ];
 
 applicationRoutes.forEach((route) => router.use(route.path, route.route));

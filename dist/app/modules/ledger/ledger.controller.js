@@ -9,6 +9,7 @@ const catchAsync_1 = __importDefault(require("../../../utils/catchAsync"));
 const sendResponse_1 = require("../../../utils/sendResponse");
 const ApplicationError_1 = require("../../errors/ApplicationError");
 const ledger__service_1 = require("./ledger..service");
+const parseListQuery_1 = require("../../../utils/parseListQuery");
 // GET LEDGER COUNT
 const getLedgerCountController = (0, catchAsync_1.default)(async (req, res) => {
     const result = await ledger__service_1.LedgerService.getLedgerCountService();
@@ -70,9 +71,47 @@ const getAllLedgerWithController = (0, catchAsync_1.default)(async (req, res) =>
         data: result,
     });
 });
+// GET ALL LEDGER WITH AMOUNT
+// GET GROUP OPTION
+const getLedgerWithAmountController = (0, catchAsync_1.default)(async (req, res) => {
+    const result = await ledger__service_1.LedgerService.getAllLedgerWithAmountService();
+    if (!result) {
+        (0, sendResponse_1.sendResponse)(res, {
+            statusCode: http_status_codes_1.StatusCodes.OK,
+            success: true,
+            message: "লেজার অপশনের তালিকা পাওয়া যায়নি।",
+        });
+    }
+    (0, sendResponse_1.sendResponse)(res, {
+        statusCode: http_status_codes_1.StatusCodes.OK,
+        success: true,
+        message: "লেজার অপশন সফলভাবে পাওয়া গেছে।",
+        data: result,
+    });
+});
+const getLedgerDetailsController = (0, catchAsync_1.default)(async (req, res) => {
+    const id = req.params.id;
+    const { limit, page, date } = await (0, parseListQuery_1.parseListQuery)(req.query);
+    const result = await ledger__service_1.LedgerService.getDetailsLedgerService(Number(id), { limit, page, date });
+    if (!result.data.data.length) {
+        (0, sendResponse_1.sendResponse)(res, {
+            statusCode: http_status_codes_1.StatusCodes.OK,
+            success: true,
+            message: "লেজার অপশনের তালিকা পাওয়া যায়নি।",
+        });
+    }
+    (0, sendResponse_1.sendResponse)(res, {
+        statusCode: http_status_codes_1.StatusCodes.OK,
+        success: true,
+        message: "লেজার অপশন সফলভাবে পাওয়া গেছে।",
+        data: result,
+    });
+});
 exports.LedgerController = {
     getLedgerCountController,
     createLedgerController,
     getLedgerOptionController,
     getAllLedgerWithController,
+    getLedgerWithAmountController,
+    getLedgerDetailsController
 };

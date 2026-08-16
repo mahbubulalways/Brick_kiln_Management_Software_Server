@@ -9,8 +9,12 @@
 * 🟢 You can import this file directly.
 */
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CashType = void 0;
+exports.DocumentType = exports.CashType = void 0;
 exports.CashType = {
     INCOME: 'INCOME',
     EXPENSE: 'EXPENSE'
+};
+exports.DocumentType = {
+    FILE: 'FILE',
+    FOLDER: 'FOLDER'
 };

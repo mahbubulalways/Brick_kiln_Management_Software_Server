@@ -8,17 +8,33 @@ import { createMetaConfig } from "../../../utils/createMetaConfig";
 import { formatCustomerData } from "./customer.utils";
 import { getDateRangeDbSearch } from "../../../utils/getDateRangeDbSearch";
 
-// const createCustomer = async (payload: Customer) => {
-//   const isExist = await prisma.customer.findFirst({
-//     where: {
-//       phoneNumber: payload.phoneNumber,
-//     },
-//   });
 
-//   if (isExist) {
-//     throw new AppError(StatusCodes.CONFLICT, "user with");
-//   }
-// };
+// GET SINGLE INFO
+const getSingleCustomerService = async (id: number) => {
+  const result = await prisma.customer.findFirst({
+    where: { id },
+    select: {
+      address: true,
+      name: true,
+      phoneNumber: true,
+      id: true
+    }
+  })
+  return result
+}
+
+// UPDATE 
+const updateCustomerService = async (id: number, data: Customer) => {
+  const exist = await getSingleCustomerService(id)
+  if (!exist?.id) {
+    throw new AppError(StatusCodes.NOT_FOUND, "কোনো কাস্টমার পাওয়া যায়নি।")
+  }
+  const result = await prisma.customer.update({
+    where: { id },
+    data: data
+  })
+  return result
+}
 
 
 const getAllCustomerService = async (query: TQuery) => {
@@ -365,5 +381,7 @@ export const CustomerService = {
   getSingleCustomerInformationService,
   getCustomerAllChallanService,
   getCustomerAllDeliveryService,
-  getCustomerAllDuesService
+  getCustomerAllDuesService,
+  getSingleCustomerService,
+  updateCustomerService
 };
