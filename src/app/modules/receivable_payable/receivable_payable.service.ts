@@ -28,74 +28,71 @@ const createTransaction = async (
     id: string,
     payload: Prisma.ReceivablePayableTransactionCreateWithoutReceivablePayableInput
 ) => {
-    return await prisma.$transaction(async (tx) => {
-        const main = await tx.receivablePayable.findUnique({
+    const result = await prisma.$transaction(async (tx) => {
+        const parent = await tx.receivablePayable.findFirst({
             where: {
-                id,
-                isDeleted: false,
+                id
             },
-        });
-
-        if (!main) {
-            throw new Error("লেনদেনের হিসাব পাওয়া যায়নি");
-        }
-
-        let currentAmount = Number(main.currentAmount);
-
-        if (main.transactionType === "GIVEN") {
-            if (payload.type === "GIVEN") {
-                currentAmount += Number(payload.amount);
-            } else {
-                currentAmount -= Number(payload.amount);
+            select: {
+                amount: true, currentAmount: true,
             }
-        } else {
-            if (payload.type === "TAKEN") {
-                currentAmount += Number(payload.amount);
-            } else {
-                currentAmount -= Number(payload.amount);
-            }
+        })
+
+        const data = {
+            receivablePayableId: id,
+            type: payload.type,
+            amount: Number(payload.amount),
+            transactionDate: payload.transactionDate,
+            description: payload.description,
+            remaining: 0
         }
 
-        if (currentAmount < 0) {
-            throw new Error(
-                "লেনদেনের পর অবশিষ্ট টাকা শূন্যের কম হতে পারবে না"
-            );
-        }
-
-        const transaction =
-            await tx.receivablePayableTransaction.create({
-                data: {
-                    ...payload,
-                    receivablePayable: {
-                        connect: {
-                            id,
-                        },
-                    },
-                },
-            });
-
-        const updatedMain =
+        if (payload.type === "GIVEN") {
+            const currentAmount = Number(parent?.currentAmount) + data.amount
+            const totalAmount = Number(parent?.amount) + data.amount
+            data.remaining = currentAmount
+            const transaction = await tx.receivablePayableTransaction.create({ data })
             await tx.receivablePayable.update({
-                where: {
-                    id,
-                },
-                data: {
+                where: { id }, data: {
                     currentAmount,
-                },
-                include: {
-                    transactions: {
-                        orderBy: {
-                            transactionDate: "desc",
-                        },
-                    },
-                },
-            });
+                    amount: totalAmount,
+                    paymentDate: data.transactionDate
+                }
+            })
 
-        return {
-            transaction,
-            data: updatedMain,
-        };
+            return transaction
+        }
+
+        else if (payload.type === "TAKEN") {
+            const currentAmount = Number(parent?.currentAmount) + data.amount
+            const totalAmount = Number(parent?.amount) + data.amount
+            data.remaining = currentAmount
+            const transaction = await tx.receivablePayableTransaction.create({ data })
+            await tx.receivablePayable.update({
+                where: { id }, data: {
+                    currentAmount,
+                    amount: totalAmount,
+                    paymentDate: data.transactionDate
+                }
+            })
+            return transaction
+        }
+        else {
+            const currentAmount = Number(parent?.currentAmount) - data.amount
+            data.remaining = currentAmount
+            const transaction = await tx.receivablePayableTransaction.create({ data })
+            await tx.receivablePayable.update({
+                where: { id }, data: {
+                    currentAmount,
+                    paymentDate: data.transactionDate
+                }
+            })
+            return transaction
+        }
     });
+
+    console.log(result)
+    return result
 };
 
 
@@ -110,13 +107,13 @@ const getAllReceivablePayable = async () => {
         orderBy: {
             createdAt: "desc",
         },
-        select:{
-            name:true,
-            id:true,
-            address:true,
-            amount:true,
-            currentAmount:true,
-            transactionType:true
+        select: {
+            name: true,
+            id: true,
+            address: true,
+            amount: true,
+            currentAmount: true,
+            transactionType: true
         }
     });
 
@@ -188,6 +185,19 @@ const deleteReceivablePayable = async (id: string) => {
 };
 
 
+// GET AMOUNT VIA GIVEN TAKEN
+const getCurrentAmountService = async (id: string) => {
+    const result = await prisma.receivablePayable.findFirst({
+        where: { id },
+        select: { currentAmount: true, id: true }
+    })
+    return result
+}
+
+
+// GET ALL TRANSACTION HISTORY 
+
+
 export const ReceivablePayableService = {
     createReceivablePayable,
     createTransaction,
@@ -195,6 +205,7 @@ export const ReceivablePayableService = {
     getSingleReceivablePayable,
     updateReceivablePayable,
     deleteReceivablePayable,
+    getCurrentAmountService
 };
 
 

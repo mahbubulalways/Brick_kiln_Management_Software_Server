@@ -130,6 +130,31 @@ const deleteReceivablePayableController = catchAsync(
     }
 );
 
+
+// GET CURENT AMOUN
+const getCurrentAmountController = catchAsync(
+    async (req: Request, res: Response) => {
+        const result =
+            await ReceivablePayableService.getCurrentAmountService(
+                req.params.id
+            );
+
+        if (!result) {
+            throw new AppError(
+                StatusCodes.NOT_FOUND,
+                "কোনো লেনদেনের হিসাব পাওয়া যায়নি"
+            );
+        }
+
+        sendResponse(res, {
+            statusCode: 200,
+            success: true,
+            message: "লেনদেনের হিসাব সফলভাবে পাওয়া গেছে",
+            data: result,
+        });
+    }
+);
+
 export const ReceivablePayableController = {
     createReceivablePayableController,
     createTransactionController,
@@ -137,6 +162,7 @@ export const ReceivablePayableController = {
     getSingleReceivablePayableController,
     updateReceivablePayableController,
     deleteReceivablePayableController,
+    getCurrentAmountController
 };
 
 

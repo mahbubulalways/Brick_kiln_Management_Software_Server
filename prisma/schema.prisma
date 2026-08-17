@@ -330,18 +330,18 @@ model TaskManager {
   updatedAt DateTime @updatedAt
 }
 
-
 // Receive and pay
 enum TransactionType {
   GIVEN
   TAKEN
+  PAYMENT
 }
 
 model ReceivablePayable {
-  id              String   @id @default(uuid())
+  id              String                         @id @default(uuid())
   transactionType TransactionType
-  amount          Decimal  @db.Decimal(12, 2)
-  currentAmount   Decimal  @db.Decimal(12, 2)
+  amount          Decimal                        @db.Decimal(12, 2)
+  currentAmount   Decimal                        @db.Decimal(12, 2)
   name            String
   phone           String?
   address         String?
@@ -350,9 +350,9 @@ model ReceivablePayable {
   witnessOne      String?
   witnessTwo      String?
   description     String?
-  isDeleted       Boolean  @default(false)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  isDeleted       Boolean                        @default(false)
+  createdAt       DateTime                       @default(now())
+  updatedAt       DateTime                       @updatedAt
   transactions    ReceivablePayableTransaction[]
 
   @@index([transactionType])
@@ -361,17 +361,37 @@ model ReceivablePayable {
 }
 
 model ReceivablePayableTransaction {
-  id                  String   @id @default(uuid())
+  id                  String            @id @default(uuid())
   receivablePayableId String
   type                TransactionType
-  amount              Decimal  @db.Decimal(12, 2)
+  amount              Float
   transactionDate     DateTime
+  remaining           Float
   description         String?
-  createdAt            DateTime @default(now())
-  updatedAt            DateTime @updatedAt
-  receivablePayable   ReceivablePayable @relation(fields: [receivablePayableId],references: [id],onDelete: Cascade)
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
+  receivablePayable   ReceivablePayable @relation(fields: [receivablePayableId], references: [id], onDelete: Cascade)
 
   @@index([receivablePayableId])
   @@index([transactionDate])
 }
 
+// CONTACT
+
+model Contact {
+  id         String   @id @default(uuid())
+  name       String
+  address    String
+  occupation String
+  phone      String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+// WEATHER
+model Weather {
+  id        String   @id @default(uuid())
+  link      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

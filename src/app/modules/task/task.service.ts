@@ -78,7 +78,7 @@ const getCompleteTasksService = async (query: TQuery) => {
         },
     });
     
-    console.log(result);
+  
     return result;
 };
 

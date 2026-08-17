@@ -18,7 +18,8 @@ import carRentRoute from "../app/modules/car_rent/car_rent.route";
 import userRoute from "../app/modules/user/user.route";
 import taskRoute from "../app/modules/task/task.route";
 import dueMateRoute from "../app/modules/receivable_payable/receivable_payable.route";
-
+import contactRoute from "../app/modules/contact/contact.route";
+import weathertRoute from "../app/modules/weather/weather.route";
 const router = Router();
 const applicationRoutes: IApplicationRoute[] = [
   { path: "/class", route: classAndRateRoute },
@@ -39,6 +40,8 @@ const applicationRoutes: IApplicationRoute[] = [
   { path: "/user", route: userRoute },
   { path: "/task", route: taskRoute },
   { path: "/due-mate", route: dueMateRoute },
+  { path: "/contact", route: contactRoute },
+  { path: "/weather", route: weathertRoute },
 ];
 
 applicationRoutes.forEach((route) => router.use(route.path, route.route));
