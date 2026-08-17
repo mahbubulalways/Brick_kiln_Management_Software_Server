@@ -8,12 +8,40 @@ datasource db {
   provider = "postgresql"
 }
 
+enum UserRole {
+  OWNER
+  ADMIN
+  MANAGER
+}
+
 model User {
-  id        Int      @id @default(autoincrement())
-  email     String   @default("admin@gmail.com")
-  password  String   @default("12345678")
+  id           String         @id @default(uuid())
+  name         String         @default("Admin")
+  username     String         @unique
+  role         UserRole       @default(ADMIN)
+  password     String
+  loginHistory LoginHistory[]
+  taskManagers TaskManager[]
+  isDeleted    Boolean        @default(false)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  @@map("users")
+}
+
+model LoginHistory {
+  id        String @id @default(uuid())
+  type      String
+  device    String
+  browser   String
+  ipAddress String
+  userId    String
+  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   createdAt DateTime @default(now())
-  updatedAt DateTime @default(now()) @updatedAt
+
+  @@index([userId])
+  @@map("login_histories")
 }
 
 model ClassAndRate {
@@ -261,3 +289,89 @@ model CarRent {
 
   @@map("carrents")
 }
+
+// NEW PRODUVC
+model Product {
+  id           Int       @id @default(autoincrement())
+  productName  String
+  category     String
+  shop         String
+  quantity     Int
+  price        Decimal   @db.Decimal(12, 2)
+  productImage String?
+  warranty     DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([category])
+  @@index([shop])
+  @@map("products")
+}
+
+// TASK MANAGER
+enum TaskStatus {
+  COMPLETE
+  PENDING
+}
+
+model TaskManager {
+  id          String   @id @default(uuid())
+  description String
+  userId      String
+  date        DateTime
+  repeat      String
+
+  status TaskStatus @default(PENDING)
+  user   User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  isDeleted Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+
+// Receive and pay
+enum TransactionType {
+  GIVEN
+  TAKEN
+}
+
+model ReceivablePayable {
+  id              String   @id @default(uuid())
+  transactionType TransactionType
+  amount          Decimal  @db.Decimal(12, 2)
+  currentAmount   Decimal  @db.Decimal(12, 2)
+  name            String
+  phone           String?
+  address         String?
+  transactionDate DateTime
+  paymentDate     DateTime?
+  witnessOne      String?
+  witnessTwo      String?
+  description     String?
+  isDeleted       Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  transactions    ReceivablePayableTransaction[]
+
+  @@index([transactionType])
+  @@index([phone])
+  @@index([isDeleted])
+}
+
+model ReceivablePayableTransaction {
+  id                  String   @id @default(uuid())
+  receivablePayableId String
+  type                TransactionType
+  amount              Decimal  @db.Decimal(12, 2)
+  transactionDate     DateTime
+  description         String?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+  receivablePayable   ReceivablePayable @relation(fields: [receivablePayableId],references: [id],onDelete: Cascade)
+
+  @@index([receivablePayableId])
+  @@index([transactionDate])
+}
+

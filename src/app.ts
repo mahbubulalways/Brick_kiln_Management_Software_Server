@@ -11,7 +11,7 @@ import notFound from "./app/middlewares/notFound";
 const app: Application = express();
 
 app.use(express.json());
-
+app.set("trust proxy", true);
 app.use(
   cors({
     origin: ["https://itvata.vercel.app", "http://localhost:3000"],

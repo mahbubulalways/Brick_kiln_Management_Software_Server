@@ -6,11 +6,17 @@ import { sendResponse } from "../../../utils/sendResponse";
 
 const loginUserToSystemController = catchAsync(async (req, res) => {
   const body = req.body;
-  const result = await AuthService.loginUserToSystemService(body);
-  if (!result.accessToken) {
+  const ipAddress = req.ip as string;
+
+  const result = await AuthService.loginUserToSystemService(
+    body,
+    ipAddress,
+  );
+
+  if (!result?.accessToken) {
     throw new AppError(
       StatusCodes.BAD_REQUEST,
-      "Failed to login. Please try again later.",
+      "লগইন করা সম্ভব হয়নি। অনুগ্রহ করে কিছুক্ষণ পর আবার চেষ্টা করুন।",
     );
   } else {
     res.cookie("token", result.refreshToken, {
@@ -18,13 +24,16 @@ const loginUserToSystemController = catchAsync(async (req, res) => {
       secure: true,
       sameSite: "none",
       path: "/",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
+      maxAge: 30 * 24 * 60 * 60 * 1000,
     });
+
     sendResponse(res, {
-      message: "Login successfully",
+      message: "লগইন সফল হয়েছে।",
       statusCode: StatusCodes.OK,
       success: true,
-      data: { token: result.accessToken },
+      data: {
+        token: result.accessToken,
+      },
     });
   }
 });

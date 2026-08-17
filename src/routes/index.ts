@@ -15,6 +15,9 @@ import CustomerRoute from "../app/modules/customer/customer.route";
 import reportRoute from "../app/modules/report/report.route";
 import documentRoute from "../app/modules/document/document.route";
 import carRentRoute from "../app/modules/car_rent/car_rent.route";
+import userRoute from "../app/modules/user/user.route";
+import taskRoute from "../app/modules/task/task.route";
+import dueMateRoute from "../app/modules/receivable_payable/receivable_payable.route";
 
 const router = Router();
 const applicationRoutes: IApplicationRoute[] = [
@@ -33,6 +36,9 @@ const applicationRoutes: IApplicationRoute[] = [
   { path: "/report", route: reportRoute },
   { path: "/document", route: documentRoute },
   { path: "/car-rent", route: carRentRoute },
+  { path: "/user", route: userRoute },
+  { path: "/task", route: taskRoute },
+  { path: "/due-mate", route: dueMateRoute },
 ];
 
 applicationRoutes.forEach((route) => router.use(route.path, route.route));

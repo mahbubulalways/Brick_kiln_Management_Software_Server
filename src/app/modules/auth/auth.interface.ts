@@ -1,4 +1,8 @@
 export interface IAuth {
-  email: string;
+  username: string;
   password: string;
+  extra: {
+    device: string;
+    browser: string
+  }
 }
