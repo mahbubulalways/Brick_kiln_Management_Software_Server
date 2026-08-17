@@ -1,0 +1,15 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const document_controller_1 = require("./document.controller");
+const uploader_1 = require("../../../utils/uploader");
+const router = (0, express_1.Router)();
+router.post("/create", document_controller_1.DocumentController.createFolderController);
+router.post("/upload", uploader_1.fileUploader.upload.single("file"), document_controller_1.DocumentController.uploadDocumentController);
+router.get("/all", document_controller_1.DocumentController.getAllDocumentsController);
+router.get("/folder/:id", document_controller_1.DocumentController.getSingleDocumentController);
+router.get("/folder-name/:id", document_controller_1.DocumentController.getSingleFolderController);
+router.delete("/delete-file/:id", document_controller_1.DocumentController.deleteDocumentController);
+router.delete("/delete-folder/:id", document_controller_1.DocumentController.deleteFolderController);
+router.patch("/update-folder/:id", document_controller_1.DocumentController.updateFolderController);
+exports.default = router;
