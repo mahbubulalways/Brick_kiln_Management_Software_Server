@@ -43,7 +43,12 @@ const createTransactionController = (0, catchAsync_1.default)(async (req, res) =
 const getAllReceivablePayableController = (0, catchAsync_1.default)(async (req, res) => {
     const result = await receivable_payable_service_1.ReceivablePayableService.getAllReceivablePayable();
     if (!result.length) {
-        throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.NOT_FOUND, "কোনো লেনদেনের হিসাব পাওয়া যায়নি");
+        (0, sendResponse_1.sendResponse)(res, {
+            statusCode: 200,
+            success: true,
+            message: "কোনো লেনদেনের হিসাব পাওয়া যায়নি",
+            data: result,
+        });
     }
     (0, sendResponse_1.sendResponse)(res, {
         statusCode: 200,

@@ -23,6 +23,8 @@ const loginUserToSystemService = async (
       username: payload.username,
     },
   });
+  // const u = await UserService.createUserServie(userData)
+  // console.log(u)
 
   // User not found
   if (!user) {

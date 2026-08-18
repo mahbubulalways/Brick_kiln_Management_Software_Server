@@ -19,6 +19,8 @@ const loginUserToSystemService = async (payload, ip) => {
             username: payload.username,
         },
     });
+    // const u = await UserService.createUserServie(userData)
+    // console.log(u)
     // User not found
     if (!user) {
         throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.NOT_FOUND, "প্রদত্ত তথ্যের সাথে কোনো অ্যাকাউন্ট পাওয়া যায়নি।");
