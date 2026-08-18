@@ -26,6 +26,30 @@ const getAllCustomertController = catchAsync(async (req, res) => {
 });
 
 
+const dashboardAllReportController = catchAsync(async (req, res) => {
+    const result = await ReportService.dashboardAllReportService();
+
+    if (!result) {
+        sendResponse(res, {
+            statusCode: StatusCodes.OK,
+            success: true,
+            message: "কোনো বিক্রয় তথ্য পাওয়া যায়নি।",
+            data: [],
+        });
+
+        return;
+    }
+
+    sendResponse(res, {
+        statusCode: StatusCodes.OK,
+        success: true,
+        message: "এলাকাভিত্তিক বিক্রয় তথ্য সফলভাবে পাওয়া গেছে।",
+        data: result,
+    });
+});
+
+
 export const ReportController ={
-    getAllCustomertController
+    getAllCustomertController,
+    dashboardAllReportController
 }

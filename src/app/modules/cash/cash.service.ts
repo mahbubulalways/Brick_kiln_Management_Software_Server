@@ -61,7 +61,6 @@ const getSingleCashService = async (id: number) => {
 
 // UPDATE CASH
 const updateCashService = async (id: number, payload: Cash) => {
-    console.log(payload);
     return prisma.cash.update({ data: payload, where: { id } })
 }
 

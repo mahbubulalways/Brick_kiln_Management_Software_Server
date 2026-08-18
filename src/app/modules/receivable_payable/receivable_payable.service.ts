@@ -91,7 +91,6 @@ const createTransaction = async (
         }
     });
 
-    console.log(result)
     return result
 };
 

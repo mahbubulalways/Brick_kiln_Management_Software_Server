@@ -195,7 +195,6 @@ const createDeliveryService = async (payload) => {
                     id: payload.itemId,
                 },
             });
-            console.log(update);
         }
         const updateItem = await tx.challanItem.update({
             data: {
@@ -247,7 +246,6 @@ const getTodaysDeliveryThatDone = async (query) => {
 };
 // GET ALL DELIVERY
 const getAllDeliveryListService = async (query) => {
-    console.log(query);
     const { limit, page, skip } = (0, paginationHelper_1.paginationHelper)(query.page, query.limit);
     const where = {
         isDeleted: false,

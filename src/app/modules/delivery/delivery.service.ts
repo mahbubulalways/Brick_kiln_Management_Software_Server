@@ -214,7 +214,6 @@ const createDeliveryService = async (payload: TDelivery) => {
           },
         });
 
-        console.log(update);
       }
 
       const updateItem = await tx.challanItem.update({
@@ -277,8 +276,6 @@ const getTodaysDeliveryThatDone = async (query: TQuery) => {
 // GET ALL DELIVERY
 
 const getAllDeliveryListService = async (query: TQuery) => {
-  console.log(query);
-
   const { limit, page, skip } = paginationHelper(
     query.page,
     query.limit,

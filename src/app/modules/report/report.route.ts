@@ -4,6 +4,7 @@ import { ReportController } from "./report.controller";
 const router = Router()
 
 router.get("/area", ReportController.getAllCustomertController)
+router.get("/dashboard", ReportController.dashboardAllReportController)
 
 
 export default router

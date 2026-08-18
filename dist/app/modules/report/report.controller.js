@@ -26,6 +26,25 @@ const getAllCustomertController = (0, catchAsync_1.default)(async (req, res) => 
         data: result,
     });
 });
+const dashboardAllReportController = (0, catchAsync_1.default)(async (req, res) => {
+    const result = await report_service_1.ReportService.dashboardAllReportService();
+    if (!result) {
+        (0, sendResponse_1.sendResponse)(res, {
+            statusCode: http_status_codes_1.StatusCodes.OK,
+            success: true,
+            message: "কোনো বিক্রয় তথ্য পাওয়া যায়নি।",
+            data: [],
+        });
+        return;
+    }
+    (0, sendResponse_1.sendResponse)(res, {
+        statusCode: http_status_codes_1.StatusCodes.OK,
+        success: true,
+        message: "এলাকাভিত্তিক বিক্রয় তথ্য সফলভাবে পাওয়া গেছে।",
+        data: result,
+    });
+});
 exports.ReportController = {
-    getAllCustomertController
+    getAllCustomertController,
+    dashboardAllReportController
 };

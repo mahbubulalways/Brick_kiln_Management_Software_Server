@@ -86,7 +86,6 @@ const getSingleDocumentService = async (id) => {
 // const upload 
 const uploadDocumentService = async (req) => {
     const parentId = req.body.parentId;
-    console.log(parentId);
     const file = req.file;
     if (!file) {
         throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.BAD_REQUEST, "কোনো ফাইল নির্বাচন করা হয়নি।");

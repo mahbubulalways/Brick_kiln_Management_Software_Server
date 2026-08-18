@@ -1,0 +1,11 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const receivable_payable_controller_1 = require("./receivable_payable.controller");
+const router = (0, express_1.Router)();
+router.post("/create", receivable_payable_controller_1.ReceivablePayableController.createReceivablePayableController);
+router.get("/all", receivable_payable_controller_1.ReceivablePayableController.getAllReceivablePayableController);
+router.get("/single/:id", receivable_payable_controller_1.ReceivablePayableController.getSingleReceivablePayableController);
+router.get("/amount/:id", receivable_payable_controller_1.ReceivablePayableController.getCurrentAmountController);
+router.post("/transaction/:id", receivable_payable_controller_1.ReceivablePayableController.createTransactionController);
+exports.default = router;

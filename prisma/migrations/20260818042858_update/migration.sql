@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "Weather" ALTER COLUMN "linkOe" DROP NOT NULL,
+ALTER COLUMN "linkTwo" DROP NOT NULL;

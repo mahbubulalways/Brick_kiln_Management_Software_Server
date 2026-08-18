@@ -1,4 +1,6 @@
 import { prisma } from "../../../helpers/prisma";
+import { ReportUtils } from "./report.utils";
+
 
 const getTopSellingAreasService = async () => {
     const challans = await prisma.challan.findMany({
@@ -94,6 +96,70 @@ const getTopSellingAreasService = async () => {
     return result;
 };
 
+
+
+
+// GET ALL REPORT FOR DASHBOARD
+const dashboardAllReportService = async () => {
+    const challans = await prisma.challan.findMany({
+        where: { isDeleted: false },
+        select: {
+            carRent: true,
+            cash: true,
+            discount: true,
+            due: true,
+            items: {
+                select: {
+                    class: true,
+                    quantity: true,
+                    price: true
+                }
+            }
+
+        }
+    })
+
+    const challanReport = ReportUtils.calculateDashboardReport(challans);
+    // ITEMS 
+    const items = ReportUtils.calculateClassWiseReport(challans);
+
+    // PAYMENTS 
+    const payments = await prisma.payment.findMany({
+        where: { isDeleted: false },
+        select: {
+            payment: true,
+            totalBill: true,
+            cutting: true,
+            ledger: {
+                select: { name: true }
+            }
+        }
+    })
+
+    const paymentReport = ReportUtils.calculatePaymentReport(payments);
+    const totalPaymentGiven = paymentReport.reduce(
+        (sum, item) => sum + item.paymentGiven,
+        0
+    );
+
+    const Informations = {
+        challan: {
+            summary: challanReport,
+            items,
+        },
+        payment:{
+            total:totalPaymentGiven,
+            payments:paymentReport
+        }
+    }
+
+
+    return Informations
+
+}
+
+
 export const ReportService = {
-    getTopSellingAreasService
+    getTopSellingAreasService,
+    dashboardAllReportService
 }

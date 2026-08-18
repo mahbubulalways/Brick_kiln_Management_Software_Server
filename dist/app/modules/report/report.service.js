@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ReportService = void 0;
 const prisma_1 = require("../../../helpers/prisma");
+const report_utils_1 = require("./report.utils");
 const getTopSellingAreasService = async () => {
     const challans = await prisma_1.prisma.challan.findMany({
         where: {
@@ -69,6 +70,54 @@ const getTopSellingAreasService = async () => {
     }));
     return result;
 };
+// GET ALL REPORT FOR DASHBOARD
+const dashboardAllReportService = async () => {
+    const challans = await prisma_1.prisma.challan.findMany({
+        where: { isDeleted: false },
+        select: {
+            carRent: true,
+            cash: true,
+            discount: true,
+            due: true,
+            items: {
+                select: {
+                    class: true,
+                    quantity: true,
+                    price: true
+                }
+            }
+        }
+    });
+    const challanReport = report_utils_1.ReportUtils.calculateDashboardReport(challans);
+    // ITEMS 
+    const items = report_utils_1.ReportUtils.calculateClassWiseReport(challans);
+    // PAYMENTS 
+    const payments = await prisma_1.prisma.payment.findMany({
+        where: { isDeleted: false },
+        select: {
+            payment: true,
+            totalBill: true,
+            cutting: true,
+            ledger: {
+                select: { name: true }
+            }
+        }
+    });
+    const paymentReport = report_utils_1.ReportUtils.calculatePaymentReport(payments);
+    const totalPaymentGiven = paymentReport.reduce((sum, item) => sum + item.paymentGiven, 0);
+    const Informations = {
+        challan: {
+            summary: challanReport,
+            items,
+        },
+        payment: {
+            total: totalPaymentGiven,
+            payments: paymentReport
+        }
+    };
+    return Informations;
+};
 exports.ReportService = {
-    getTopSellingAreasService
+    getTopSellingAreasService,
+    dashboardAllReportService
 };

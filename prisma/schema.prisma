@@ -391,7 +391,8 @@ model Contact {
 // WEATHER
 model Weather {
   id        String   @id @default(uuid())
-  link      String
+  linkOne      String?
+  linkTwo      String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }

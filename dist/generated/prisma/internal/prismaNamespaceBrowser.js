@@ -48,7 +48,7 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.NullsOrder = exports.QueryMode = exports.SortOrder = exports.CarRentScalarFieldEnum = exports.DocumentScalarFieldEnum = exports.UnloadItemScalarFieldEnum = exports.UnloadScalarFieldEnum = exports.LoadInfoScalarFieldEnum = exports.RoundScalarFieldEnum = exports.CashScalarFieldEnum = exports.PaymentScalarFieldEnum = exports.LedgerScalarFieldEnum = exports.Due_CollectionScalarFieldEnum = exports.DeliveryScalarFieldEnum = exports.CustomerScalarFieldEnum = exports.ChallanItemScalarFieldEnum = exports.ChallanScalarFieldEnum = exports.ClassAndRateScalarFieldEnum = exports.UserScalarFieldEnum = exports.TransactionIsolationLevel = exports.ModelName = exports.AnyNull = exports.JsonNull = exports.DbNull = exports.NullTypes = exports.Decimal = void 0;
+exports.NullsOrder = exports.QueryMode = exports.SortOrder = exports.WeatherScalarFieldEnum = exports.ContactScalarFieldEnum = exports.ReceivablePayableTransactionScalarFieldEnum = exports.ReceivablePayableScalarFieldEnum = exports.TaskManagerScalarFieldEnum = exports.ProductScalarFieldEnum = exports.CarRentScalarFieldEnum = exports.DocumentScalarFieldEnum = exports.UnloadItemScalarFieldEnum = exports.UnloadScalarFieldEnum = exports.LoadInfoScalarFieldEnum = exports.RoundScalarFieldEnum = exports.CashScalarFieldEnum = exports.PaymentScalarFieldEnum = exports.LedgerScalarFieldEnum = exports.Due_CollectionScalarFieldEnum = exports.DeliveryScalarFieldEnum = exports.CustomerScalarFieldEnum = exports.ChallanItemScalarFieldEnum = exports.ChallanScalarFieldEnum = exports.ClassAndRateScalarFieldEnum = exports.LoginHistoryScalarFieldEnum = exports.UserScalarFieldEnum = exports.TransactionIsolationLevel = exports.ModelName = exports.AnyNull = exports.JsonNull = exports.DbNull = exports.NullTypes = exports.Decimal = void 0;
 const runtime = __importStar(require("@prisma/client/runtime/index-browser"));
 exports.Decimal = runtime.Decimal;
 exports.NullTypes = {
@@ -76,6 +76,7 @@ exports.JsonNull = runtime.JsonNull;
 exports.AnyNull = runtime.AnyNull;
 exports.ModelName = {
     User: 'User',
+    LoginHistory: 'LoginHistory',
     ClassAndRate: 'ClassAndRate',
     Challan: 'Challan',
     ChallanItem: 'ChallanItem',
@@ -90,7 +91,13 @@ exports.ModelName = {
     Unload: 'Unload',
     UnloadItem: 'UnloadItem',
     Document: 'Document',
-    CarRent: 'CarRent'
+    CarRent: 'CarRent',
+    Product: 'Product',
+    TaskManager: 'TaskManager',
+    ReceivablePayable: 'ReceivablePayable',
+    ReceivablePayableTransaction: 'ReceivablePayableTransaction',
+    Contact: 'Contact',
+    Weather: 'Weather'
 };
 /*
  * Enums
@@ -103,10 +110,22 @@ exports.TransactionIsolationLevel = runtime.makeStrictEnum({
 });
 exports.UserScalarFieldEnum = {
     id: 'id',
-    email: 'email',
+    name: 'name',
+    username: 'username',
+    role: 'role',
     password: 'password',
+    isDeleted: 'isDeleted',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
+};
+exports.LoginHistoryScalarFieldEnum = {
+    id: 'id',
+    type: 'type',
+    device: 'device',
+    browser: 'browser',
+    ipAddress: 'ipAddress',
+    userId: 'userId',
+    createdAt: 'createdAt'
 };
 exports.ClassAndRateScalarFieldEnum = {
     id: 'id',
@@ -274,6 +293,73 @@ exports.CarRentScalarFieldEnum = {
     address: 'address',
     area: 'area',
     rent: 'rent',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+};
+exports.ProductScalarFieldEnum = {
+    id: 'id',
+    productName: 'productName',
+    category: 'category',
+    shop: 'shop',
+    quantity: 'quantity',
+    price: 'price',
+    productImage: 'productImage',
+    warranty: 'warranty',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+};
+exports.TaskManagerScalarFieldEnum = {
+    id: 'id',
+    description: 'description',
+    userId: 'userId',
+    date: 'date',
+    repeat: 'repeat',
+    status: 'status',
+    isDeleted: 'isDeleted',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+};
+exports.ReceivablePayableScalarFieldEnum = {
+    id: 'id',
+    transactionType: 'transactionType',
+    amount: 'amount',
+    currentAmount: 'currentAmount',
+    name: 'name',
+    phone: 'phone',
+    address: 'address',
+    transactionDate: 'transactionDate',
+    paymentDate: 'paymentDate',
+    witnessOne: 'witnessOne',
+    witnessTwo: 'witnessTwo',
+    description: 'description',
+    isDeleted: 'isDeleted',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+};
+exports.ReceivablePayableTransactionScalarFieldEnum = {
+    id: 'id',
+    receivablePayableId: 'receivablePayableId',
+    type: 'type',
+    amount: 'amount',
+    transactionDate: 'transactionDate',
+    remaining: 'remaining',
+    description: 'description',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+};
+exports.ContactScalarFieldEnum = {
+    id: 'id',
+    name: 'name',
+    address: 'address',
+    occupation: 'occupation',
+    phone: 'phone',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+};
+exports.WeatherScalarFieldEnum = {
+    id: 'id',
+    linkOne: 'linkOne',
+    linkTwo: 'linkTwo',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
 };

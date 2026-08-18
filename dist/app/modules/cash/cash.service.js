@@ -52,7 +52,6 @@ const getSingleCashService = async (id) => {
 };
 // UPDATE CASH
 const updateCashService = async (id, payload) => {
-    console.log(payload);
     return prisma_1.prisma.cash.update({ data: payload, where: { id } });
 };
 // DELETE CASH

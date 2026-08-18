@@ -99,7 +99,6 @@ const getSingleDocumentService = async (id: string) => {
 // const upload 
 const uploadDocumentService = async (req: Request) => {
     const parentId = req.body.parentId;
-    console.log(parentId);
     const file = req.file as IUploadFile | undefined;
     if (!file) {
         throw new AppError(

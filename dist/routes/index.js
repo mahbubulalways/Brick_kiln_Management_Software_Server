@@ -19,6 +19,11 @@ const customer_route_1 = __importDefault(require("../app/modules/customer/custom
 const report_route_1 = __importDefault(require("../app/modules/report/report.route"));
 const document_route_1 = __importDefault(require("../app/modules/document/document.route"));
 const car_rent_route_1 = __importDefault(require("../app/modules/car_rent/car_rent.route"));
+const user_route_1 = __importDefault(require("../app/modules/user/user.route"));
+const task_route_1 = __importDefault(require("../app/modules/task/task.route"));
+const receivable_payable_route_1 = __importDefault(require("../app/modules/receivable_payable/receivable_payable.route"));
+const contact_route_1 = __importDefault(require("../app/modules/contact/contact.route"));
+const weather_route_1 = __importDefault(require("../app/modules/weather/weather.route"));
 const router = (0, express_1.Router)();
 const applicationRoutes = [
     { path: "/class", route: classAndRate_route_1.default },
@@ -36,6 +41,11 @@ const applicationRoutes = [
     { path: "/report", route: report_route_1.default },
     { path: "/document", route: document_route_1.default },
     { path: "/car-rent", route: car_rent_route_1.default },
+    { path: "/user", route: user_route_1.default },
+    { path: "/task", route: task_route_1.default },
+    { path: "/due-mate", route: receivable_payable_route_1.default },
+    { path: "/contact", route: contact_route_1.default },
+    { path: "/weather", route: weather_route_1.default },
 ];
 applicationRoutes.forEach((route) => router.use(route.path, route.route));
 exports.default = router;
