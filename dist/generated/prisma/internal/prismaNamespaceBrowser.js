@@ -217,7 +217,10 @@ exports.LedgerScalarFieldEnum = {
     serial: 'serial',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt',
-    parentId: 'parentId'
+    parentId: 'parentId',
+    rate: 'rate',
+    quantity: 'quantity',
+    isDeleted: 'isDeleted'
 };
 exports.PaymentScalarFieldEnum = {
     id: 'id',

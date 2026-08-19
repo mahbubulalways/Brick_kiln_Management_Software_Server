@@ -23,7 +23,11 @@ const createLedgerService = async (data) => {
         throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.CONFLICT, "এই নামে একটি লেজার বা লেজার গ্রুপ ইতোমধ্যে রয়েছে।");
     }
     const result = await prisma_1.prisma.ledger.create({
-        data,
+        data: {
+            ...data,
+            quantity: Number(data.quantity),
+            rate: Number(data.rate)
+        }
     });
     return result;
 };
@@ -32,6 +36,7 @@ const getLedgerOptionService = async () => {
     const res = await prisma_1.prisma.ledger.findMany({
         where: {
             parentId: null,
+            isDeleted: false
         },
         select: {
             id: true,
@@ -48,6 +53,7 @@ const getAllLedgerWithChildrenService = async () => {
     const res = await prisma_1.prisma.ledger.findMany({
         where: {
             parentId: null,
+            isDeleted: false
         },
         select: {
             id: true,
@@ -59,6 +65,56 @@ const getAllLedgerWithChildrenService = async () => {
         },
     });
     return res;
+};
+// GET ALL LEDGERS WITH PAGINATION
+const getAllLedgerWithChildrenPaginationService = async (query) => {
+    const { limit, page, skip, } = (0, paginationHelper_1.paginationHelper)(query.page, query.limit);
+    const where = { isDeleted: false, parentId: null, };
+    if (query.search?.trim()) {
+        const search = query.search.trim();
+        where.OR = [
+            {
+                name: {
+                    contains: search,
+                    mode: "insensitive",
+                }
+            },
+        ];
+    }
+    const [result, total] = await Promise.all([
+        prisma_1.prisma.ledger.findMany({
+            where,
+            select: {
+                id: true,
+                name: true,
+                rate: true,
+                quantity: true,
+                serial: true,
+                children: {
+                    select: {
+                        name: true, id: true, rate: true,
+                        quantity: true,
+                        serial: true,
+                    }
+                },
+            },
+            skip,
+            take: limit,
+            orderBy: {
+                createdAt: "asc",
+            },
+        }),
+        prisma_1.prisma.ledger.count({ where })
+    ]);
+    const meta = (0, createMetaConfig_1.createMetaConfig)({
+        limit: limit,
+        page: page,
+        totalData: total,
+    });
+    return {
+        meta,
+        data: result,
+    };
 };
 // GET ALL LEDGER WITH TK
 const getAllLedgerWithAmountService = async () => {
@@ -74,7 +130,7 @@ const getAllLedgerWithAmountService = async () => {
             },
         },
         orderBy: {
-            serial: "asc",
+            createdAt: "asc",
         },
     });
     // প্রতিটি ledger-এর নিজের payment total
@@ -171,11 +227,69 @@ const getDetailsLedgerService = async (id, query) => {
         data: format,
     };
 };
+// const GET SINGLE 
+const getSingleLedgerService = async (id) => {
+    const result = await prisma_1.prisma.ledger.findFirst({
+        where: { id }, select: {
+            serial: true,
+            name: true,
+            parentId: true,
+            rate: true,
+            quantity: true
+        }
+    });
+    return result;
+};
+/// UPDATE KHOTIYAN
+const updateLedgerService = async (id, data) => {
+    const isExist = await prisma_1.prisma.ledger.findUnique({
+        where: {
+            id,
+        },
+    });
+    if (!isExist) {
+        throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.NOT_FOUND, "এই খতিয়ানটি পাওয়া যায়নি।");
+    }
+    const result = await prisma_1.prisma.ledger.update({
+        where: {
+            id,
+        },
+        data: {
+            quantity: Number(data.quantity),
+            rate: Number(data.rate),
+        },
+    });
+    return result;
+};
+// DELETE KHOTIYAN
+const deleteLedgerService = async (id) => {
+    const isExist = await prisma_1.prisma.ledger.findUnique({
+        where: {
+            id,
+        },
+    });
+    if (!isExist) {
+        throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.NOT_FOUND, "এই খতিয়ানটি পাওয়া যায়নি।");
+    }
+    const result = await prisma_1.prisma.ledger.update({
+        where: {
+            id,
+        },
+        data: {
+            isDeleted: true,
+        },
+    });
+    return result;
+};
 exports.LedgerService = {
     getLedgerCountService,
     createLedgerService,
     getLedgerOptionService,
     getAllLedgerWithChildrenService,
     getAllLedgerWithAmountService,
-    getDetailsLedgerService
+    getDetailsLedgerService,
+    getAllLedgerWithChildrenPaginationService,
+    getSingleLedgerService,
+    updateLedgerService,
+    deleteLedgerService
 };

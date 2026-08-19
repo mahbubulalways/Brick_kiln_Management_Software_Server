@@ -28,7 +28,12 @@ const createLedgerService = async (data: Ledger) => {
   }
 
   const result = await prisma.ledger.create({
-    data,
+    data: {
+      ...data,
+      quantity: Number(data.quantity),
+      rate: Number(data.rate)
+
+    }
   });
 
   return result;
@@ -39,6 +44,7 @@ const getLedgerOptionService = async () => {
   const res = await prisma.ledger.findMany({
     where: {
       parentId: null,
+      isDeleted: false
     },
     select: {
       id: true,
@@ -57,6 +63,7 @@ const getAllLedgerWithChildrenService = async () => {
   const res = await prisma.ledger.findMany({
     where: {
       parentId: null,
+      isDeleted: false
     },
     select: {
       id: true,
@@ -70,6 +77,64 @@ const getAllLedgerWithChildrenService = async () => {
 
   return res;
 };
+
+
+// GET ALL LEDGERS WITH PAGINATION
+const getAllLedgerWithChildrenPaginationService = async (query: TQuery) => {
+  const { limit, page, skip, } = paginationHelper(query.page, query.limit);
+  const where: Prisma.LedgerWhereInput = { isDeleted: false, parentId: null, };
+
+  if (query.search?.trim()) {
+    const search = query.search.trim();
+    where.OR = [
+      {
+        name: {
+          contains: search,
+          mode: "insensitive",
+        }
+      },
+
+    ];
+  }
+
+  const [result, total] = await Promise.all([
+    prisma.ledger.findMany({
+      where,
+      select: {
+        id: true,
+        name: true,
+        rate: true,
+        quantity: true,
+        serial: true,
+        children: {
+          select: {
+            name: true, id: true, rate: true,
+            quantity: true,
+            serial: true,
+          }
+        },
+      },
+      skip,
+      take: limit,
+      orderBy: {
+        createdAt: "asc",
+      },
+    }),
+    prisma.ledger.count({ where })
+  ]);
+
+  const meta = createMetaConfig({
+    limit: limit,
+    page: page,
+    totalData: total,
+  });
+
+  return {
+    meta,
+    data: result,
+  };
+};
+
 
 
 // GET ALL LEDGER WITH TK
@@ -86,7 +151,7 @@ const getAllLedgerWithAmountService = async () => {
       },
     },
     orderBy: {
-      serial: "asc",
+      createdAt: "asc",
     },
   });
 
@@ -161,8 +226,6 @@ const getAllLedgerWithAmountService = async () => {
   return finalResult;
 };
 
-
-
 // GET DETAILS
 
 const getDetailsLedgerService = async (id: number, query: TQuery) => {
@@ -206,11 +269,86 @@ const getDetailsLedgerService = async (id: number, query: TQuery) => {
   };
 }
 
+// const GET SINGLE 
+const getSingleLedgerService = async (id: number) => {
+  const result = await prisma.ledger.findFirst({
+    where: { id }, select: {
+      serial: true,
+      name: true,
+      parentId: true,
+      rate: true,
+      quantity: true
+    }
+  })
+
+  return result
+}
+/// UPDATE KHOTIYAN
+const updateLedgerService = async (id: number, data: Ledger) => {
+  const isExist = await prisma.ledger.findUnique({
+    where: {
+      id,
+    },
+  });
+
+  if (!isExist) {
+    throw new AppError(
+      StatusCodes.NOT_FOUND,
+      "এই খতিয়ানটি পাওয়া যায়নি।",
+    );
+  }
+
+  const result = await prisma.ledger.update({
+    where: {
+      id,
+    },
+    data: {
+      quantity: Number(data.quantity),
+      rate: Number(data.rate),
+    },
+  });
+
+  return result;
+};
+
+// DELETE KHOTIYAN
+const deleteLedgerService = async (id: number) => {
+  const isExist = await prisma.ledger.findUnique({
+    where: {
+      id,
+    },
+  });
+
+  if (!isExist) {
+    throw new AppError(
+      StatusCodes.NOT_FOUND,
+      "এই খতিয়ানটি পাওয়া যায়নি।",
+    );
+  }
+
+  const result = await prisma.ledger.update({
+    where: {
+      id,
+    },
+    data: {
+      isDeleted: true,
+    },
+  });
+
+  return result;
+};
+
+
+
 export const LedgerService = {
   getLedgerCountService,
   createLedgerService,
   getLedgerOptionService,
   getAllLedgerWithChildrenService,
   getAllLedgerWithAmountService,
-  getDetailsLedgerService
+  getDetailsLedgerService,
+  getAllLedgerWithChildrenPaginationService,
+  getSingleLedgerService,
+  updateLedgerService,
+  deleteLedgerService
 };

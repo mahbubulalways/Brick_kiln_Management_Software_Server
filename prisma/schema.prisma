@@ -158,6 +158,9 @@ model Ledger {
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   parentId  Int?
+  rate      Float?    @default(0)
+  quantity  Float?    @default(0)
+  isDeleted Boolean @default(false)
   parent    Ledger?   @relation("LedgerHierarchy", fields: [parentId], references: [id])
   children  Ledger[]  @relation("LedgerHierarchy")
   payments  Payment[]
@@ -391,8 +394,8 @@ model Contact {
 // WEATHER
 model Weather {
   id        String   @id @default(uuid())
-  linkOne      String?
-  linkTwo      String?
+  linkOne   String?
+  linkTwo   String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }

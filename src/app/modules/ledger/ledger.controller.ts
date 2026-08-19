@@ -5,109 +5,226 @@ import { AppError } from "../../errors/ApplicationError";
 import { LedgerService } from "./ledger..service";
 import { parseListQuery } from "../../../utils/parseListQuery";
 
-// GET LEDGER COUNT
+// GET KHOTIYAN COUNT
 const getLedgerCountController = catchAsync(async (req, res) => {
   const result = await LedgerService.getLedgerCountService();
 
   if (!result) {
-    throw new AppError(StatusCodes.NOT_FOUND, "NOT FOUND");
+    throw new AppError(
+      StatusCodes.NOT_FOUND,
+      "কোনো খতিয়ানের তথ্য পাওয়া যায়নি।",
+    );
   }
+
   sendResponse(res, {
-    message: "সফলভাবে পাওয়া গেছে।",
+    message: "খতিয়ানের সংখ্যা সফলভাবে পাওয়া গেছে।",
     statusCode: StatusCodes.OK,
     success: true,
     data: { count: result },
   });
 });
 
-// CREATE NEW LEDGER
+// CREATE NEW KHOTIYAN
 const createLedgerController = catchAsync(async (req, res) => {
   const body = req.body;
+
   const result = await LedgerService.createLedgerService(body);
+
   if (!result) {
     throw new AppError(
       StatusCodes.BAD_REQUEST,
-      "লেজার তৈরি করা যায়নি। অনুগ্রহ করে আবার চেষ্টা করুন।",
+      "খতিয়ান তৈরি করা যায়নি। অনুগ্রহ করে আবার চেষ্টা করুন।",
     );
   }
+
   sendResponse(res, {
     statusCode: StatusCodes.CREATED,
     success: true,
-    message: "লেজার সফলভাবে তৈরি করা হয়েছে।",
+    message: "খতিয়ান সফলভাবে তৈরি করা হয়েছে।",
     data: result,
   });
 });
 
-// GET GROUP OPTION
+// GET KHOTIYAN GROUP OPTION
 const getLedgerOptionController = catchAsync(async (req, res) => {
   const result = await LedgerService.getLedgerOptionService();
+
   if (!result) {
     sendResponse(res, {
       statusCode: StatusCodes.OK,
       success: true,
-      message: "লেজার অপশনের তালিকা পাওয়া যায়নি।",
+      message: "কোনো খতিয়ান গ্রুপ পাওয়া যায়নি।",
     });
   }
+
   sendResponse(res, {
     statusCode: StatusCodes.OK,
     success: true,
-    message: "লেজার অপশন সফলভাবে পাওয়া গেছে।",
+    message: "খতিয়ান গ্রুপের তালিকা সফলভাবে পাওয়া গেছে।",
     data: result,
   });
 });
 
-// GET ALL LEDGER WITH CHILDREN
+// GET ALL KHOTIYAN WITH CHILDREN
 const getAllLedgerWithController = catchAsync(async (req, res) => {
   const result = await LedgerService.getAllLedgerWithChildrenService();
+
   if (!result) {
     sendResponse(res, {
       statusCode: StatusCodes.OK,
       success: true,
-      message: "লেজার তালিকা পাওয়া যায়নি।",
+      message: "কোনো খতিয়ানের তালিকা পাওয়া যায়নি।",
     });
   }
+
   sendResponse(res, {
     statusCode: StatusCodes.OK,
     success: true,
-    message: "লেজার সফলভাবে পাওয়া গেছে।",
+    message: "খতিয়ানের তালিকা সফলভাবে পাওয়া গেছে।",
     data: result,
   });
 });
 
+// GET ALL KHOTIYAN WITH PAGINATION
+const getAllLedgerWithChildrenPaginationController = catchAsync(
+  async (req, res) => {
+    const { limit, page, search } = await parseListQuery(req.query);
 
-// GET ALL LEDGER WITH AMOUNT
-// GET GROUP OPTION
+    const result =
+      await LedgerService.getAllLedgerWithChildrenPaginationService({
+        limit,
+        page,
+        search,
+      });
+
+    if (!result) {
+      sendResponse(res, {
+        statusCode: StatusCodes.OK,
+        success: true,
+        message: "কোনো খতিয়ানের তালিকা পাওয়া যায়নি।",
+      });
+    }
+
+    sendResponse(res, {
+      statusCode: StatusCodes.OK,
+      success: true,
+      message: "খতিয়ানের তালিকা সফলভাবে পাওয়া গেছে।",
+      data: result,
+    });
+  },
+);
+
+// GET ALL KHOTIYAN WITH AMOUNT
 const getLedgerWithAmountController = catchAsync(async (req, res) => {
   const result = await LedgerService.getAllLedgerWithAmountService();
+
   if (!result) {
     sendResponse(res, {
       statusCode: StatusCodes.OK,
       success: true,
-      message: "লেজার অপশনের তালিকা পাওয়া যায়নি।",
+      message: "কোনো খতিয়ানের হিসাব পাওয়া যায়নি।",
     });
   }
+
   sendResponse(res, {
     statusCode: StatusCodes.OK,
     success: true,
-    message: "লেজার অপশন সফলভাবে পাওয়া গেছে।",
+    message: "খতিয়ানের হিসাব সফলভাবে পাওয়া গেছে।",
     data: result,
   });
 });
+
+// GET KHOTIYAN DETAILS
 const getLedgerDetailsController = catchAsync(async (req, res) => {
-  const id = req.params.id
-   const { limit, page, date } = await parseListQuery(req.query);
-  const result = await LedgerService.getDetailsLedgerService(Number(id),{limit, page,date});
+  const id = req.params.id;
+
+  const { limit, page, date } = await parseListQuery(req.query);
+
+  const result = await LedgerService.getDetailsLedgerService(Number(id), {
+    limit,
+    page,
+    date,
+  });
+
   if (!result.data.data.length) {
     sendResponse(res, {
       statusCode: StatusCodes.OK,
       success: true,
-      message: "লেজার অপশনের তালিকা পাওয়া যায়নি।",
+      message: "এই খতিয়ানের কোনো বিস্তারিত তথ্য পাওয়া যায়নি।",
     });
   }
+
   sendResponse(res, {
     statusCode: StatusCodes.OK,
     success: true,
-    message: "লেজার অপশন সফলভাবে পাওয়া গেছে।",
+    message: "খতিয়ানের বিস্তারিত তথ্য সফলভাবে পাওয়া গেছে।",
+    data: result,
+  });
+});
+
+// GET SINGLE KHOTIYAN
+const getSingleLedgerController = catchAsync(async (req, res) => {
+  const id = req.params.id;
+
+  const result = await LedgerService.getSingleLedgerService(Number(id));
+
+  if (!result) {
+    throw new AppError(
+      StatusCodes.NOT_FOUND,
+      "খতিয়ানটি পাওয়া যায়নি।",
+    );
+  }
+
+  sendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: "খতিয়ানের তথ্য সফলভাবে পাওয়া গেছে।",
+    data: result,
+  });
+});
+
+// UPDATE KHOTIYAN
+const updateLedgerController = catchAsync(async (req, res) => {
+  const body = req.body;
+  const id = req.params.id;
+
+  const result = await LedgerService.updateLedgerService(
+    Number(id),
+    body,
+  );
+
+  if (!result) {
+    throw new AppError(
+      StatusCodes.NOT_FOUND,
+      "খতিয়ানটি পাওয়া যায়নি অথবা আপডেট করা সম্ভব হয়নি।",
+    );
+  }
+
+  sendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: "খতিয়ানের তথ্য সফলভাবে আপডেট করা হয়েছে।",
+    data: result,
+  });
+});
+
+// DELETE KHOTIYAN
+const deleteLedgerController = catchAsync(async (req, res) => {
+  const id = req.params.id;
+
+  const result = await LedgerService.deleteLedgerService(Number(id));
+
+  if (!result) {
+    throw new AppError(
+      StatusCodes.NOT_FOUND,
+      "খতিয়ানটি পাওয়া যায়নি অথবা মুছে ফেলা সম্ভব হয়নি।",
+    );
+  }
+
+  sendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: "খতিয়ানটি সফলভাবে মুছে ফেলা হয়েছে।",
     data: result,
   });
 });
@@ -118,5 +235,9 @@ export const LedgerController = {
   getLedgerOptionController,
   getAllLedgerWithController,
   getLedgerWithAmountController,
-  getLedgerDetailsController
+  getLedgerDetailsController,
+  getAllLedgerWithChildrenPaginationController,
+  getSingleLedgerController,
+  updateLedgerController,
+  deleteLedgerController
 };

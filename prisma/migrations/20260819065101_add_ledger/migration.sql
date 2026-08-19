@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "Ledger" ADD COLUMN     "quantity" DOUBLE PRECISION,
+ADD COLUMN     "rate" DOUBLE PRECISION;
