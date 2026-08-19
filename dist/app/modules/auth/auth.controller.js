@@ -34,4 +34,21 @@ const loginUserToSystemController = (0, catchAsync_1.default)(async (req, res) =
         });
     }
 });
-exports.AuthController = { loginUserToSystemController };
+const logoutController = (0, catchAsync_1.default)(async (req, res) => {
+    const body = req.body;
+    const ipAddress = req.ip;
+    const username = req.user.username;
+    const result = await auth_service_1.AuthService.logoutUserService(username, ipAddress, body);
+    if (!result?.id) {
+        throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.BAD_REQUEST, "লগআউট করা সম্ভব হয়নি। অনুগ্রহ করে আবার চেষ্টা করুন।");
+    }
+    // Clear authentication cookies
+    res.clearCookie("accessToken");
+    res.clearCookie("refreshToken");
+    (0, sendResponse_1.sendResponse)(res, {
+        statusCode: http_status_codes_1.StatusCodes.OK,
+        success: true,
+        message: "আপনি সফলভাবে লগআউট করেছেন।",
+    });
+});
+exports.AuthController = { loginUserToSystemController, logoutController };

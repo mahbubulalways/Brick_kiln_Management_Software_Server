@@ -42,7 +42,7 @@ const loginUserToSystemService = async (payload, ip) => {
     });
     // JWT payload
     const tokenInfo = {
-        email: user.username,
+        username: user.username,
         userId: user.id,
         role: user.role,
     };
@@ -55,4 +55,25 @@ const loginUserToSystemService = async (payload, ip) => {
         refreshToken,
     };
 };
-exports.AuthService = { loginUserToSystemService };
+// LOGOUT
+const logoutUserService = async (username, ip, payload) => {
+    const user = await prisma_1.prisma.user.findUnique({
+        where: {
+            username,
+        },
+    });
+    if (!user) {
+        throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.NOT_FOUND, "প্রদত্ত তথ্যের সাথে কোনো অ্যাকাউন্ট পাওয়া যায়নি।");
+    }
+    const result = await prisma_1.prisma.loginHistory.create({
+        data: {
+            type: "Logout",
+            device: payload?.device || "Unknown",
+            browser: payload?.browser || "Unknown",
+            ipAddress: ip || "Unknown",
+            userId: user.id,
+        },
+    });
+    return result;
+};
+exports.AuthService = { loginUserToSystemService, logoutUserService };

@@ -38,4 +38,27 @@ const loginUserToSystemController = catchAsync(async (req, res) => {
   }
 });
 
-export const AuthController = { loginUserToSystemController };
+
+const logoutController = catchAsync(async (req, res) => {
+  const body = req.body
+  const ipAddress = req.ip as string;
+  const username = req.user.username
+  const result = await AuthService.logoutUserService(username, ipAddress, body)
+  if (!result?.id) {
+    throw new AppError(
+      StatusCodes.BAD_REQUEST,
+      "লগআউট করা সম্ভব হয়নি। অনুগ্রহ করে আবার চেষ্টা করুন।",
+    );
+  }
+  // Clear authentication cookies
+  res.clearCookie("accessToken");
+  res.clearCookie("refreshToken");
+  
+  sendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: "আপনি সফলভাবে লগআউট করেছেন।",
+  });
+});
+
+export const AuthController = { loginUserToSystemController, logoutController };

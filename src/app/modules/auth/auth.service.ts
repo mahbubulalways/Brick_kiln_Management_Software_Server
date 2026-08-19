@@ -60,7 +60,7 @@ const loginUserToSystemService = async (
 
   // JWT payload
   const tokenInfo = {
-    email: user.username,
+    username: user.username,
     userId: user.id,
     role: user.role,
   };
@@ -85,4 +85,33 @@ const loginUserToSystemService = async (
   };
 };
 
-export const AuthService = { loginUserToSystemService };
+
+// LOGOUT
+
+const logoutUserService = async (username: string, ip: string, payload: { device: string, browser: string }) => {
+  const user = await prisma.user.findUnique({
+    where: {
+      username,
+    },
+  });
+
+  if (!user) {
+    throw new AppError(
+      StatusCodes.NOT_FOUND,
+      "প্রদত্ত তথ্যের সাথে কোনো অ্যাকাউন্ট পাওয়া যায়নি।",
+    );
+  }
+
+  const result = await prisma.loginHistory.create({
+    data: {
+      type: "Logout",
+      device: payload?.device || "Unknown",
+      browser: payload?.browser || "Unknown",
+      ipAddress: ip || "Unknown",
+      userId: user.id,
+    },
+  });
+  return result
+}
+
+export const AuthService = { loginUserToSystemService, logoutUserService };
