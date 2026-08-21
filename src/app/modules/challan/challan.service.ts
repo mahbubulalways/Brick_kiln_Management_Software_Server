@@ -7,20 +7,24 @@ import {
 import { paginationHelper } from "../../../helpers/paginationHelper";
 import { prisma } from "../../../helpers/prisma";
 import { TQuery } from "../../../interface/query";
+import { TAuthUser } from "../../../interface/token";
 import { createMetaConfig } from "../../../utils/createMetaConfig";
+import { generateCode } from "../../../utils/generateCode";
+import { getCurrentSession } from "../../../utils/getCurrentSession";
 import { getDateRangeDbSearch } from "../../../utils/getDateRangeDbSearch";
 import { AppError } from "../../errors/ApplicationError";
 import { StatusCodes } from "http-status-codes";
 
 // CREATE CUSTOMER AND INVOICE AND INVOICE ITEMS
 const createInvoiceService = async (
-  createdBy: string,
+  user: TAuthUser,
   customer: Customer,
   invoiceItems: ChallanItem[],
   invoice: Challan,
 ) => {
   const isSerialExist = await prisma.challan.findFirst({
     where: {
+      vataId: user.vataId,
       serial: invoice.serial,
     },
   });
@@ -36,6 +40,7 @@ const createInvoiceService = async (
       // CHECK CUSTOMER EXIST OR NOT
       let existingCustomer = await tx.customer.findFirst({
         where: {
+          vataId: user.vataId,
           phoneNumber: customer.phoneNumber,
         },
       });
@@ -45,8 +50,19 @@ const createInvoiceService = async (
       customer.totalPaid = Number(invoice?.cash) || 0;
       customer.nextPaymentDate = invoice.duePaymentDate!;
       if (!existingCustomer) {
+        const countCustomer =
+          (await tx.customer.count({
+            where: {
+              vataId: user.vataId,
+            },
+          })) + 1;
+
         existingCustomer = await tx.customer.create({
-          data: customer,
+          data: {
+            ...customer,
+            customerCode: generateCode( countCustomer),
+            vataId: user.vataId
+          },
         });
       } else {
         // UPDATE CUSTOMER
@@ -60,16 +76,20 @@ const createInvoiceService = async (
         }
 
         await tx.customer.update({
-          where: { id: existingCustomer.id },
+          where: { id: existingCustomer.id, vataId: user.vataId },
           data: updateData,
         });
       }
 
       //  CREATE INVOICE
       invoice.customerId = existingCustomer.id;
-      invoice.createdBy = createdBy;
+      invoice.createdById = user.userId;
       const newInvoice = await tx.challan.create({
-        data: invoice,
+        data: {
+          ...invoice,
+          vataId: user.vataId,
+          season: getCurrentSession()
+        },
       });
 
       //  FORMAT INVOKE ITEMS AND ADD INVOICE ID
@@ -94,10 +114,11 @@ const createInvoiceService = async (
   return result;
 };
 
+
 // GET AL INVOICE WITH CUSTOMER NAME AND ADDRESS
-const getAllInvoiceService = async (query: TQuery) => {
+const getAllInvoiceService = async (user: TAuthUser, query: TQuery) => {
   const { limit, page, skip } = paginationHelper(query.page, query.limit);
-  const where: Prisma.ChallanWhereInput = { isDeleted: false, };
+  const where: Prisma.ChallanWhereInput = { vataId: user.vataId, isDeleted: false, };
   if (query.search?.trim()) {
     const search = query.search.trim();
     where.customer = {
@@ -145,7 +166,7 @@ const getAllInvoiceService = async (query: TQuery) => {
     totalData: total,
   });
 
-  
+
   return {
     meta,
     data: result,
@@ -154,9 +175,9 @@ const getAllInvoiceService = async (query: TQuery) => {
 };
 
 // GET ADVANCE INVOICE
-const getAllAdvanceInvoiceService = async (query: TQuery) => {
+const getAllAdvanceInvoiceService = async (user: TAuthUser, query: TQuery) => {
   const { limit, page, skip } = paginationHelper(query.page, query.limit);
-  const where: Prisma.ChallanWhereInput = { isDeleted: false,chalanType:"অগ্রিম চালান" };
+  const where: Prisma.ChallanWhereInput = { vataId: user.vataId, isDeleted: false, chalanType: "অগ্রিম চালান" };
   if (query.search?.trim()) {
     const search = query.search.trim();
     where.customer = {
@@ -176,7 +197,7 @@ const getAllAdvanceInvoiceService = async (query: TQuery) => {
       ],
     };
   }
-  
+
   const [result, total] = await prisma.$transaction([
     prisma.challan.findMany({
       where,
@@ -206,24 +227,29 @@ const getAllAdvanceInvoiceService = async (query: TQuery) => {
 
 
 //  GET SINGLE INVOICE
-const getSingleInvoiceService = async (id: number) => {
+const getSingleInvoiceService = async (user: TAuthUser, id: string) => {
   const result = await prisma.challan.findFirst({
-    where: { id: id, isDeleted: false },
+    where: { id: id, isDeleted: false, vataId: user.vataId },
     orderBy: {
       createdAt: "desc",
     },
     include: {
       customer: true,
       items: true,
+      createdBy:{
+        select:{
+          name:true
+        }
+      }
     },
   });
   return result;
 };
 
 //  GET SINGLE INVOICE ITEMS
-const getSingleInvoiceItemsService = async (id: number, query: string) => {
+const getSingleInvoiceItemsService = async (id: string, query: string) => {
   const splitIds = query.split(",");
-  const parsedNumber = splitIds.map((id) => Number(id));
+  const parsedNumber = splitIds.map((id) => id);
   const result = await prisma.challanItem.findMany({
     where: {
       challanId: id,
@@ -235,23 +261,13 @@ const getSingleInvoiceItemsService = async (id: number, query: string) => {
       createdAt: "desc",
     },
   });
-  // const result = await prisma.challan.findFirst({
-  //   where: { id: id },
-  //   select: {
-  //     id: true,
-  //     deliveryDate: true,
-  //     items: true,
-  //   },
-  //   orderBy: {
-  //     createdAt: "desc",
-  //   },
-  // });
   return result;
 };
 
 // UPDATE INVOICE
 const updateInvoiceController = async (
-  invoiceId: number,
+  user: TAuthUser,
+  invoiceId: string,
   invoice: Challan,
   items: ChallanItem[],
 ) => {
@@ -263,6 +279,7 @@ const updateInvoiceController = async (
         data: invoice,
         where: {
           id: invoiceId,
+          vataId: user.vataId
         },
       });
 
@@ -319,17 +336,18 @@ const updateInvoiceController = async (
 };
 
 // DELETE INVOICE
-const deleteInvoiceService = async (invoiceId: number) => {
+const deleteInvoiceService = async (user: TAuthUser, invoiceId: string) => {
   const result = await prisma.challan.update({
     data: {
       isDeleted: true,
     },
     where: {
       id: invoiceId,
+      vataId: user.vataId
     },
   });
 
-  const deleteItem = await prisma.challanItem.updateMany({
+  await prisma.challanItem.updateMany({
     data: {
       isDeleted: true,
     },
@@ -343,11 +361,15 @@ const deleteInvoiceService = async (invoiceId: number) => {
 //*
 // GET ITEMS WITH INVOICE
 const getItemsWithInvoiceService = async (
+  user: TAuthUser,
   startDate?: string,
   endDate?: string,
 ) => {
-  const whereCondition: any = {
+  const whereCondition: Prisma.ChallanItemWhereInput = {
     isDeleted: false,
+    challan: {
+      vataId: user.vataId
+    }
   };
 
   // Only startDate provided → filter only that date
@@ -400,25 +422,28 @@ const getItemsWithInvoiceService = async (
 
 // UPDATE PARTICULAR ITEMS DELIVERY DATE
 const updateItemsDateService = async (
-  id: number,
+  user: TAuthUser,
+  id: string,
   updateDate: string,
 ) => {
-   const result = await prisma.challanItem.update({
+  const result = await prisma.challanItem.update({
     data: {
       deliveryDate: updateDate,
     },
     where: {
-      id,
+      id, challan: {
+        vataId: user.vataId
+      }
     },
   });
-  
+
   return result;
 };
 
 
 // UPDATE INVOICE DELIVERY
-const updateInvoiceDeliveryDateService = async (id: number, updatedDate: string) => {
- const result = await prisma.challan.update({
+const updateInvoiceDeliveryDateService = async (user: TAuthUser, id: string, updatedDate: string) => {
+  const result = await prisma.challan.update({
     data: {
       deliveryDate: updatedDate,
       items: {
@@ -426,12 +451,12 @@ const updateInvoiceDeliveryDateService = async (id: number, updatedDate: string)
           data: {
             deliveryDate: updatedDate,
           },
-          where: { challanId: id },
+          where: { challanId: id, },
         },
       },
     },
     where: {
-      id,
+      id, vataId: user.vataId
     },
   });
   return result;

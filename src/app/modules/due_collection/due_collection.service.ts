@@ -6,19 +6,26 @@ import { TQuery } from "../../../interface/query";
 import { createMetaConfig } from "../../../utils/createMetaConfig";
 import { getDateRangeDbSearch } from "../../../utils/getDateRangeDbSearch";
 import { AppError } from "../../errors/ApplicationError";
+import { TAuthUser } from "../../../interface/token";
+import { TDueCollectionData } from "./due_collection.interface";
 
-const getDueOfCustomerService = async (customerId: number) => {
+const getDueOfCustomerService = async (user: TAuthUser, customerCode: string) => {
   const result = await prisma.customer.findFirst({
-    where: { id: customerId },
+    where: { customerCode: customerCode, vataId: user.vataId },
   });
   return result;
 };
 
 // INSERT DUE
+const collectDueService = async (user: TAuthUser, payload: TDueCollectionData) => {
+  const findCustomerId = await prisma.customer.findFirst({
+    where: {
+      customerCode: payload.customerCode, vataId: user.vataId,
+    }, select: { id: true }
+  })
 
-const collectDueService = async (payload: Due_Collection) => {
   const data = {
-    customerId: Number(payload.customerId),
+    customerId: findCustomerId?.id!,
     due: Number(payload.due),
     collect: Number(payload.collect),
     newDue: Number(payload.newDue),
@@ -34,7 +41,7 @@ const collectDueService = async (payload: Due_Collection) => {
       await tx.customer.update({
         data: {
           totalPaid: { increment: data?.collect },
-        
+
           nextPaymentDate: data.nextDate,
         },
         where: {
@@ -48,24 +55,24 @@ const collectDueService = async (payload: Due_Collection) => {
 };
 
 // TODAY HAVE PAY
-const todayPayDueService = async (query: TQuery) => {
+const todayPayDueService = async (user: TAuthUser, query: TQuery) => {
   const { limit, page, skip } = paginationHelper(query.page, query.limit);
   const where: Prisma.CustomerWhereInput = {
+    vataId: user.vataId,
     isDeleted: false,
   };
 
   if (query.search?.trim()) {
     const search = query.search.trim();
-    const isNumber = !isNaN(Number(search));
+
 
     where.OR = [
-      ...(isNumber
-        ? [
-          {
-            id: Number(search),
-          },
-        ]
-        : []),
+      {
+        customerCode: {
+          contains: search,
+          mode: "insensitive",
+        }
+      },
 
       {
         name: {
@@ -118,11 +125,14 @@ const todayPayDueService = async (query: TQuery) => {
   };
 };
 
-const getTodaysDuePaidService = async (query: TQuery) => {
+const getTodaysDuePaidService = async (user: TAuthUser, query: TQuery) => {
   const pagination = paginationHelper(query.page, query.limit);
 
   const where: Prisma.Due_CollectionWhereInput = {
     isDeleted: false,
+    customer: {
+      vataId: user.vataId
+    }
   };
 
   if (query.date) {
@@ -164,23 +174,22 @@ const getTodaysDuePaidService = async (query: TQuery) => {
 };
 
 // GET ALL DUE
-const getAllDueListService = async (query: TQuery) => {
+const getAllDueListService = async (user: TAuthUser, query: TQuery) => {
   const { limit, page, skip } = paginationHelper(query.page, query.limit);
   const where: Prisma.CustomerWhereInput = {
     isDeleted: false,
+    vataId: user.vataId
   };
 
   if (query.search?.trim()) {
     const search = query.search.trim();
-    const isNumber = !isNaN(Number(search));
     where.OR = [
-      ...(isNumber
-        ? [
-          {
-            id: Number(search),
-          },
-        ]
-        : []),
+      {
+        customerCode: {
+          contains: search,
+          mode: "insensitive",
+        }
+      },
 
       {
         name: {
@@ -275,20 +284,27 @@ const getAllDueListService = async (query: TQuery) => {
 };
 
 // GET SINGLE
-const getSingleDueCollectionService = async (id: number) => {
+const getSingleDueCollectionService = async (user: TAuthUser, id: string) => {
   const result = await prisma.due_Collection.findFirst({
-    where: { id, isDeleted: false },
+    where: { id, isDeleted: false, customer: { vataId: user.vataId } },
     include: { customer: true },
   });
   return result;
 };
 
 const updateDueCollectionService = async (
-  id: number,
-  payload: Due_Collection,
+  user: TAuthUser,
+  id: string,
+  payload: TDueCollectionData,
 ) => {
+  const findCustomerId = await prisma.customer.findFirst({
+    where: {
+      customerCode: payload.customerCode, vataId: user.vataId,
+    }, select: { id: true }
+  })
+
   const data = {
-    customerId: Number(payload.customerId),
+    customerId: findCustomerId?.id,
     due: Number(payload.due),
     collect: Number(payload.collect),
     newDue: Number(payload.newDue),
@@ -328,20 +344,23 @@ const updateDueCollectionService = async (
 };
 
 
-const getSingleDueCollectionDateService = async (id: number) => {
-  return await prisma.customer.findFirst({ where: { id }, select: { nextPaymentDate: true, id: true } })
+const getSingleDueCollectionDateService = async (user: TAuthUser, id: string) => {
+  return await prisma.customer.findFirst({
+    where:
+      { id, vataId: user.vataId }, select: { nextPaymentDate: true, id: true }
+  })
 }
 
 
 // UPDATE DUE COLLECTION DATE 
-const upDateDueCollectionDateService = async (id: string, info: { date: string, note: string }) => {
-  const due = await prisma.customer.findFirst({ where: { id: Number(id) } })
+const upDateDueCollectionDateService = async (user: TAuthUser, id: string, info: { date: string, note: string }) => {
+  const due = await prisma.customer.findFirst({ where: { id: id, vataId: user.vataId } })
   if (!due) {
     throw new AppError(StatusCodes.NOT_FOUND, "বাকি পাওয়া যায়নি।")
   }
   const result = await prisma.customer.update({
     data: { nextPaymentDate: info.date, note: info.note, },
-    where: { id: Number(id) }
+    where: { id: id, vataId: user.vataId }
   })
   return result
 }

@@ -1,0 +1,72 @@
+import { StatusCodes } from "http-status-codes";
+
+import catchAsync from "../../../utils/catchAsync";
+import { sendResponse } from "../../../utils/sendResponse";
+import { VataService } from "./vata.service";
+import { AppError } from "../../errors/ApplicationError";
+import { TAuthUser } from "../../../interface/token";
+
+// CREATE NEW VATA CONTROLLER
+const createNewVataController = catchAsync(async (req, res) => {
+    const result = await VataService.createNewVataService(req.body);
+
+    if (result) {
+        sendResponse(res, {
+            statusCode: StatusCodes.CREATED,
+            success: true,
+            message: "ভাটা সফলভাবে তৈরি হয়েছে",
+            data: result,
+        });
+    } else {
+        throw new AppError(
+            StatusCodes.BAD_REQUEST,
+            "ভাটা তৈরি করা যায়নি"
+        );
+    }
+});
+
+// GET SUBDOMAIN EXITS OR NOT
+const checkSubdomainExistController = catchAsync(async (req, res) => {
+    console.log(req.params.id)
+    const result = await VataService.checkSubdomainExistService(req.params.id);
+
+    if (result) {
+        sendResponse(res, {
+            statusCode: StatusCodes.OK,
+            success: true,
+            message: "ডোমেইনটি সফলভাবে যাচাই করা হয়েছে",
+            data: result,
+        });
+    } else {
+        throw new AppError(
+            StatusCodes.BAD_REQUEST,
+            "ডোমেইনটি যাচাই করা যায়নি"
+        );
+    }
+});
+
+
+const getVataInformationController = catchAsync(async (req, res) => {
+    const user = req.user as TAuthUser;
+    const result = await VataService.getVataInformationService(user);
+    if (result?.id) {
+        sendResponse(res, {
+            statusCode: StatusCodes.OK,
+            success: true,
+            message: "ভাটার তথ্য সফলভাবে পাওয়া গেছে",
+            data: result,
+        });
+    } else {
+        throw new AppError(
+            StatusCodes.BAD_REQUEST,
+            "ভাটার তথ্য পাওয়া যায়নি"
+        );
+    }
+});
+
+
+export const VataController = {
+    createNewVataController,
+    checkSubdomainExistController,
+    getVataInformationController
+};

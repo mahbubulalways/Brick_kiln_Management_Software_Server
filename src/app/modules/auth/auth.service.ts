@@ -63,6 +63,7 @@ const loginUserToSystemService = async (
     username: user.username,
     userId: user.id,
     role: user.role,
+    vataId:user.vataId
   };
 
   // Access token

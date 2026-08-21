@@ -7,9 +7,15 @@ import { TQuery } from "../../../interface/query";
 import { paginationHelper } from "../../../helpers/paginationHelper";
 import { createMetaConfig } from "../../../utils/createMetaConfig";
 import { getDateRangeDbSearch } from "../../../utils/getDateRangeDbSearch";
+import { TAuthUser } from "../../../interface/token";
 
-const getNextDeliveryNo = async () => {
+const getNextDeliveryNo = async (user: TAuthUser) => {
   const result = await prisma.delivery.findFirst({
+    where: {
+      invoice: {
+        vataId: user.vataId,
+      }
+    },
     orderBy: {
       deliveryNo: "desc",
     },
@@ -21,9 +27,9 @@ const getNextDeliveryNo = async () => {
   return result ? result.deliveryNo + 1 : 1;
 };
 
-const getDeliveryThatGoTodayService = async (query: TQuery) => {
+const getDeliveryThatGoTodayService = async (user: TAuthUser, query: TQuery) => {
   const { limit, page, skip } = paginationHelper(query.page, query.limit);
-  const where: Prisma.ChallanWhereInput = { isDeleted: false };
+  const where: Prisma.ChallanWhereInput = { vataId: user.vataId, isDeleted: false };
 
   // Create start and end of day boundaries
 
@@ -34,7 +40,7 @@ const getDeliveryThatGoTodayService = async (query: TQuery) => {
       ...(isNumber
         ? [
           {
-            id: Number(search),
+            serial: Number(search),
           },
         ]
         : []),
@@ -113,7 +119,7 @@ const getDeliveryThatGoTodayService = async (query: TQuery) => {
 };
 
 // CREATE DELIVERY
-const createDeliveryService = async (payload: TDelivery) => {
+const createDeliveryService = async (user: TAuthUser, payload: TDelivery) => {
   const isDeliveryNoExist = await prisma.delivery.findFirst({
     where: {
       deliveryNo: Number(payload?.deliveryNo),
@@ -135,55 +141,11 @@ const createDeliveryService = async (payload: TDelivery) => {
     driverName: payload.driverName,
     driverPhoneNumber: payload.driverMobileNumber,
     carNo: payload.carNumber,
-    invoiceId: Number(payload.invoiceId),
+    invoiceId: payload.invoiceId,
     carRent: Number(payload.carRent),
+    deliveryById: user.userId
   };
 
-  // if (payload?.savingType == "saveOnly") {
-  //   if (!isDeliveryNoExist?.id) {
-  //     throw new AppError(
-  //       StatusCodes.CONFLICT,
-  //       "নতুন কোন ডেলিভারি ক্রিয়েট করা হয়নি"
-  //     );
-  //   }
-  //   const result = await prisma.$transaction(
-  //     async (tx: Prisma.TransactionClient) => {
-  //       const calculate =
-  //         isDeliveryNoExist.deliveryReceived - data.deliveryReceived;
-  //       const createDelivery = await tx.delivery.update({
-  //         data: {
-  //           deliveryDate: data.deliveryDate,
-  //           class: data.class,
-  //           deliveryReceived: data.deliveryReceived,
-  //           deliveryRemaining: data.deliveryRemaining,
-  //           nextDeliveryDate: data.nextDeliveryDate,
-  //           quantity: data.quantity,
-  //           carNo: data.carNo,
-  //           driverName: data.driverName,
-  //           driverPhoneNumber: data.driverPhoneNumber,
-  //           invoiceId: Number(payload.invoiceId),
-  //         },
-  //         where: {
-  //           deliveryNo: data?.deliveryNo,
-  //         },
-  //       });
-
-  //       const updateItem = await tx.challanItem.update({
-  //         data: {
-  //           delivered: {
-  //             increment: calculate,
-  //           },
-  //         },
-  //         where: {
-  //           id: Number(payload?.itemId),
-  //         },
-  //       });
-
-  //       console.log(updateItem);
-  //       return createDelivery;
-  //     }
-  //   );
-  // }
 
   const result = await prisma.$transaction(
     async (tx: Prisma.TransactionClient) => {
@@ -199,8 +161,9 @@ const createDeliveryService = async (payload: TDelivery) => {
           carNo: data.carNo,
           driverName: data.driverName,
           driverPhoneNumber: data.driverPhoneNumber,
-          invoiceId: Number(payload.invoiceId),
+          invoiceId: payload.invoiceId,
           carRent: data.carRent,
+          deliveryById: data.deliveryById,
         },
       });
 
@@ -223,7 +186,7 @@ const createDeliveryService = async (payload: TDelivery) => {
           },
         },
         where: {
-          id: Number(payload?.itemId),
+          id: payload?.itemId,
         },
       });
 
@@ -235,9 +198,13 @@ const createDeliveryService = async (payload: TDelivery) => {
 
 //
 
-const getTodaysDeliveryThatDone = async (query: TQuery) => {
+const getTodaysDeliveryThatDone = async (user: TAuthUser, query: TQuery) => {
   const { limit, page, skip } = paginationHelper(query.page, query.limit);
-  const where: Prisma.DeliveryWhereInput = { isDeleted: false };
+  const where: Prisma.DeliveryWhereInput = {
+    isDeleted: false, invoice: {
+      vataId: user.vataId
+    }
+  };
 
   // Create start and end of day boundaries
   if (query.date) {
@@ -252,6 +219,7 @@ const getTodaysDeliveryThatDone = async (query: TQuery) => {
       include: {
         invoice: {
           select: {
+            serial: true,
             customer: true,
           },
         },
@@ -275,7 +243,7 @@ const getTodaysDeliveryThatDone = async (query: TQuery) => {
 
 // GET ALL DELIVERY
 
-const getAllDeliveryListService = async (query: TQuery) => {
+const getAllDeliveryListService = async (user: TAuthUser, query: TQuery) => {
   const { limit, page, skip } = paginationHelper(
     query.page,
     query.limit,
@@ -283,6 +251,7 @@ const getAllDeliveryListService = async (query: TQuery) => {
 
   const where: Prisma.ChallanWhereInput = {
     isDeleted: false,
+    vataId: user.vataId,
   };
 
   // Date range
@@ -308,7 +277,7 @@ const getAllDeliveryListService = async (query: TQuery) => {
       ...(isNumber
         ? [
           {
-            id: Number(search),
+            serial: Number(search),
           },
         ]
         : []),
@@ -373,14 +342,14 @@ const getAllDeliveryListService = async (query: TQuery) => {
 
 
 
-const filteredResult = result
-  .map((challan) => ({
-    ...challan,
-    items: challan.items.filter(
-      (item) => item.quantity > item.delivered
-    ),
-  }))
-  .filter((challan) => challan.items.length > 0);
+  const filteredResult = result
+    .map((challan) => ({
+      ...challan,
+      items: challan.items.filter(
+        (item) => item.quantity > item.delivered
+      ),
+    }))
+    .filter((challan) => challan.items.length > 0);
 
   const totalCount = total.map((challan) => ({
     ...challan,
@@ -388,7 +357,7 @@ const filteredResult = result
       (item) => item.quantity > item.delivered
     ),
   }))
-  .filter((challan) => challan.items.length > 0).length;
+    .filter((challan) => challan.items.length > 0).length;
 
   const meta = createMetaConfig({
     limit,
@@ -402,8 +371,30 @@ const filteredResult = result
   };
 };
 
-const getSingleDeliveryService = async (id: number) => {
-  const result = await prisma.delivery.findFirst({ where: { id } });
+const getSingleDeliveryService = async (id: string) => {
+  const result = await prisma.delivery.findFirst({
+    where: { id }, include: {
+      invoice: {
+        select: {
+          id: true, serial: true,
+          challanDate: true,
+          deliveryDate: true,
+          customer:{
+            select:{
+              name:true,
+              phoneNumber:true,
+              address:true
+            }
+          }
+        }
+      },
+      deliveryBy: {
+        select: {
+          name: true
+        }
+      },
+    }
+  });
   return result;
 };
 

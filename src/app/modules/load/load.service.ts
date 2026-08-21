@@ -2,17 +2,18 @@ import { LoadInfo, Prisma } from "../../../generated/prisma/client";
 import { paginationHelper } from "../../../helpers/paginationHelper";
 import { prisma } from "../../../helpers/prisma";
 import { TQuery } from "../../../interface/query";
+import { TAuthUser } from "../../../interface/token";
 import { createMetaConfig } from "../../../utils/createMetaConfig";
 import { getDateRangeDbSearch } from "../../../utils/getDateRangeDbSearch";
 import { TLoadInfo } from "./load.interface";
 
 // CREATE LOAD INFO
-const createLoadInfoService = async (payload: TLoadInfo) => {
+const createLoadInfoService = async (user: TAuthUser, payload: TLoadInfo) => {
     const round = payload.round
     const result = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
         let roundExist = await tx.round.findFirst({ where: { name: round } })
         if (!roundExist) {
-            roundExist = await tx.round.create({ data: { name: round } })
+            roundExist = await tx.round.create({ data: { name: round, vataId: user.vataId } })
         }
         const loadData = {
             roundId: roundExist.id,
@@ -30,7 +31,7 @@ const createLoadInfoService = async (payload: TLoadInfo) => {
 };
 
 // GET ALL LOAD INFO
-const getAllLoadInfoService = async (query: TQuery) => {
+const getAllLoadInfoService = async (user: TAuthUser, query: TQuery) => {
     const { limit, page, skip } = paginationHelper(
         query.page,
         query.limit,
@@ -38,6 +39,7 @@ const getAllLoadInfoService = async (query: TQuery) => {
 
     const where: Prisma.LoadInfoWhereInput = {
         isDeleted: false,
+        round: { vataId: user.vataId }
     };
 
     // DATE FILTER
@@ -103,11 +105,14 @@ const getAllLoadInfoService = async (query: TQuery) => {
 };
 
 // GET SINGLE LOAD INFO
-const getSingleLoadInfoService = async (id: number) => {
+const getSingleLoadInfoService = async (user: TAuthUser, id: string) => {
     return await prisma.loadInfo.findFirst({
         where: {
             id,
             isDeleted: false,
+            round: {
+                vataId: user.vataId
+            }
         },
 
         include: {
@@ -118,54 +123,57 @@ const getSingleLoadInfoService = async (id: number) => {
 
 // UPDATE LOAD INFO
 const updateLoadInfoService = async (
-  id: number,
-  payload: TLoadInfo
+    user: TAuthUser,
+    id: string,
+    payload: TLoadInfo
 ) => {
-  const result = await prisma.$transaction(async (tx) => {
-    // Round name
-    const roundName = `${payload.round}`;
+    const result = await prisma.$transaction(async (tx) => {
+        // Round name
+        const roundName = `${payload.round}`;
 
-    // Check round exists
-    let roundExist = await tx.round.findFirst({
-      where: {
-        name: roundName,
-      },
+        // Check round exists
+        let roundExist = await tx.round.findFirst({
+            where: {
+                vataId: user.vataId,
+                name: roundName,
+            },
+        });
+
+        // Create round if not exists
+        if (!roundExist) {
+            roundExist = await tx.round.create({
+                data: {
+                    vataId: user.vataId,
+                    name: roundName,
+                },
+            });
+        }
+
+        // Update load info
+        const load = await tx.loadInfo.update({
+            where: {
+                id,
+            },
+            data: {
+                roundId: roundExist.id,
+                date: payload.date,
+                quantity: Number(payload.quantity),
+                loadType: payload.loadType,
+                classType: payload.classType || null,
+            },
+            include: {
+                round: true,
+            },
+        });
+
+        return load;
     });
 
-    // Create round if not exists
-    if (!roundExist) {
-      roundExist = await tx.round.create({
-        data: {
-          name: roundName,
-        },
-      });
-    }
-
-    // Update load info
-    const load = await tx.loadInfo.update({
-      where: {
-        id,
-      },
-      data: {
-        roundId: roundExist.id,
-        date: payload.date,
-        quantity: Number(payload.quantity),
-        loadType: payload.loadType,
-        classType: payload.classType || null,
-      },
-      include: {
-        round: true,
-      },
-    });
-
-    return load;
-  });
-
-  return result;
+    return result;
 };
 
 // DELETE LOAD INFO
-const deleteLoadInfoService = async (id: number) => {
+const deleteLoadInfoService = async (user: TAuthUser, id: string) => {
     return await prisma.loadInfo.update({
         data: {
             isDeleted: true,
@@ -173,6 +181,9 @@ const deleteLoadInfoService = async (id: number) => {
 
         where: {
             id,
+            round: {
+                vataId: user.vataId
+            }
         },
     });
 };

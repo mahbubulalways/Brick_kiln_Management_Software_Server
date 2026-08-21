@@ -8,12 +8,13 @@ import { StatusCodes } from "http-status-codes";
 import { paginationHelper } from "../../../helpers/paginationHelper";
 import { TQuery } from "../../../interface/query";
 import { createMetaConfig } from "../../../utils/createMetaConfig";
+import { TAuthUser } from "../../../interface/token";
 
-const createPaymentService = async (req: Request) => {
+const createPaymentService = async (req: Request, user: TAuthUser) => {
   const file = req.file as IUploadFile;
   const body = JSON.parse(req.body.data) as IPayment;
   const ledgerId = await prisma.ledger.findFirst({
-    where: { name: body.ledger },
+    where: { name: body.ledger, vataId: user.vataId },
     select: { id: true },
   });
   if (!ledgerId) {
@@ -31,14 +32,15 @@ const createPaymentService = async (req: Request) => {
     paymentDifference: Number(body.paymentDifference),
     document: file.filename || null,
   };
-  const result = await prisma.payment.create({ data });
+  const result = await prisma.payment.create({ data: { ...data, vataId: user.vataId } });
   return result;
 };
+
 // GET ALL PAYMENTS
-const getAllPaymentService = async (query: TQuery) => {
+const getAllPaymentService = async (user: TAuthUser, query: TQuery) => {
   const pagination = paginationHelper(query.page, query.limit);
 
-  const where: Prisma.PaymentWhereInput = {isDeleted:false};
+  const where: Prisma.PaymentWhereInput = { vataId: user.vataId, isDeleted: false };
 
   // Search by ledger name
   if (query.search?.trim()) {
@@ -77,7 +79,7 @@ const getAllPaymentService = async (query: TQuery) => {
         ledger: {
           select: {
             name: true,
-            id:true
+            id: true
           },
         },
       },
@@ -106,11 +108,12 @@ const getAllPaymentService = async (query: TQuery) => {
 };
 
 // GET PAYMENT REPORT GROUP VIA DATE
-const paymentReportViaGroupService = async () => {
+const paymentReportViaGroupService = async (user: TAuthUser) => {
   const result = await prisma.payment.findMany({
-    where:{isDeleted:false},
+    where: { isDeleted: false, vataId: user.vataId },
     include: { ledger: { include: { parent: true } } },
   });
+
   const groupedPayments = Object.values(
     result.reduce(
       (acc, item) => {
@@ -145,9 +148,9 @@ const paymentReportViaGroupService = async () => {
         return acc;
       },
       {} as Record<
-        number,
+        string,
         {
-          ledgerId: number;
+          ledgerId: string;
           ledger: string;
           quantity: number;
           totalBill: number;
@@ -164,14 +167,14 @@ const paymentReportViaGroupService = async () => {
 };
 
 // GET SINGLE PAYMENT 
-const getSinglePaymentService = async (id: string) => {
-  return prisma.payment.findFirst({ where: { id: Number(id) }, include: { ledger: { select: { name: true } } } })
+const getSinglePaymentService = async (user: TAuthUser, id: string) => {
+  return prisma.payment.findFirst({ where: { vataId: user.vataId, id: id }, include: { ledger: { select: { name: true } } } })
 }
 
 
 // UPDATE PAYMENT
-const updatePaymentService = async (req: Request) => {
-  const id = Number(req.params.id);
+const updatePaymentService = async (user: TAuthUser, req: Request) => {
+  const id = req.params.id;
 
   const file = req.file as IUploadFile | undefined;
 
@@ -182,6 +185,7 @@ const updatePaymentService = async (req: Request) => {
   // ============================================
   const existingPayment = await prisma.payment.findUnique({
     where: {
+      vataId: user.vataId,
       id,
     },
   });
@@ -199,6 +203,7 @@ const updatePaymentService = async (req: Request) => {
   const ledger = await prisma.ledger.findFirst({
     where: {
       name: body.ledger,
+      vataId: user.vataId,
     },
     select: {
       id: true,
@@ -215,17 +220,17 @@ const updatePaymentService = async (req: Request) => {
   // ============================================
   // 3. Prepare update data
   // ============================================
-  const data:any = {
+  const data: any = {
     ledgerId: ledger.id,
     paymentType: body.paymentType,
     paymentDetails: body.paymentDetails,
-    quantity: Number(body.quantity)||0,
-    rate: Number(body.rate)||0,
-    totalBill: Number(body.totalBill)||0,
-    cutting: Number(body.cutting)||0,
-    payment: Number(body.payment)||0,
-    paymentDifference: Number(body.paymentDifference)||0,
-    paymentDate:body.paymentDate
+    quantity: Number(body.quantity) || 0,
+    rate: Number(body.rate) || 0,
+    totalBill: Number(body.totalBill) || 0,
+    cutting: Number(body.cutting) || 0,
+    payment: Number(body.payment) || 0,
+    paymentDifference: Number(body.paymentDifference) || 0,
+    paymentDate: body.paymentDate
   };
 
   // ============================================
@@ -241,6 +246,7 @@ const updatePaymentService = async (req: Request) => {
   const result = await prisma.payment.update({
     where: {
       id,
+      vataId: user.vataId
     },
     data,
   });
@@ -250,8 +256,8 @@ const updatePaymentService = async (req: Request) => {
 
 
 // DELETE PAYMENT 
-const deletePaymentServie =async(id:string)=>{
-  return await prisma.payment.update({where:{id:Number(id)},data:{isDeleted:true}})
+const deletePaymentServie = async (user:TAuthUser,id: string) => {
+  return await prisma.payment.update({ where: { id,vataId:user.vataId }, data: { isDeleted: true } })
 
 }
 

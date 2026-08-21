@@ -4,11 +4,14 @@ import { AppError } from "../../errors/ApplicationError";
 import { DueCollectionService } from "./due_collection.service";
 import { sendResponse } from "../../../utils/sendResponse";
 import { parseListQuery } from "../../../utils/parseListQuery";
+import { TAuthUser } from "../../../interface/token";
 
 const getDueOfCustomerController = catchAsync(async (req, res) => {
   const customerId = req.params.customerId;
+  const user = req.user as TAuthUser
   const result = await DueCollectionService.getDueOfCustomerService(
-    Number(customerId)
+    user,
+    customerId
   );
 
   if (!result?.id) {
@@ -29,7 +32,8 @@ const getDueOfCustomerController = catchAsync(async (req, res) => {
 
 //INSERT NEW DUE
 const collectionNewDueController = catchAsync(async (req, res) => {
-  const result = await DueCollectionService.collectDueService(req.body);
+  const user = req.user as TAuthUser
+  const result = await DueCollectionService.collectDueService(user, req.body);
   if (!result?.id) {
     throw new AppError(StatusCodes.BAD_REQUEST, "বাকি জমা করতে ব্যর্থ হয়েছে।");
   }
@@ -43,9 +47,9 @@ const collectionNewDueController = catchAsync(async (req, res) => {
 
 // TODAY HAVE PAY
 const todayPayDueController = catchAsync(async (req, res) => {
+  const user = req.user as TAuthUser
   const { limit, page, date, search } = await parseListQuery(req.query);
-
-  const result = await DueCollectionService.todayPayDueService({ date, limit, page, search });
+  const result = await DueCollectionService.todayPayDueService(user, { date, limit, page, search });
   if (!result?.data?.length) {
     sendResponse(res, {
       message: "আজকের  জন্য কোনো বাকি পাওয়া যায়নি।",
@@ -66,8 +70,9 @@ const todayPayDueController = catchAsync(async (req, res) => {
 
 // TODAY PAID
 const getTodaysDuePaidController = catchAsync(async (req, res) => {
+  const user = req.user as TAuthUser
   const { limit, page, date } = await parseListQuery(req.query);
-  const result = await DueCollectionService.getTodaysDuePaidService({ date, limit, page });
+  const result = await DueCollectionService.getTodaysDuePaidService(user, { date, limit, page });
   if (!result.data.length) {
     sendResponse(res, {
       message: "আজকের  জন্য কোনো বাকি পাওয়া যায়নি।",
@@ -88,8 +93,8 @@ const getTodaysDuePaidController = catchAsync(async (req, res) => {
 
 const getAllDueListController = catchAsync(async (req, res) => {
   const { limit, page, search, date } = await parseListQuery(req.query);
-
-  const result = await DueCollectionService.getAllDueListService({date,limit,page,search});
+  const user = req.user as TAuthUser
+  const result = await DueCollectionService.getAllDueListService(user, { date, limit, page, search });
   if (!result?.data?.length) {
     sendResponse(res, {
       message: "বাকি পাওয়া যায়নি।",
@@ -111,8 +116,10 @@ const getAllDueListController = catchAsync(async (req, res) => {
 // GET SINGKE
 const getSingleDueCollectionController = catchAsync(async (req, res) => {
   const id = req.params.id;
+  const user = req.user as TAuthUser
   const result = await DueCollectionService.getSingleDueCollectionService(
-    Number(id)
+    user,
+    id
   );
 
   if (!result?.id) {
@@ -131,8 +138,10 @@ const getSingleDueCollectionController = catchAsync(async (req, res) => {
 // GET SINGLE DUE ONLY DATE
 const getSingleDueCollectionDateController = catchAsync(async (req, res) => {
   const id = req.params.id;
+  const user = req.user as TAuthUser
   const result = await DueCollectionService.getSingleDueCollectionDateService(
-    Number(id)
+    user,
+    id
   );
   if (!result?.id) {
     throw new AppError(StatusCodes.NOT_FOUND, "NOT FOUND");
@@ -148,13 +157,14 @@ const getSingleDueCollectionDateController = catchAsync(async (req, res) => {
 });
 
 
-
-//
+// UPDATE DUE COLLECTION
 const updateDueCollectionController = catchAsync(async (req, res) => {
   const id = req.params.id;
   const body = req.body;
+  const user = req.user as TAuthUser
   const result = await DueCollectionService.updateDueCollectionService(
-    Number(id),
+    user,
+    id,
     body
   );
 
@@ -170,11 +180,13 @@ const updateDueCollectionController = catchAsync(async (req, res) => {
 });
 
 
-
+// UPDATE DUE COLLECTION DATE
 const updateDueCollectionDateController = catchAsync(async (req, res) => {
   const id = req.params.id;
   const body = req.body;
+  const user = req.user as TAuthUser
   const result = await DueCollectionService.upDateDueCollectionDateService(
+    user,
     id,
     body
   );

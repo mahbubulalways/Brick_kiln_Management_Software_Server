@@ -1,6 +1,6 @@
 export type TDelivery = {
   deliveryNo: number;
-  invoiceId: number;
+  invoiceId: string;
   deliveryDate: Date;
   nextDeliveryDate: Date;
   customer: {
@@ -14,7 +14,7 @@ export type TDelivery = {
     todaysDelivery: number;
     remainingDelivery: number;
   };
-  itemId: number;
+  itemId: string;
   carRent: number;
   driverName: string;
   driverMobileNumber: string;

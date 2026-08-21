@@ -5,31 +5,42 @@ import { InvoiceService } from "./challan.service";
 import { sendResponse } from "../../../utils/sendResponse";
 import { prisma } from "../../../helpers/prisma";
 import { parseListQuery } from "../../../utils/parseListQuery";
+import { TAuthUser } from "../../../interface/token";
 
 
 // GET INVOICE SERIAL
 const getInvoiceSerial = catchAsync(async (req, res) => {
-  const result = await prisma.challan.count()+1;
+  const user = req.user as TAuthUser;
+  const result =
+    (await prisma.challan.count({
+      where: {
+        vataId: user.vataId,
+      },
+    })) + 1;
+   
+    console.log(result)
 
   if (!result) {
     throw new AppError(
       StatusCodes.BAD_REQUEST,
-      "চ্যালান পাওয়া যায়নি।"
+      "ইনভয়েস সিরিয়াল তৈরি করা যায়নি।"
     );
-  } else {
-    sendResponse(res, {
-      message: "চ্যালান পাওয়া গেছে।",
-      statusCode: StatusCodes.OK,
-      success: true,
-      data: { totalInvoice: result },
-    });
   }
+
+  sendResponse(res, {
+    message: "ইনভয়েস সিরিয়াল সফলভাবে তৈরি হয়েছে।",
+    statusCode: StatusCodes.OK,
+    success: true,
+    data: {
+      invoiceSerial: result,
+    },
+  });
 });
 
 // CREATE CUSTOMER AND INVOICE AND INVOICE ITEMS
 const createInvoiceController = catchAsync(async (req, res) => {
   const body = req.body;
-  const user = "Mahbubul Hasan"; // TODO : Here name comes from auth
+  const user = req.user as TAuthUser
   const result = await InvoiceService.createInvoiceService(
     user,
     body.customer,
@@ -54,8 +65,9 @@ const createInvoiceController = catchAsync(async (req, res) => {
 
 // GET AL INVOICE WITH CUSTOMER NAME AND ADDRESS
 const getAllInvoiceController = catchAsync(async (req, res) => {
+  const user = req.user as TAuthUser
   const { limit, page, search, date } = await parseListQuery(req.query);
-  const result = await InvoiceService.getAllInvoiceService({
+  const result = await InvoiceService.getAllInvoiceService(user,{
     limit,
     page,
     search,
@@ -82,8 +94,9 @@ const getAllInvoiceController = catchAsync(async (req, res) => {
 
 // GET ADVANVCE INVOICE
 const getAllAdvanceInvoiceController = catchAsync(async (req, res) => {
+    const user = req.user as TAuthUser
   const { limit, page, search, date } = await parseListQuery(req.query);
-  const result = await InvoiceService.getAllAdvanceInvoiceService({
+  const result = await InvoiceService.getAllAdvanceInvoiceService(user,{
     limit,
     page,
     search,
@@ -111,7 +124,8 @@ const getAllAdvanceInvoiceController = catchAsync(async (req, res) => {
 //  GET SINGLE INVOICE
 const getSingleInvoiceController = catchAsync(async (req, res) => {
   const id = req?.params?.id;
-  const result = await InvoiceService.getSingleInvoiceService(Number(id));
+    const user = req.user as TAuthUser
+  const result = await InvoiceService.getSingleInvoiceService(user,id);
   if (!result?.id) {
     throw new AppError(StatusCodes.BAD_REQUEST, "চ্যালান পাওয়া যায়নি।");
   }
@@ -131,9 +145,8 @@ const getSingleInvoiceController = catchAsync(async (req, res) => {
 const getSingleInvoiceItemsController = catchAsync(async (req, res) => {
   const id = req?.params?.id;
   const query = req.query;
-
   const result = await InvoiceService.getSingleInvoiceItemsService(
-    Number(id),
+    id,
     query?.ids as string
   );
   if (!result?.length) {
@@ -159,8 +172,10 @@ const getSingleInvoiceItemsController = catchAsync(async (req, res) => {
 const updateInvoiceController = catchAsync(async (req, res) => {
   const id = req?.params?.id;
   const body = req.body;
+    const user = req.user as TAuthUser
   const result = await InvoiceService.updateInvoiceController(
-    Number(id),
+    user,
+    id,
     body.invoice,
     body.invoiceItems
   );
@@ -184,7 +199,8 @@ const updateInvoiceController = catchAsync(async (req, res) => {
 // DELETE INVOICE
 const deleteInvoiceController = catchAsync(async (req, res) => {
   const id = req?.params?.id;
-  const result = await InvoiceService.deleteInvoiceService(Number(id));
+    const user = req.user as TAuthUser
+  const result = await InvoiceService.deleteInvoiceService(user,id);
   if (!result?.id) {
     throw new AppError(
       StatusCodes.BAD_REQUEST,
@@ -205,7 +221,9 @@ const deleteInvoiceController = catchAsync(async (req, res) => {
 // GET ITEMS WITH INVOICE
 const getItemsWithInvoiceController = catchAsync(async (req, res) => {
   const { startDate, endDate } = req.query;
+    const user = req.user as TAuthUser
   const result = await InvoiceService.getItemsWithInvoiceService(
+    user,
     startDate as string,
     endDate as string
   );
@@ -227,8 +245,10 @@ const getItemsWithInvoiceController = catchAsync(async (req, res) => {
 const updateInvoiceDeliveryDateController = catchAsync(async (req, res) => {
   const id = req?.params.id;
   const updatedDate = req.body.updatedDate;
+    const user = req.user as TAuthUser
   const result = await InvoiceService.updateInvoiceDeliveryDateService(
-    Number(id),
+    user,
+    id,
     updatedDate
   );
   if (!result?.id) {
@@ -249,8 +269,10 @@ const updateInvoiceDeliveryDateController = catchAsync(async (req, res) => {
 const updateInvoiceItemDeliveryDateController = catchAsync(async (req, res) => {
   const id = req?.params.id;
   const updatedDate = req.body.updatedDate;
+    const user = req.user as TAuthUser
   const result = await InvoiceService.updateItemsDateService(
-    Number(id),
+    user,
+    id,
     updatedDate
   );
   if (!result?.id) {

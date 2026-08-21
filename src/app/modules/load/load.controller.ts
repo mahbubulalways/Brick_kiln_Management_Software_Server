@@ -5,14 +5,16 @@ import { sendResponse } from "../../../utils/sendResponse";
 import { StatusCodes } from "http-status-codes";
 import { AppError } from "../../errors/ApplicationError";
 import { parseListQuery } from "../../../utils/parseListQuery";
+import { TAuthUser } from "../../../interface/token";
 
 // ===============================
 // CREATE LOAD INFO
 // ===============================
 const createLoadInfoController = catchAsync(
     async (req: Request, res: Response) => {
+        const user = req.user as TAuthUser
         const result =
-            await LoadInfoService.createLoadInfoService(req.body);
+            await LoadInfoService.createLoadInfoService(user, req.body);
 
         if (result) {
             sendResponse(res, {
@@ -35,9 +37,10 @@ const createLoadInfoController = catchAsync(
 // ===============================
 const getAllLoadInfoController = catchAsync(
     async (req: Request, res: Response) => {
+        const user = req.user as TAuthUser
         const { limit, page, search, date } = await parseListQuery(req.query);
         const result =
-            await LoadInfoService.getAllLoadInfoService({ date, limit, page, search });
+            await LoadInfoService.getAllLoadInfoService(user, { date, limit, page, search });
 
         if (result.data.length) {
             sendResponse(res, {
@@ -62,8 +65,8 @@ const getAllLoadInfoController = catchAsync(
 // ===============================
 const getSingleLoadInfoController = catchAsync(
     async (req: Request, res: Response) => {
-        const id = Number(req.params.id);
-
+        const id = req.params.id;
+        const user = req.user as TAuthUser
         if (!id) {
             throw new AppError(
                 StatusCodes.BAD_REQUEST,
@@ -72,7 +75,7 @@ const getSingleLoadInfoController = catchAsync(
         }
 
         const result =
-            await LoadInfoService.getSingleLoadInfoService(id);
+            await LoadInfoService.getSingleLoadInfoService(user, id);
 
         if (result) {
             sendResponse(res, {
@@ -96,8 +99,8 @@ const getSingleLoadInfoController = catchAsync(
 // ===============================
 const updateLoadInfoController = catchAsync(
     async (req: Request, res: Response) => {
-        const id = Number(req.params.id);
-
+        const id = req.params.id;
+        const user = req.user as TAuthUser
         if (!id) {
             throw new AppError(
                 StatusCodes.BAD_REQUEST,
@@ -106,7 +109,7 @@ const updateLoadInfoController = catchAsync(
         }
 
         const existing =
-            await LoadInfoService.getSingleLoadInfoService(id);
+            await LoadInfoService.getSingleLoadInfoService(user, id);
 
         if (!existing) {
             throw new AppError(
@@ -117,6 +120,7 @@ const updateLoadInfoController = catchAsync(
 
         const result =
             await LoadInfoService.updateLoadInfoService(
+                user,
                 id,
                 req.body
             );
@@ -142,8 +146,8 @@ const updateLoadInfoController = catchAsync(
 // ===============================
 const deleteLoadInfoController = catchAsync(
     async (req: Request, res: Response) => {
-        const id = Number(req.params.id);
-
+        const id = req.params.id;
+        const user = req.user as TAuthUser
         if (!id) {
             throw new AppError(
                 StatusCodes.BAD_REQUEST,
@@ -152,7 +156,7 @@ const deleteLoadInfoController = catchAsync(
         }
 
         const existing =
-            await LoadInfoService.getSingleLoadInfoService(id);
+            await LoadInfoService.getSingleLoadInfoService(user, id);
 
         if (!existing) {
             throw new AppError(
@@ -162,7 +166,7 @@ const deleteLoadInfoController = catchAsync(
         }
 
         const result =
-            await LoadInfoService.deleteLoadInfoService(id);
+            await LoadInfoService.deleteLoadInfoService(user, id);
 
         if (result) {
             sendResponse(res, {

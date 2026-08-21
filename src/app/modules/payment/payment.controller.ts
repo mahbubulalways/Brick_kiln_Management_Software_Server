@@ -4,10 +4,12 @@ import { AppError } from "../../errors/ApplicationError";
 import { PaymentService } from "./payment.service";
 import { sendResponse } from "../../../utils/sendResponse";
 import { parseListQuery } from "../../../utils/parseListQuery";
+import { TAuthUser } from "../../../interface/token";
 
 // CREATE NEW LEDGER
 const createPaymentController = catchAsync(async (req, res) => {
-  const result = await PaymentService.createPaymentService(req);
+  const user = req.user as TAuthUser
+  const result = await PaymentService.createPaymentService(req, user);
   if (!result) {
     throw new AppError(
       StatusCodes.BAD_REQUEST,
@@ -27,7 +29,8 @@ const createPaymentController = catchAsync(async (req, res) => {
 // GET ALL PAYMENT PAGINATE AND SEARCH
 const getAllPaymentController = catchAsync(async (req, res) => {
   const { limit, page, search, date } = await parseListQuery(req.query);
-  const result = await PaymentService.getAllPaymentService({
+  const user = req.user as TAuthUser
+  const result = await PaymentService.getAllPaymentService(user, {
     limit,
     page,
     search,
@@ -57,8 +60,8 @@ const getAllPaymentController = catchAsync(async (req, res) => {
 
 // GET ALL PAYMENT PAGINATE AND SEARCH
 const paymentReportViaGroupController = catchAsync(async (req, res) => {
-  const result = await PaymentService.paymentReportViaGroupService();
-
+  const user = req.user as TAuthUser
+  const result = await PaymentService.paymentReportViaGroupService(user);
   if (!result.length) {
     sendResponse(res, {
       statusCode: StatusCodes.OK,
@@ -82,7 +85,8 @@ const paymentReportViaGroupController = catchAsync(async (req, res) => {
 // GET SINGLE PAYMENT
 const getSinglePaymentController = catchAsync(async (req, res) => {
   const id = req.params.id
-  const result = await PaymentService.getSinglePaymentService(id);
+  const user = req.user as TAuthUser
+  const result = await PaymentService.getSinglePaymentService(user, id);
   if (!result) {
     throw new AppError(StatusCodes.NOT_FOUND, "কোনো পেমেন্ট পাওয়া যায়নি।")
   }
@@ -100,7 +104,8 @@ const getSinglePaymentController = catchAsync(async (req, res) => {
 
 // UPDATE PAYMENT
 const updatePaymentController = catchAsync(async (req, res) => {
-  const result = await PaymentService.updatePaymentService(req);
+  const user = req.user as TAuthUser
+  const result = await PaymentService.updatePaymentService(user, req);
 
   if (!result) {
     throw new AppError(
@@ -123,9 +128,9 @@ const updatePaymentController = catchAsync(async (req, res) => {
 // DELETE PAYMENT (SOFT)
 const deletePaymentController = catchAsync(async (req, res) => {
   const id = req.params.id;
-
+  const user = req.user as TAuthUser
   const result =
-    await PaymentService.deletePaymentServie(id);
+    await PaymentService.deletePaymentServie(user, id);
 
   if (!result) {
     throw new AppError(

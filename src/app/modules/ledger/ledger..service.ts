@@ -6,17 +6,19 @@ import { TQuery } from "../../../interface/query";
 import { getDateRangeDbSearch } from "../../../utils/getDateRangeDbSearch";
 import { paginationHelper } from "../../../helpers/paginationHelper";
 import { createMetaConfig } from "../../../utils/createMetaConfig";
+import { TAuthUser } from "../../../interface/token";
 // GET LEDGER COUNT
-const getLedgerCountService = async () => {
-  const res = await prisma.ledger.count();
+const getLedgerCountService = async (user: TAuthUser) => {
+  const res = await prisma.ledger.count({ where: { vataId: user?.vataId } });
   return res + 1;
 };
 
 // CREATE A LEDGER
-const createLedgerService = async (data: Ledger) => {
+const createLedgerService = async (user: TAuthUser, data: Ledger) => {
   const isExist = await prisma.ledger.findFirst({
     where: {
       name: data.name,
+      vataId: user.vataId
     },
   });
 
@@ -31,7 +33,8 @@ const createLedgerService = async (data: Ledger) => {
     data: {
       ...data,
       quantity: Number(data.quantity),
-      rate: Number(data.rate)
+      rate: Number(data.rate),
+      vataId: user.vataId
 
     }
   });
@@ -40,11 +43,12 @@ const createLedgerService = async (data: Ledger) => {
 };
 
 // GET GROUP OPTION
-const getLedgerOptionService = async () => {
+const getLedgerOptionService = async (user: TAuthUser) => {
   const res = await prisma.ledger.findMany({
     where: {
       parentId: null,
-      isDeleted: false
+      isDeleted: false,
+      vataId: user.vataId
     },
     select: {
       id: true,
@@ -59,11 +63,12 @@ const getLedgerOptionService = async () => {
 };
 
 // GET ALL LEDGER WITH CHILDREN
-const getAllLedgerWithChildrenService = async () => {
+const getAllLedgerWithChildrenService = async (user: TAuthUser) => {
   const res = await prisma.ledger.findMany({
     where: {
       parentId: null,
-      isDeleted: false
+      isDeleted: false,
+      vataId: user.vataId
     },
     select: {
       id: true,
@@ -80,10 +85,9 @@ const getAllLedgerWithChildrenService = async () => {
 
 
 // GET ALL LEDGERS WITH PAGINATION
-const getAllLedgerWithChildrenPaginationService = async (query: TQuery) => {
+const getAllLedgerWithChildrenPaginationService = async (user: TAuthUser, query: TQuery) => {
   const { limit, page, skip, } = paginationHelper(query.page, query.limit);
-  const where: Prisma.LedgerWhereInput = { isDeleted: false, parentId: null, };
-
+  const where: Prisma.LedgerWhereInput = { vataId: user.vataId, isDeleted: false, parentId: null, };
   if (query.search?.trim()) {
     const search = query.search.trim();
     where.OR = [
@@ -138,12 +142,13 @@ const getAllLedgerWithChildrenPaginationService = async (query: TQuery) => {
 
 
 // GET ALL LEDGER WITH TK
-const getAllLedgerWithAmountService = async () => {
+const getAllLedgerWithAmountService = async (user: TAuthUser) => {
   const result = await prisma.ledger.findMany({
     include: {
       payments: {
         where: {
           isDeleted: false,
+          vataId: user.vataId
         },
         select: {
           payment: true,
@@ -156,7 +161,7 @@ const getAllLedgerWithAmountService = async () => {
   });
 
   // প্রতিটি ledger-এর নিজের payment total
-  const ledgerMap = new Map<number, any>();
+  const ledgerMap = new Map<string, any>();
 
   result.forEach((ledger) => {
     const ownTotal = ledger.payments.reduce(
@@ -228,9 +233,9 @@ const getAllLedgerWithAmountService = async () => {
 
 // GET DETAILS
 
-const getDetailsLedgerService = async (id: number, query: TQuery) => {
+const getDetailsLedgerService = async (user: TAuthUser, id: string, query: TQuery) => {
   const { limit, page, skip } = paginationHelper(query.page, query.limit);
-  const where: Prisma.PaymentWhereInput = { isDeleted: false };
+  const where: Prisma.PaymentWhereInput = { vataId: user.vataId, isDeleted: false };
   // Create start and end of day boundaries
   if (query.date) {
     const dateRange = getDateRangeDbSearch(query.date);
@@ -238,7 +243,7 @@ const getDetailsLedgerService = async (id: number, query: TQuery) => {
       where.paymentDate = dateRange;
     }
   }
-  const ledger = await prisma.ledger.findUnique({ where: { id }, select: { name: true, id: true, parentId: true } })
+  const ledger = await prisma.ledger.findUnique({ where: { id, vataId: user.vataId }, select: { name: true, id: true, parentId: true } })
   if (ledger?.name) {
     where.ledger = {
       name: ledger.name,
@@ -270,9 +275,9 @@ const getDetailsLedgerService = async (id: number, query: TQuery) => {
 }
 
 // const GET SINGLE 
-const getSingleLedgerService = async (id: number) => {
+const getSingleLedgerService = async (user: TAuthUser, id: string) => {
   const result = await prisma.ledger.findFirst({
-    where: { id }, select: {
+    where: { id, vataId: user.vataId }, select: {
       serial: true,
       name: true,
       parentId: true,
@@ -284,10 +289,11 @@ const getSingleLedgerService = async (id: number) => {
   return result
 }
 /// UPDATE KHOTIYAN
-const updateLedgerService = async (id: number, data: Ledger) => {
+const updateLedgerService = async (user: TAuthUser, id: string, data: Ledger) => {
   const isExist = await prisma.ledger.findUnique({
     where: {
       id,
+      vataId: user.vataId
     },
   });
 
@@ -301,6 +307,7 @@ const updateLedgerService = async (id: number, data: Ledger) => {
   const result = await prisma.ledger.update({
     where: {
       id,
+      vataId: user.vataId
     },
     data: {
       quantity: Number(data.quantity),
@@ -312,10 +319,11 @@ const updateLedgerService = async (id: number, data: Ledger) => {
 };
 
 // DELETE KHOTIYAN
-const deleteLedgerService = async (id: number) => {
+const deleteLedgerService = async (user: TAuthUser, id: string) => {
   const isExist = await prisma.ledger.findUnique({
     where: {
       id,
+      vataId: user.vataId
     },
   });
 
@@ -329,6 +337,7 @@ const deleteLedgerService = async (id: number) => {
   const result = await prisma.ledger.update({
     where: {
       id,
+      vataId: user.vataId
     },
     data: {
       isDeleted: true,

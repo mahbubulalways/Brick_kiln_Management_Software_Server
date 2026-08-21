@@ -20,6 +20,7 @@ import taskRoute from "../app/modules/task/task.route";
 import dueMateRoute from "../app/modules/receivable_payable/receivable_payable.route";
 import contactRoute from "../app/modules/contact/contact.route";
 import weathertRoute from "../app/modules/weather/weather.route";
+import vataRoute from "../app/modules/vata/vata.route";
 const router = Router();
 const applicationRoutes: IApplicationRoute[] = [
   { path: "/class", route: classAndRateRoute },
@@ -42,6 +43,7 @@ const applicationRoutes: IApplicationRoute[] = [
   { path: "/due-mate", route: dueMateRoute },
   { path: "/contact", route: contactRoute },
   { path: "/weather", route: weathertRoute },
+  { path: "/vata", route: vataRoute },
 ];
 
 applicationRoutes.forEach((route) => router.use(route.path, route.route));

@@ -5,10 +5,12 @@ import catchAsync from "../../../utils/catchAsync";
 import { AppError } from "../../errors/ApplicationError";
 import { StatusCodes } from "http-status-codes";
 import { parseListQuery } from "../../../utils/parseListQuery";
+import { TAuthUser } from "../../../interface/token";
 
 // CREATE CASH
 const createCash = catchAsync(async (req: Request, res: Response) => {
-    const result = await CashService.createCashService(req.body);
+    const user = req.user as TAuthUser
+    const result = await CashService.createCashService(user, req.body);
 
     if (result) {
         sendResponse(res, {
@@ -24,7 +26,8 @@ const createCash = catchAsync(async (req: Request, res: Response) => {
 // GET ALL CASH
 const getAllCash = catchAsync(async (req: Request, res: Response) => {
     const { limit, page, date, search } = await parseListQuery(req.query);
-    const result = await CashService.getAllCashService({ date, limit, page, search });
+    const user = req.user as TAuthUser
+    const result = await CashService.getAllCashService(user, { date, limit, page, search });
     if (result.data.length > 0) {
         sendResponse(res, {
             statusCode: 200,
@@ -44,9 +47,9 @@ const getAllCash = catchAsync(async (req: Request, res: Response) => {
 
 // GET SINGLE CASH
 const getSingleCash = catchAsync(async (req: Request, res: Response) => {
-    const id = Number(req.params.id);
-
-    const result = await CashService.getSingleCashService(id);
+    const id = req.params.id;
+    const user = req.user as TAuthUser
+    const result = await CashService.getSingleCashService(user, id);
 
     if (result) {
         sendResponse(res, {
@@ -62,8 +65,9 @@ const getSingleCash = catchAsync(async (req: Request, res: Response) => {
 
 // UPDATE CASH
 const updateCash = catchAsync(async (req: Request, res: Response) => {
-    const id = Number(req.params.id);
-    const existingCash = await CashService.getSingleCashService(id);
+    const user = req.user as TAuthUser
+    const id = req.params.id;
+    const existingCash = await CashService.getSingleCashService(user, id);
 
     if (!existingCash) {
         sendResponse(res, {
@@ -73,7 +77,7 @@ const updateCash = catchAsync(async (req: Request, res: Response) => {
             data: null,
         });
     } else {
-        const result = await CashService.updateCashService(id, req.body);
+        const result = await CashService.updateCashService(user, id, req.body);
 
         if (result) {
             sendResponse(res, {
@@ -90,9 +94,9 @@ const updateCash = catchAsync(async (req: Request, res: Response) => {
 
 // DELETE CASH
 const deleteCash = catchAsync(async (req: Request, res: Response) => {
-    const id = Number(req.params.id);
-
-    const existingCash = await CashService.getSingleCashService(id);
+    const id = req.params.id;
+    const user = req.user as TAuthUser
+    const existingCash = await CashService.getSingleCashService(user, id);
 
     if (!existingCash) {
         sendResponse(res, {
@@ -101,7 +105,7 @@ const deleteCash = catchAsync(async (req: Request, res: Response) => {
             message: "ডিলিট করার জন্য ক্যাশের তথ্য পাওয়া যায়নি",
         });
     } else {
-        const result = await CashService.deleteCashService(id);
+        const result = await CashService.deleteCashService(user, id);
 
         if (result) {
             sendResponse(res, {

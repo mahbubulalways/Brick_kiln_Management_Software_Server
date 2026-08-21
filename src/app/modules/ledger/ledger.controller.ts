@@ -4,11 +4,12 @@ import { sendResponse } from "../../../utils/sendResponse";
 import { AppError } from "../../errors/ApplicationError";
 import { LedgerService } from "./ledger..service";
 import { parseListQuery } from "../../../utils/parseListQuery";
+import { TAuthUser } from "../../../interface/token";
 
 // GET KHOTIYAN COUNT
 const getLedgerCountController = catchAsync(async (req, res) => {
-  const result = await LedgerService.getLedgerCountService();
-
+  const user = req.user as TAuthUser;
+  const result = await LedgerService.getLedgerCountService(user);
   if (!result) {
     throw new AppError(
       StatusCodes.NOT_FOUND,
@@ -27,8 +28,8 @@ const getLedgerCountController = catchAsync(async (req, res) => {
 // CREATE NEW KHOTIYAN
 const createLedgerController = catchAsync(async (req, res) => {
   const body = req.body;
-
-  const result = await LedgerService.createLedgerService(body);
+  const user = req.user as TAuthUser;
+  const result = await LedgerService.createLedgerService(user, body);
 
   if (!result) {
     throw new AppError(
@@ -47,8 +48,8 @@ const createLedgerController = catchAsync(async (req, res) => {
 
 // GET KHOTIYAN GROUP OPTION
 const getLedgerOptionController = catchAsync(async (req, res) => {
-  const result = await LedgerService.getLedgerOptionService();
-
+  const user = req.user as TAuthUser;
+  const result = await LedgerService.getLedgerOptionService(user);
   if (!result) {
     sendResponse(res, {
       statusCode: StatusCodes.OK,
@@ -67,7 +68,8 @@ const getLedgerOptionController = catchAsync(async (req, res) => {
 
 // GET ALL KHOTIYAN WITH CHILDREN
 const getAllLedgerWithController = catchAsync(async (req, res) => {
-  const result = await LedgerService.getAllLedgerWithChildrenService();
+  const user = req.user as TAuthUser;
+  const result = await LedgerService.getAllLedgerWithChildrenService(user);
 
   if (!result) {
     sendResponse(res, {
@@ -89,9 +91,9 @@ const getAllLedgerWithController = catchAsync(async (req, res) => {
 const getAllLedgerWithChildrenPaginationController = catchAsync(
   async (req, res) => {
     const { limit, page, search } = await parseListQuery(req.query);
-
+    const user = req.user as TAuthUser;
     const result =
-      await LedgerService.getAllLedgerWithChildrenPaginationService({
+      await LedgerService.getAllLedgerWithChildrenPaginationService(user, {
         limit,
         page,
         search,
@@ -116,7 +118,8 @@ const getAllLedgerWithChildrenPaginationController = catchAsync(
 
 // GET ALL KHOTIYAN WITH AMOUNT
 const getLedgerWithAmountController = catchAsync(async (req, res) => {
-  const result = await LedgerService.getAllLedgerWithAmountService();
+  const user = req.user as TAuthUser;
+  const result = await LedgerService.getAllLedgerWithAmountService(user);
 
   if (!result) {
     sendResponse(res, {
@@ -137,10 +140,9 @@ const getLedgerWithAmountController = catchAsync(async (req, res) => {
 // GET KHOTIYAN DETAILS
 const getLedgerDetailsController = catchAsync(async (req, res) => {
   const id = req.params.id;
-
   const { limit, page, date } = await parseListQuery(req.query);
-
-  const result = await LedgerService.getDetailsLedgerService(Number(id), {
+  const user = req.user as TAuthUser;
+  const result = await LedgerService.getDetailsLedgerService(user, id, {
     limit,
     page,
     date,
@@ -165,8 +167,8 @@ const getLedgerDetailsController = catchAsync(async (req, res) => {
 // GET SINGLE KHOTIYAN
 const getSingleLedgerController = catchAsync(async (req, res) => {
   const id = req.params.id;
-
-  const result = await LedgerService.getSingleLedgerService(Number(id));
+  const user = req.user as TAuthUser;
+  const result = await LedgerService.getSingleLedgerService(user, id);
 
   if (!result) {
     throw new AppError(
@@ -187,9 +189,10 @@ const getSingleLedgerController = catchAsync(async (req, res) => {
 const updateLedgerController = catchAsync(async (req, res) => {
   const body = req.body;
   const id = req.params.id;
-
+  const user = req.user as TAuthUser;
   const result = await LedgerService.updateLedgerService(
-    Number(id),
+    user,
+    id,
     body,
   );
 
@@ -211,8 +214,8 @@ const updateLedgerController = catchAsync(async (req, res) => {
 // DELETE KHOTIYAN
 const deleteLedgerController = catchAsync(async (req, res) => {
   const id = req.params.id;
-
-  const result = await LedgerService.deleteLedgerService(Number(id));
+  const user = req.user as TAuthUser;
+  const result = await LedgerService.deleteLedgerService(user, id);
 
   if (!result) {
     throw new AppError(

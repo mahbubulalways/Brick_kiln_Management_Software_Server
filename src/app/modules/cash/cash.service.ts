@@ -2,20 +2,26 @@ import { Cash, Prisma } from "../../../generated/prisma/client"
 import { paginationHelper } from "../../../helpers/paginationHelper"
 import { prisma } from "../../../helpers/prisma"
 import { TQuery } from "../../../interface/query"
+import { TAuthUser } from "../../../interface/token"
 import { createMetaConfig } from "../../../utils/createMetaConfig"
 import { getDateRangeDbSearch } from "../../../utils/getDateRangeDbSearch"
 
 
 // CREATE CASH
-const createCashService = async (payload: Cash) => {
-    const result = prisma.cash.create({ data: payload })
+const createCashService = async (user: TAuthUser, payload: Cash) => {
+    const result = prisma.cash.create({
+        data: {
+            ...payload,
+            vataId: user.vataId
+        }
+    })
     return result
 }
 
 // GET ALL CASH 
-const getAllCashService = async (query: TQuery) => {
+const getAllCashService = async (user: TAuthUser, query: TQuery) => {
     const { limit, page, skip } = paginationHelper(query.page, query.limit);
-    const where: Prisma.CashWhereInput = { isDeleted: false };
+    const where: Prisma.CashWhereInput = { isDeleted: false, vataId: user.vataId };
     if (query.date) {
         const dateRange = getDateRangeDbSearch(query.date);
         if (dateRange) {
@@ -55,18 +61,18 @@ const getAllCashService = async (query: TQuery) => {
 
 
 // GET SINGLE CASH
-const getSingleCashService = async (id: number) => {
-    return await prisma.cash.findFirst({ where: { id } })
+const getSingleCashService = async (user: TAuthUser, id: string) => {
+    return await prisma.cash.findFirst({ where: { id, vataId: user.vataId } })
 }
 
 // UPDATE CASH
-const updateCashService = async (id: number, payload: Cash) => {
-    return prisma.cash.update({ data: payload, where: { id } })
+const updateCashService = async (user: TAuthUser, id: string, payload: Cash) => {
+    return prisma.cash.update({ data: payload, where: { id, vataId: user.vataId } })
 }
 
 // DELETE CASH
-const deleteCashService = async (id: number) => {
-    return prisma.cash.update({ data: { isDeleted: true }, where: { id } })
+const deleteCashService = async (user: TAuthUser, id: string) => {
+    return prisma.cash.update({ data: { isDeleted: true }, where: { id, vataId: user.vataId } })
 }
 
 export const CashService = {

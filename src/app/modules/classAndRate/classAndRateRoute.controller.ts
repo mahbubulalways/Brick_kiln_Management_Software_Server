@@ -3,10 +3,12 @@ import catchAsync from "../../../utils/catchAsync";
 import { AppError } from "../../errors/ApplicationError";
 import { ClassAndRateService } from "./classAndRateRoute.service";
 import { sendResponse } from "../../../utils/sendResponse";
+import { TAuthUser } from "../../../interface/token";
 
 const createClassAndRateController = catchAsync(async (req, res) => {
   const body = req.body;
-  const result = await ClassAndRateService.createClassAndRateService(body);
+  const user = req.user as TAuthUser
+  const result = await ClassAndRateService.createClassAndRateService(user, body);
   if (!result.id) {
     throw new AppError(
       StatusCodes.BAD_REQUEST,
@@ -24,7 +26,8 @@ const createClassAndRateController = catchAsync(async (req, res) => {
 
 // GET ALL CLASS AND RATE
 const getClassAndRateController = catchAsync(async (req, res) => {
-  const result = await ClassAndRateService.getClassAndRateService();
+  const user = req.user as TAuthUser
+  const result = await ClassAndRateService.getClassAndRateService(user);
   if (!result.length) {
     throw new AppError(
       StatusCodes.BAD_REQUEST,
@@ -43,8 +46,10 @@ const getClassAndRateController = catchAsync(async (req, res) => {
 // GET SINGLE CLASS AND RATE
 const getSingleClassAndRateController = catchAsync(async (req, res) => {
   const id = req.params?.id;
+  const user = req.user as TAuthUser
   const result = await ClassAndRateService.getSingleClassAndRateService(
-    Number(id)
+    user,
+    id
   );
   if (!result?.id) {
     throw new AppError(
@@ -65,8 +70,10 @@ const getSingleClassAndRateController = catchAsync(async (req, res) => {
 const updateClassAndRateController = catchAsync(async (req, res) => {
   const id = req.params?.id;
   const body = req.body;
+  const user = req.user as TAuthUser
   const result = await ClassAndRateService.updateClassAndRateService(
-    Number(id),
+    user,
+    id,
     body
   );
   if (!result?.id) {

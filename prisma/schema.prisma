@@ -12,6 +12,7 @@ enum UserRole {
   OWNER
   ADMIN
   MANAGER
+  SYSTEM_ADMIN
 }
 
 model User {
@@ -21,10 +22,15 @@ model User {
   role         UserRole       @default(ADMIN)
   password     String
   loginHistory LoginHistory[]
-  taskManagers TaskManager[]
-  isDeleted    Boolean        @default(false)
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
+  // taskManagers TaskManager[]
+
+  isDeleted  Boolean    @default(false)
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+  vata       Vata?      @relation(fields: [vataId], references: [id])
+  vataId     String?
+  challans   Challan[]
+  deliveries Delivery[]
 
   @@map("users")
 }
@@ -45,144 +51,287 @@ model LoginHistory {
 }
 
 model ClassAndRate {
-  id          Int          @id @default(autoincrement())
-  classType   String
-  className   String
-  rate        Float
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @default(now()) @updatedAt
-  isDeleted   Boolean      @default(false)
+  // CHANGE 1:
+  // Int autoincrement() এর পরিবর্তে UUID ব্যবহার করা হয়েছে
+  id String @id @default(uuid())
+
+  classType String
+  className String
+  rate      Float
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+  isDeleted Boolean  @default(false)
+
   unloadItems UnloadItem[]
 
+  // CHANGE 2:
+  // আগে VataInfo-এর সাথে relation ছিল
+  // vataInfo   VataInfo?
+  // vataInfoId String?
+  //
+  // এখন সরাসরি Vata-এর সাথে relation হবে
+  vataId String
+  vata   Vata   @relation(fields: [vataId], references: [id])
+
+  // CHANGE 3:
+  // একই Vata-এর মধ্যে একই classType + className
+  // যেন duplicate না হয়
+  @@unique([vataId, classType, className])
   @@map("classAndRates")
 }
 
 model Challan {
-  id             Int           @id @default(autoincrement())
+  id String @id @default(uuid())
+
   serial         Int
   chalanType     String
   deliveryDate   DateTime
   challanDate    DateTime
   duePaymentDate DateTime?
   note           String?
-  createdBy      String
+  createdById    String
+  createdBy      User      @relation(fields: [createdById], references: [id])
+  season         String?
   productPrice   Float
   discount       Float?
   carRent        Float?
   totalPrice     Float
   cash           Float?
   due            Float?
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
-  customerId     Int
-  isDeleted      Boolean       @default(false)
-  items          ChallanItem[] @relation("ChallanItems")
-  customer       Customer      @relation(fields: [customerId], references: [id])
-  deliveries     Delivery[]
 
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  customerId String
+  vataId     String
+
+  isDeleted Boolean @default(false)
+
+  items    ChallanItem[] @relation("ChallanItems")
+  customer Customer      @relation(fields: [customerId], references: [id])
+  vata     Vata          @relation(fields: [vataId], references: [id])
+
+  deliveries Delivery[]
+
+  @@unique([vataId, serial])
   @@map("chllans")
 }
 
 model ChallanItem {
-  id           Int      @id @default(autoincrement())
-  class        String
-  rate         Float
-  quantity     Int
-  delivered    Int      @default(0)
-  price        Float
-  challanId    Int
+  // CHANGE 1:
+  // Int autoincrement() → UUID
+  id String @id @default(uuid())
+
+  season    String?
+  class     String
+  rate      Float
+  quantity  Int
+  delivered Int     @default(0)
+  price     Float
+
+  // CHANGE 2:
+  // Challan.id এখন String UUID,
+  // তাই challanId-ও String হবে
+  challanId String
+
   deliveryDate DateTime
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  isDeleted    Boolean  @default(false)
-  challan      Challan  @relation("ChallanItems", fields: [challanId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  isDeleted Boolean  @default(false)
+
+  // Challan-এর সাথে relation
+  challan Challan @relation("ChallanItems", fields: [challanId], references: [id])
 
   @@map("challanItems")
 }
 
 model Customer {
-  id              Int              @id @default(autoincrement())
-  name            String
-  address         String
-  phoneNumber     String
-  totalPurchased  Float            @default(0)
-  totalPaid       Float            @default(0)
+  // Internal ID
+  id String @id @default(uuid())
+
+  // User-facing Customer ID
+  customerCode String
+
+  season      String?
+  name        String
+  address     String
+  phoneNumber String
+
+  totalPurchased Float @default(0)
+  totalPaid      Float @default(0)
+
   nextPaymentDate DateTime?
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @updatedAt
-  isDeleted       Boolean          @default(false)
-  dueCollections  Due_Collection[]
-  challans        Challan[]
-  note            String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  isDeleted Boolean  @default(false)
+
+  dueCollections Due_Collection[]
+  challans       Challan[]
+
+  note String?
+
+  vataId String
+  vata   Vata   @relation(fields: [vataId], references: [id])
+
+  // একই Vata-এর মধ্যে Customer ID unique
+  @@unique([vataId, customerCode])
+  @@map("customers")
 }
 
 model Delivery {
-  id                Int       @id @default(autoincrement())
-  deliveryDate      DateTime
-  deliveryNo        Int       @unique
-  nextDeliveryDate  DateTime?
+  // CHANGE 1:
+  // Int autoincrement() → UUID
+  id String @id @default(uuid())
+
+  deliveryDate DateTime
+
+  // CHANGE 2:
+  // deliveryNo user-facing serial হলে Int রাখা যায়
+  // কিন্তু multi-vata হওয়ার কারণে global @unique দেওয়া ঠিক হবে না
+  deliveryNo       Int
+  season           String?
+  nextDeliveryDate DateTime?
+
   quantity          Int
   deliveryReceived  Int
   class             String
   deliveryRemaining Int
+
   driverName        String?
   driverPhoneNumber String?
   carNo             String?
   carRent           Float?
-  invoiceId         Int
-  isDeleted         Boolean   @default(false)
-  createdAt         DateTime  @default(now())
-  invoice           Challan   @relation(fields: [invoiceId], references: [id])
+  deliveryById      String
+  deliveryBy        User    @relation(fields: [deliveryById], references: [id])
+  // CHANGE 3:
+  // Challan.id এখন String UUID,
+  // তাই invoiceId-ও String হবে
+  invoiceId         String
 
+  isDeleted Boolean @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  invoice Challan @relation(fields: [invoiceId], references: [id])
+
+  // CHANGE 4:
+  // একই Challan-এর delivery number duplicate হতে দেওয়া হবে না
+  @@unique([invoiceId, deliveryNo])
   @@map("deliveries")
 }
 
 model Due_Collection {
-  id         Int       @id @default(autoincrement())
-  due        Float
-  collect    Float
-  newDue     Float
-  nextDate   DateTime?
-  customerId Int
-  season     String?
-  isDeleted  Boolean   @default(false)
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
-  customer   Customer  @relation(fields: [customerId], references: [id])
+  // CHANGE 1:
+  // Int autoincrement() → UUID
+  id String @id @default(uuid())
+
+  due      Float
+  collect  Float
+  newDue   Float
+  nextDate DateTime?
+
+  // CHANGE 2:
+  // Customer.id এখন String UUID,
+  // তাই customerId-ও String হবে
+  customerId String
+
+  season String?
+
+  isDeleted Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  customer Customer @relation(fields: [customerId], references: [id])
+
+  @@map("due_collections")
 }
 
 model Ledger {
-  id        Int       @id @default(autoincrement())
-  name      String
-  serial    Int       @unique
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  parentId  Int?
-  rate      Float?    @default(0)
-  quantity  Float?    @default(0)
+  // CHANGE 1:
+  // Int autoincrement() → UUID
+  id String @id @default(uuid())
+
+  name   String
+  season String?
+  // CHANGE 2:
+  // Global @unique বাদ
+  // কারণ প্রতিটি Vata-এর আলাদা serial হতে পারে
+  serial Int
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // CHANGE 3:
+  // Ledger.id এখন String UUID
+  // তাই parentId-ও String হবে
+  parentId String?
+
+  rate     Float? @default(0)
+  quantity Float? @default(0)
+
   isDeleted Boolean @default(false)
-  parent    Ledger?   @relation("LedgerHierarchy", fields: [parentId], references: [id])
-  children  Ledger[]  @relation("LedgerHierarchy")
-  payments  Payment[]
+
+  // Self relation
+  parent Ledger? @relation("LedgerHierarchy", fields: [parentId], references: [id])
+
+  children Ledger[] @relation("LedgerHierarchy")
+
+  payments Payment[]
+
+  // CHANGE 4:
+  // Ledger কোন Vata-এর সেটা identify করার জন্য
+  vataId String
+
+  vata Vata @relation(fields: [vataId], references: [id])
+
+  // CHANGE 5:
+  // একই Vata-এর মধ্যে serial unique হবে
+  @@unique([vataId, serial])
 }
 
 model Payment {
-  id                Int      @id @default(autoincrement())
-  quantity          Float
-  cutting           Float    @default(0)
-  payment           Float
-  ledgerId          Int
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-  document          String?
-  paymentDetails    String?
-  paymentDifference Float    @default(0)
+  // CHANGE 1:
+  // Int autoincrement() → UUID
+  id String @id @default(uuid())
+
+  season   String?
+  quantity Float
+  cutting  Float   @default(0)
+  payment  Float
+
+  // CHANGE 2:
+  // Ledger.id এখন String UUID
+  // তাই ledgerId-ও String
+  ledgerId String
+
+  // CHANGE 3:
+  // Payment কোন Vata-এর সেটা সরাসরি রাখা
+  vataId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  document       String?
+  paymentDetails String?
+
+  paymentDifference Float  @default(0)
   paymentType       String
   rate              Float
   totalBill         Float
-  isDeleted         Boolean  @default(false)
-  paymentDate       DateTime @default(now())
-  ledger            Ledger   @relation(fields: [ledgerId], references: [id], onDelete: Cascade)
+
+  isDeleted Boolean @default(false)
+
+  paymentDate DateTime @default(now())
+
+  ledger Ledger @relation(fields: [ledgerId], references: [id], onDelete: Cascade)
+
+  // CHANGE 4:
+  // Vata-এর সাথে direct relation
+  vata Vata @relation(fields: [vataId], references: [id])
 }
 
 enum CashType {
@@ -191,211 +340,311 @@ enum CashType {
 }
 
 model Cash {
-  id          Int      @id @default(autoincrement())
+  // CHANGE 1:
+  // Int autoincrement() → UUID
+  id String @id @default(uuid())
+
+  season      String?
   type        CashType
   source      String
   description String
-  amount      Decimal  @db.Decimal(12, 2)
 
-  isDeleted Boolean  @default(false)
+  // Decimal ঠিকই আছে
+  amount Decimal @db.Decimal(12, 2)
+
+  isDeleted Boolean @default(false)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  // CHANGE 2:
+  // Cash কোন Vata-এর সেটা রাখছি
+  vataId String
+
+  // CHANGE 3:
+  // Vata-এর সাথে relation
+  vata Vata @relation(fields: [vataId], references: [id])
+
+  // Existing indexes
   @@index([type])
   @@index([createdAt])
+  // CHANGE 4:
+  // Vata-wise query দ্রুত করার জন্য
+  @@index([vataId])
   @@map("cash")
 }
 
 model Round {
-  id   Int    @id @default(autoincrement())
-  name String @unique
+  // CHANGE 1:
+  // Int autoincrement() → UUID
+  id String @id @default(uuid())
+
+  season String?
+  // CHANGE 2:
+  // @unique বাদ দেওয়া হয়েছে
+  // কারণ Multi-Vata হলে একই নামের Round
+  // আলাদা Vata-তে থাকতে পারবে
+  name   String
+
+  // CHANGE 3:
+  // কোন Vata-এর Round
+  vataId String
+  vata   Vata   @relation(fields: [vataId], references: [id])
 
   loadInfos LoadInfo[]
   unloads   Unload[]
+
+  // CHANGE 4:
+  // একই Vata-এর মধ্যে Round name unique
+  @@unique([vataId, name])
+  @@index([vataId])
 }
 
 model LoadInfo {
-  id        Int      @id @default(autoincrement())
-  date      DateTime
-  roundId   Int
-  round     Round    @relation(fields: [roundId], references: [id])
+  // CHANGE 5:
+  // Int autoincrement() → UUID
+  id     String   @id @default(uuid())
+  season String?
+  date   DateTime
+
+  // CHANGE 6:
+  // Round.id এখন String UUID
+  // তাই roundId-ও String
+  roundId String
+
+  round Round @relation(fields: [roundId], references: [id])
+
   quantity  Int
   loadType  String
   classType String?
-  isDeleted Boolean  @default(false)
+
+  isDeleted Boolean @default(false)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
 model Unload {
-  id        Int      @id @default(autoincrement())
-  date      DateTime
-  roundId   Int
-  round     Round    @relation(fields: [roundId], references: [id])
-  isDeleted Boolean  @default(false)
+  id String @id @default(uuid())
+
+  date    DateTime
+  season  String?
+  roundId String
+  round   Round    @relation(fields: [roundId], references: [id])
+
+  isDeleted Boolean @default(false)
 
   unloadItems UnloadItem[]
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model UnloadItem {
-  id        Int          @id @default(autoincrement())
-  unloadId  Int
-  unload    Unload       @relation(fields: [unloadId], references: [id])
-  classId   Int
+  id       String  @id @default(uuid())
+  season   String?
+  unloadId String
+  unload   Unload  @relation(fields: [unloadId], references: [id])
+
+  classId   String
   classType ClassAndRate @relation(fields: [classId], references: [id])
-  quantity  Int          @default(0)
-}
 
-// DOCUMENT
+  quantity Int @default(0)
 
-enum DocumentType {
-  FILE
-  FOLDER
-}
-
-model Document {
-  id   String       @id @default(cuid())
-  name String
-  type DocumentType
-
-  // Folder relation
-  parentId String?
-  parent   Document?  @relation("DocumentParent", fields: [parentId], references: [id])
-  children Document[] @relation("DocumentParent")
-
-  // File information
-  fileUrl   String?
-  fileKey   String?
-  mimeType  String?
-  size      BigInt?
-  extension String?
+  isDeleted Boolean @default(false)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@unique([parentId, name])
-  @@index([type])
-  @@index([parentId])
+  @@unique([unloadId, classId])
 }
 
-// CAR RENT
+// // DOCUMENT
 
-model CarRent {
-  id        Int      @id @default(autoincrement())
-  address   String
-  area      String
-  rent      Float
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+// enum DocumentType {
+//   FILE
+//   FOLDER
+// }
 
-  @@map("carrents")
-}
+// model Document {
+//   id   String       @id @default(cuid())
+//   name String
+//   type DocumentType
 
-// NEW PRODUVC
-model Product {
-  id           Int       @id @default(autoincrement())
-  productName  String
-  category     String
-  shop         String
-  quantity     Int
-  price        Decimal   @db.Decimal(12, 2)
-  productImage String?
-  warranty     DateTime?
+//   // Folder relation
+//   parentId String?
+//   parent   Document?  @relation("DocumentParent", fields: [parentId], references: [id])
+//   children Document[] @relation("DocumentParent")
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+//   // File information
+//   fileUrl   String?
+//   fileKey   String?
+//   mimeType  String?
+//   size      BigInt?
+//   extension String?
 
-  @@index([category])
-  @@index([shop])
-  @@map("products")
-}
+//   createdAt DateTime @default(now())
+//   updatedAt DateTime @updatedAt
 
-// TASK MANAGER
-enum TaskStatus {
-  COMPLETE
-  PENDING
-}
+//   @@unique([parentId, name])
+//   @@index([type])
+//   @@index([parentId])
+// }
 
-model TaskManager {
-  id          String   @id @default(uuid())
-  description String
-  userId      String
-  date        DateTime
-  repeat      String
+// // CAR RENT
 
-  status TaskStatus @default(PENDING)
-  user   User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+// model CarRent {
+//   id        Int      @id @default(autoincrement())
+//   address   String
+//   area      String
+//   rent      Float
+//   createdAt DateTime @default(now())
+//   updatedAt DateTime @updatedAt
 
-  isDeleted Boolean  @default(false)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
+//   @@map("carrents")
+// }
 
-// Receive and pay
-enum TransactionType {
-  GIVEN
-  TAKEN
-  PAYMENT
-}
+// // NEW PRODUVC
+// model Product {
+//   id           Int       @id @default(autoincrement())
+//   productName  String
+//   category     String
+//   shop         String
+//   quantity     Int
+//   price        Decimal   @db.Decimal(12, 2)
+//   productImage String?
+//   warranty     DateTime?
 
-model ReceivablePayable {
-  id              String                         @id @default(uuid())
-  transactionType TransactionType
-  amount          Decimal                        @db.Decimal(12, 2)
-  currentAmount   Decimal                        @db.Decimal(12, 2)
-  name            String
-  phone           String?
-  address         String?
-  transactionDate DateTime
-  paymentDate     DateTime?
-  witnessOne      String?
-  witnessTwo      String?
-  description     String?
-  isDeleted       Boolean                        @default(false)
-  createdAt       DateTime                       @default(now())
-  updatedAt       DateTime                       @updatedAt
-  transactions    ReceivablePayableTransaction[]
+//   createdAt DateTime @default(now())
+//   updatedAt DateTime @updatedAt
 
-  @@index([transactionType])
-  @@index([phone])
-  @@index([isDeleted])
-}
+//   @@index([category])
+//   @@index([shop])
+//   @@map("products")
+// }
 
-model ReceivablePayableTransaction {
-  id                  String            @id @default(uuid())
-  receivablePayableId String
-  type                TransactionType
-  amount              Float
-  transactionDate     DateTime
-  remaining           Float
-  description         String?
-  createdAt           DateTime          @default(now())
-  updatedAt           DateTime          @updatedAt
-  receivablePayable   ReceivablePayable @relation(fields: [receivablePayableId], references: [id], onDelete: Cascade)
+// // TASK MANAGER
+// enum TaskStatus {
+//   COMPLETE
+//   PENDING
+// }
 
-  @@index([receivablePayableId])
-  @@index([transactionDate])
-}
+// model TaskManager {
+//   id          String   @id @default(uuid())
+//   description String
+//   userId      String
+//   date        DateTime
+//   repeat      String
 
-// CONTACT
+//   status TaskStatus @default(PENDING)
+//   user   User       @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-model Contact {
-  id         String   @id @default(uuid())
-  name       String
-  address    String
-  occupation String
-  phone      String
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-}
+//   isDeleted Boolean  @default(false)
+//   createdAt DateTime @default(now())
+//   updatedAt DateTime @updatedAt
+// }
 
-// WEATHER
-model Weather {
-  id        String   @id @default(uuid())
-  linkOne   String?
-  linkTwo   String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+// // Receive and pay
+// enum TransactionType {
+//   GIVEN
+//   TAKEN
+//   PAYMENT
+// }
+
+// model ReceivablePayable {
+//   id              String                         @id @default(uuid())
+//   transactionType TransactionType
+//   amount          Decimal                        @db.Decimal(12, 2)
+//   currentAmount   Decimal                        @db.Decimal(12, 2)
+//   name            String
+//   phone           String?
+//   address         String?
+//   transactionDate DateTime
+//   paymentDate     DateTime?
+//   witnessOne      String?
+//   witnessTwo      String?
+//   description     String?
+//   isDeleted       Boolean                        @default(false)
+//   createdAt       DateTime                       @default(now())
+//   updatedAt       DateTime                       @updatedAt
+//   transactions    ReceivablePayableTransaction[]
+
+//   @@index([transactionType])
+//   @@index([phone])
+//   @@index([isDeleted])
+// }
+
+// model ReceivablePayableTransaction {
+//   id                  String            @id @default(uuid())
+//   receivablePayableId String
+//   type                TransactionType
+//   amount              Float
+//   transactionDate     DateTime
+//   remaining           Float
+//   description         String?
+//   createdAt           DateTime          @default(now())
+//   updatedAt           DateTime          @updatedAt
+//   receivablePayable   ReceivablePayable @relation(fields: [receivablePayableId], references: [id], onDelete: Cascade)
+
+//   @@index([receivablePayableId])
+//   @@index([transactionDate])
+// }
+
+// // CONTACT
+
+// model Contact {
+//   id         String   @id @default(uuid())
+//   name       String
+//   address    String
+//   occupation String
+//   phone      String
+//   createdAt  DateTime @default(now())
+//   updatedAt  DateTime @updatedAt
+// }
+
+// // WEATHER
+// model Weather {
+//   id        String   @id @default(uuid())
+//   linkOne   String?
+//   linkTwo   String?
+//   createdAt DateTime @default(now())
+//   updatedAt DateTime @updatedAt
+// }
+
+// // VATA INFO
+
+model Vata {
+  id String @id @default(uuid())
+
+  // Basic Information
+  subdomain   String @unique
+  vataId      String @unique
+  nameEnglish String
+  nameBangla  String
+  address     String
+
+  // Owner Information
+  ownerName        String
+  ownerPhoneNumber String
+
+  // Challan Information
+  challansPhoneNumber String
+
+  // Payment / Software Information
+  smsRate         Float?
+  softwareFee     Float
+  nextPaymentDate DateTime?
+
+  users        User[]
+  classAndRate ClassAndRate[]
+  challans     Challan[]
+  customers    Customer[]
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  ledgers      Ledger[]
+  payments     Payment[]
+  cash         Cash[]
+  rounds       Round[]
+
+  @@map("vatainformation")
 }
