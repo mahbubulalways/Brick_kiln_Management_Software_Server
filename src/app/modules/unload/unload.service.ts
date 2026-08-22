@@ -7,23 +7,31 @@ import { TQuery } from "../../../interface/query";
 import { paginationHelper } from "../../../helpers/paginationHelper";
 import { getDateRangeDbSearch } from "../../../utils/getDateRangeDbSearch";
 import { createMetaConfig } from "../../../utils/createMetaConfig";
+import { TAuthUser } from "../../../interface/token";
 
-const createNewUnloadService = async (payload: TLoadPayload) => {
+const createNewUnloadService = async (user: TAuthUser, payload: TLoadPayload) => {
     const startOfDay = new Date(payload.date);
     startOfDay.setHours(0, 0, 0, 0);
-
     const endOfDay = new Date(payload.date);
     endOfDay.setHours(23, 59, 59, 999);
 
     const result = await prisma.$transaction(async (tx) => {
-        const roundId = await tx.round.findFirst({ where: { name: payload.round }, select: { id: true } })
+        const roundId = await tx.round.findFirst({
+            where:
+                { name: payload.round, vataId: user.vataId },
+            select: { id: true }
+        })
         if (!roundId?.id) {
             throw new AppError(StatusCodes.NOT_FOUND, "ROUND ID PAI NAI")
         }
 
         let unload = await tx.unload.findFirst({
             where: {
-                roundId: roundId.id, date: {
+                roundId: roundId.id,
+                round: {
+                    vataId: user.vataId,
+                },
+                date: {
                     gte: startOfDay,
                     lte: endOfDay,
                 },
@@ -43,7 +51,7 @@ const createNewUnloadService = async (payload: TLoadPayload) => {
 
         // FIND CLASS ID
         const classId = await tx.classAndRate.findFirst({
-            where: { className: payload.className },
+            where: { className: payload.className, vataId: user.vataId, },
             select: { id: true }
         })
 
@@ -85,7 +93,7 @@ const createNewUnloadService = async (payload: TLoadPayload) => {
 // gert
 
 // GET ALL UNLOAD
-const getAllUnloadService = async (query: TQuery) => {
+const getAllUnloadService = async (user: TAuthUser, query: TQuery) => {
     const { limit, page, skip } = paginationHelper(
         query.page,
         query.limit,
@@ -93,6 +101,9 @@ const getAllUnloadService = async (query: TQuery) => {
 
     const where: Prisma.UnloadWhereInput = {
         isDeleted: false,
+        round: {
+            vataId: user.vataId,
+        }
     };
 
     // DATE FILTER
@@ -153,10 +164,11 @@ const getAllUnloadService = async (query: TQuery) => {
 
 
 //  GET ALL DATA NOT PAGINATE
-const getAllUnloadDataNoPaginateService = async () => {
+const getAllUnloadDataNoPaginateService = async (user: TAuthUser) => {
     const result = await prisma.unload.findMany({
         where: {
             isDeleted: false,
+            round: { vataId: user.vataId, }
         },
         include: {
             round: true,
@@ -179,17 +191,18 @@ const getAllUnloadDataNoPaginateService = async () => {
 
 };
 
-const deleteUnloadService = async (id: number) => {
-    const isExist = await prisma.unload.findFirst({ where: { id } })
+const deleteUnloadService = async (user: TAuthUser, id: string) => {
+    const isExist = await prisma.unload.findFirst({ where: { id, round: { vataId: user.vataId, } } })
     if (!isExist) {
         throw new AppError(
             StatusCodes.NOT_FOUND,
             "আনলোডের তথ্য পাওয়া যায়নি"
         );
     }
-    const result = await prisma.unload.update({ where: { id }, data: { isDeleted: true } })
+    const result = await prisma.unload.update({ where: { id, round: { vataId: user.vataId, } }, data: { isDeleted: true } })
     return result
 }
+
 export const UnloadService = {
     createNewUnloadService,
     getAllUnloadService,

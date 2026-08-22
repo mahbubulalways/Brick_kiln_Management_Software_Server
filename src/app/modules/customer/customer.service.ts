@@ -11,9 +11,9 @@ import { TAuthUser } from "../../../interface/token";
 
 
 // GET SINGLE INFO
-const getSingleCustomerService = async (id: number) => {
+const getSingleCustomerService = async (user: TAuthUser, id: string) => {
   const result = await prisma.customer.findFirst({
-    where: { id },
+    where: { id, vataId: user.vataId },
     select: {
       address: true,
       name: true,
@@ -25,40 +25,39 @@ const getSingleCustomerService = async (id: number) => {
 }
 
 // UPDATE 
-const updateCustomerService = async (id: number, data: Customer) => {
-  const exist = await getSingleCustomerService(id)
+const updateCustomerService = async (user: TAuthUser, id: string, data: Customer) => {
+  const exist = await getSingleCustomerService(user, id)
   if (!exist?.id) {
     throw new AppError(StatusCodes.NOT_FOUND, "কোনো কাস্টমার পাওয়া যায়নি।")
   }
   const result = await prisma.customer.update({
-    where: { id },
+    where: { id, vataId: user.vataId },
     data: data
   })
   return result
 }
 
 
-const getAllCustomerService = async (query: TQuery) => {
+const getAllCustomerService = async (user: TAuthUser, query: TQuery) => {
   const { limit, page, skip } = paginationHelper(query.page, query.limit);
   const where: Prisma.CustomerWhereInput = {
     isDeleted: false,
+    vataId: user.vataId
   };
 
   if (query.search?.trim()) {
     const search = query.search.trim();
-    const isNumber = !isNaN(Number(search));
 
     where.OR = [
-      ...(isNumber
-        ? [
-          {
-            id: Number(search),
-          },
-        ]
-        : []),
-
       {
         name: {
+          contains: search,
+          mode: "insensitive",
+        },
+      },
+
+      {
+        customerCode: {
           contains: search,
           mode: "insensitive",
         },
@@ -83,7 +82,6 @@ const getAllCustomerService = async (query: TQuery) => {
   const [customers, total] = await Promise.all([
     prisma.customer.findMany({
       where,
-
       include: {
         challans: {
           where: {
@@ -209,12 +207,12 @@ const getAllCustomerService = async (query: TQuery) => {
 
 
 // GET SINGLE CUSTOMER INFORMATION
-const getSingleCustomerInformationService = async (id: number) => {
-
+const getSingleCustomerInformationService = async (user: TAuthUser, id: string) => {
   const customer = await prisma.customer.findMany({
     where: {
       isDeleted: false,
-      id
+      vataId: user.vataId,
+      customerCode:id
     },
 
     include: {
@@ -254,9 +252,9 @@ const getSingleCustomerInformationService = async (id: number) => {
 
 
 // GET CUSTOMER CHALLANS
-const getCustomerAllChallanService = async (id: number, query: TQuery) => {
+const getCustomerAllChallanService = async (user: TAuthUser, id: string, query: TQuery) => {
   const { limit, page, skip } = paginationHelper(query.page, query.limit);
-  const where: Prisma.ChallanWhereInput = { customerId: id, isDeleted: false };
+  const where: Prisma.ChallanWhereInput = { vataId: user.vataId, customerId: id, isDeleted: false };
   // Create start and end of day boundaries
   if (query.date) {
     const dateRange = getDateRangeDbSearch(query.date);
@@ -289,11 +287,11 @@ const getCustomerAllChallanService = async (id: number, query: TQuery) => {
 
 
 // GET CUSTOMER CHALLANS
-const getCustomerAllDeliveryService = async (id: number, query: TQuery) => {
+const getCustomerAllDeliveryService = async (user: TAuthUser, id: string, query: TQuery) => {
   const { limit, page, skip } = paginationHelper(query.page, query.limit);
 
   const chalans = await prisma.challan.findMany({
-    where: { customerId: id },
+    where: { customerId: id, vataId: user.vataId },
     select: { id: true },
   });
   const chalanIds = chalans.map((c) => c.id);
@@ -301,6 +299,9 @@ const getCustomerAllDeliveryService = async (id: number, query: TQuery) => {
   const where: Prisma.DeliveryWhereInput = {
     invoiceId: { in: chalanIds },
     isDeleted: false,
+    invoice: {
+      vataId: user.vataId
+    }
   };
 
   if (query.date) {
@@ -344,9 +345,12 @@ const getCustomerAllDeliveryService = async (id: number, query: TQuery) => {
 };
 
 // GET CUSTOMER ALL DUES
-const getCustomerAllDuesService = async (id: number, query: TQuery) => {
+const getCustomerAllDuesService = async (user: TAuthUser, id: string, query: TQuery) => {
   const { limit, page, skip } = paginationHelper(query.page, query.limit);
-  const where: Prisma.Due_CollectionWhereInput = { customerId: id, isDeleted: false };
+  const where: Prisma.Due_CollectionWhereInput = {
+    customerId: id, isDeleted: false, customer: { vataId: user.vataId }
+  };
+
   // Create start and end of day boundaries
   if (query.date) {
     const dateRange = getDateRangeDbSearch(query.date);

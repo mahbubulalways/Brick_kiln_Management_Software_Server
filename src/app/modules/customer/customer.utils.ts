@@ -66,7 +66,7 @@ export const formatCustomerData = (
     const totalPaid = customer.challans.reduce(
       (total, challan) => total + Number(challan.cash),
       0
-    )+totalDueCollection;
+    ) + totalDueCollection;
 
     // টাকা বাকি
     const totalDue = totalAmount - totalPaid;
@@ -76,7 +76,7 @@ export const formatCustomerData = (
       name: customer.name,
       address: customer.address,
       phoneNumber: customer.phoneNumber,
-
+      customerCode: customer.customerCode,
       totalPurchasedQuantity,
       totalDeliveredQuantity,
       totalRemainingQuantity,

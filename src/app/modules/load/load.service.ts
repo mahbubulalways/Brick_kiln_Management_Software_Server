@@ -11,7 +11,7 @@ import { TLoadInfo } from "./load.interface";
 const createLoadInfoService = async (user: TAuthUser, payload: TLoadInfo) => {
     const round = payload.round
     const result = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
-        let roundExist = await tx.round.findFirst({ where: { name: round } })
+        let roundExist = await tx.round.findFirst({ where: { name: round, vataId: user.vataId } })
         if (!roundExist) {
             roundExist = await tx.round.create({ data: { name: round, vataId: user.vataId } })
         }
@@ -153,6 +153,9 @@ const updateLoadInfoService = async (
         const load = await tx.loadInfo.update({
             where: {
                 id,
+                round: {
+                    vataId: user.vataId
+                }
             },
             data: {
                 roundId: roundExist.id,

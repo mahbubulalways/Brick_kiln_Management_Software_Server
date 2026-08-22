@@ -5,16 +5,36 @@ import { UserRole } from "../../../generated/prisma/enums";
 
 const router = Router();
 
-router.get("/all", CustomerController.getAllCustomertController)
+router.get("/all",
+    AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+    CustomerController.getAllCustomertController)
+
 router.get("/old",
     AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
     CustomerController.getOldCustomerController)
 
-router.get("/single/:id", CustomerController.getSingleCustomertController)
-router.get("/info/:id", CustomerController.getSingleCustomerInfoController)
-router.get("/invoices/:id", CustomerController.getCustomertAllChallanController)
-router.get("/deliveries/:id", CustomerController.getCustomerAllDeliveryController)
-router.get("/dues/:id", CustomerController.getCustomerAllDuesController)
-router.patch("/update/:id", CustomerController.updateCustomerInfoController)
+router.get("/single/:id",
+    AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+    CustomerController.getSingleCustomertController)
+
+router.get("/info/:id",
+    AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+    CustomerController.getSingleCustomerInfoController)
+
+router.get("/invoices/:id",
+    AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+    CustomerController.getCustomertAllChallanController)
+
+router.get("/deliveries/:id",
+    AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+    CustomerController.getCustomerAllDeliveryController)
+
+router.get("/dues/:id",
+    AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+    CustomerController.getCustomerAllDuesController)
+
+router.patch("/update/:id",
+    AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+    CustomerController.updateCustomerInfoController)
 
 export default router;

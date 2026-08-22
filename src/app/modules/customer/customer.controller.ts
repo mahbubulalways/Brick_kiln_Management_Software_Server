@@ -9,38 +9,44 @@ import { TAuthUser } from "../../../interface/token";
 
 // GET DATA FOR UPDATE
 const getSingleCustomerInfoController = catchAsync(async (req, res) => {
-    const result = await CustomerService.getSingleCustomerService(Number(req.params.id));
+    const user = req.user as TAuthUser
+    const result = await CustomerService.getSingleCustomerService(user, req.params.id);
     if (!result) {
         throw new AppError(StatusCodes.NOT_FOUND, "কোনো কাস্টমার পাওয়া যায়নি।")
     }
-
-    sendResponse(res, {
-        statusCode: StatusCodes.OK,
-        success: true,
-        message: "কাস্টমারদের তথ্য সফলভাবে পাওয়া গেছে।",
-        data: result,
-    });
+    else {
+        sendResponse(res, {
+            statusCode: StatusCodes.OK,
+            success: true,
+            message: "কাস্টমারদের তথ্য সফলভাবে পাওয়া গেছে।",
+            data: result,
+        });
+    }
 });
 
 // UPDATE
 const updateCustomerInfoController = catchAsync(async (req, res) => {
-    const result = await CustomerService.updateCustomerService(Number(req.params.id), req.body);
+    const user = req.user as TAuthUser
+    const result = await CustomerService.updateCustomerService(user, req.params.id, req.body);
     if (!result) {
         throw new AppError(StatusCodes.NOT_FOUND, "কোনো কাস্টমার পাওয়া যায়নি।")
     }
-    sendResponse(res, {
-        statusCode: StatusCodes.OK,
-        success: true,
-        message: "সফলভাবে আপডেট করেছে",
-        data: result,
-    });
+    else {
+        sendResponse(res, {
+            statusCode: StatusCodes.OK,
+            success: true,
+            message: "সফলভাবে আপডেট করেছে",
+            data: result,
+        });
+    }
 });
 
 
 // GET ALL CUSTOMER INFO
 const getAllCustomertController = catchAsync(async (req, res) => {
     const { limit, page, search } = await parseListQuery(req.query);
-    const result = await CustomerService.getAllCustomerService({ limit, page, search });
+    const user = req.user as TAuthUser
+    const result = await CustomerService.getAllCustomerService(user, { limit, page, search });
     if (!result || result.data.length === 0) {
         sendResponse(res, {
             statusCode: StatusCodes.OK,
@@ -51,19 +57,22 @@ const getAllCustomertController = catchAsync(async (req, res) => {
 
         return;
     }
+    else {
+        sendResponse(res, {
+            statusCode: StatusCodes.OK,
+            success: true,
+            message: "কাস্টমারদের তথ্য সফলভাবে পাওয়া গেছে।",
+            data: result,
+        });
+    }
 
-    sendResponse(res, {
-        statusCode: StatusCodes.OK,
-        success: true,
-        message: "কাস্টমারদের তথ্য সফলভাবে পাওয়া গেছে।",
-        data: result,
-    });
 });
 
 
 const getSingleCustomertController = catchAsync(async (req, res) => {
     const id = req.params.id
-    const result = await CustomerService.getSingleCustomerInformationService(Number(id));
+    const user = req.user as TAuthUser
+    const result = await CustomerService.getSingleCustomerInformationService(user, id);
     if (!result) {
         sendResponse(res, {
             statusCode: StatusCodes.OK,
@@ -74,20 +83,22 @@ const getSingleCustomertController = catchAsync(async (req, res) => {
 
         return;
     }
-
-    sendResponse(res, {
-        statusCode: StatusCodes.OK,
-        success: true,
-        message: "কাস্টমার তথ্য সফলভাবে পাওয়া গেছে।",
-        data: result,
-    });
+    else {
+        sendResponse(res, {
+            statusCode: StatusCodes.OK,
+            success: true,
+            message: "কাস্টমার তথ্য সফলভাবে পাওয়া গেছে।",
+            data: result,
+        });
+    }
 });
 
 // GET CUSTOMER ALL CHALLANS
 const getCustomertAllChallanController = catchAsync(async (req, res) => {
     const id = req.params.id
+    const user = req.user as TAuthUser
     const { limit, page, date } = await parseListQuery(req.query);
-    const result = await CustomerService.getCustomerAllChallanService(Number(id), { date, limit, page });
+    const result = await CustomerService.getCustomerAllChallanService(user, id, { date, limit, page });
     if (!result.data.length) {
         sendResponse(res, {
             statusCode: StatusCodes.OK,
@@ -99,19 +110,22 @@ const getCustomertAllChallanController = catchAsync(async (req, res) => {
         return;
     }
 
-    sendResponse(res, {
-        statusCode: StatusCodes.OK,
-        success: true,
-        message: "কাস্টমার তথ্য সফলভাবে পাওয়া গেছে।",
-        data: result,
-    });
+    else {
+        sendResponse(res, {
+            statusCode: StatusCodes.OK,
+            success: true,
+            message: "কাস্টমার তথ্য সফলভাবে পাওয়া গেছে।",
+            data: result,
+        });
+    }
 });
 
 // GET CUSTOMER ALL CHALLANS
 const getCustomerAllDeliveryController = catchAsync(async (req, res) => {
     const id = req.params.id
     const { limit, page, date } = await parseListQuery(req.query);
-    const result = await CustomerService.getCustomerAllDeliveryService(Number(id), { date, limit, page });
+    const user = req.user as TAuthUser
+    const result = await CustomerService.getCustomerAllDeliveryService(user, id, { date, limit, page });
     if (!result.data.length) {
         sendResponse(res, {
             statusCode: StatusCodes.OK,
@@ -121,14 +135,14 @@ const getCustomerAllDeliveryController = catchAsync(async (req, res) => {
         });
 
         return;
+    } else {
+        sendResponse(res, {
+            statusCode: StatusCodes.OK,
+            success: true,
+            message: "কাস্টমার তথ্য সফলভাবে পাওয়া গেছে।",
+            data: result,
+        });
     }
-
-    sendResponse(res, {
-        statusCode: StatusCodes.OK,
-        success: true,
-        message: "কাস্টমার তথ্য সফলভাবে পাওয়া গেছে।",
-        data: result,
-    });
 });
 
 
@@ -136,7 +150,8 @@ const getCustomerAllDeliveryController = catchAsync(async (req, res) => {
 const getCustomerAllDuesController = catchAsync(async (req, res) => {
     const id = req.params.id
     const { limit, page, date } = await parseListQuery(req.query);
-    const result = await CustomerService.getCustomerAllDuesService(Number(id), { date, limit, page });
+    const user = req.user as TAuthUser
+    const result = await CustomerService.getCustomerAllDuesService(user, id, { date, limit, page });
     if (!result.data.length) {
         sendResponse(res, {
             statusCode: StatusCodes.OK,
@@ -146,22 +161,22 @@ const getCustomerAllDuesController = catchAsync(async (req, res) => {
         });
 
         return;
+    } else {
+        sendResponse(res, {
+            statusCode: StatusCodes.OK,
+            success: true,
+            message: "কাস্টমার তথ্য সফলভাবে পাওয়া গেছে।",
+            data: result,
+        });
     }
-
-    sendResponse(res, {
-        statusCode: StatusCodes.OK,
-        success: true,
-        message: "কাস্টমার তথ্য সফলভাবে পাওয়া গেছে।",
-        data: result,
-    });
 });
 
 
 //  GET OLD CUSTOMER
 const getOldCustomerController = catchAsync(async (req, res) => {
     const user = req.user as TAuthUser
-    const {search}= await parseListQuery(req.query)
-    const result = await CustomerService.getOldCustomerService(user,search)
+    const { search } = await parseListQuery(req.query)
+    const result = await CustomerService.getOldCustomerService(user, search)
     if (!result.length) {
         sendResponse(res, {
             statusCode: StatusCodes.OK,

@@ -4,11 +4,13 @@ import { sendResponse } from "../../../utils/sendResponse";
 import { UnloadService } from "./unload.service";
 import { AppError } from "../../errors/ApplicationError";
 import { parseListQuery } from "../../../utils/parseListQuery";
+import { TAuthUser } from "../../../interface/token";
 
 const createUnloadInfoController = catchAsync(
     async (req, res) => {
+        const user = req.user as TAuthUser
         const result =
-            await UnloadService.createNewUnloadService(req.body);
+            await UnloadService.createNewUnloadService(user, req.body);
 
         if (result) {
             sendResponse(res, {
@@ -29,9 +31,10 @@ const createUnloadInfoController = catchAsync(
 // GET ALL UNLOAD
 const getAllUnloadInfoController = catchAsync(
     async (req, res) => {
+        const user = req.user as TAuthUser
         const { limit, page, search, date } = await parseListQuery(req.query);
         const result =
-            await UnloadService.getAllUnloadService({ date, limit, page, search });
+            await UnloadService.getAllUnloadService(user, { date, limit, page, search });
 
         if (result.data.length) {
             sendResponse(res, {
@@ -54,8 +57,9 @@ const getAllUnloadInfoController = catchAsync(
 //  GET ALL DATA NOT PAGINATE 
 const getAllUnloadDataNoPaginateController = catchAsync(
     async (req, res) => {
+        const user = req.user as TAuthUser
         const result =
-            await UnloadService.getAllUnloadDataNoPaginateService()
+            await UnloadService.getAllUnloadDataNoPaginateService(user)
 
         if (result.length) {
             sendResponse(res, {
@@ -79,9 +83,10 @@ const getAllUnloadDataNoPaginateController = catchAsync(
 // DELETE
 const deleteUnloadInfoController = catchAsync(
     async (req, res) => {
-        const id = Number(req.params.id);
+        const id = req.params.id;
+        const user = req.user as TAuthUser
         const result =
-            await UnloadService.deleteUnloadService(id);
+            await UnloadService.deleteUnloadService(user, id);
 
         if (result) {
             sendResponse(res, {

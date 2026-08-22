@@ -232,7 +232,6 @@ const getAllAdvanceInvoiceService = async (user: TAuthUser, query: TQuery) => {
 
 //  GET SINGLE INVOICE
 const getSingleInvoiceService = async (user: TAuthUser, id: string) => {
-  console.log(id)
   const result = await prisma.challan.findFirst({
     where: { serial: Number(id), isDeleted: false, vataId: user.vataId },
     orderBy: {

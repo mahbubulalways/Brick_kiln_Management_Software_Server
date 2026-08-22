@@ -1,12 +1,15 @@
+import { StatusCodes } from "http-status-codes";
 import { prisma } from "../../../helpers/prisma";
+import { TAuthUser } from "../../../interface/token";
 import catchAsync from "../../../utils/catchAsync";
 import { sendResponse } from "../../../utils/sendResponse";
 
 export const getRoundController = catchAsync(async (req, res) => {
-  const result = await prisma.round.findMany({});
+  const user = req.user as TAuthUser
+  const result = await prisma.round.findMany({ where: { vataId: user.vataId } });
   if (!result.length) {
     return sendResponse(res, {
-      statusCode: 404,
+      statusCode: StatusCodes.OK,
       success: false,
       message: "কোনো রাউন্ডের তথ্য পাওয়া যায়নি।",
       data: [],
@@ -14,7 +17,7 @@ export const getRoundController = catchAsync(async (req, res) => {
   }
 
   return sendResponse(res, {
-    statusCode: 200,
+    statusCode:  StatusCodes.OK,
     success: true,
     message: "রাউন্ডের তথ্য সফলভাবে পাওয়া গেছে।",
     data: result,
