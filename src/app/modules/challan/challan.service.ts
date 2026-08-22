@@ -60,7 +60,7 @@ const createInvoiceService = async (
         existingCustomer = await tx.customer.create({
           data: {
             ...customer,
-            customerCode: generateCode( countCustomer),
+            customerCode: generateCode(countCustomer),
             vataId: user.vataId
           },
         });
@@ -101,8 +101,12 @@ const createInvoiceService = async (
           price: it.price,
           challanId: newInvoice.id,
           deliveryDate: invoice.deliveryDate,
+          season: getCurrentSession()
+
         };
       });
+
+      console.log(invokeInvoiceId)
 
       // CREATE ITEMS OF CHALLAN
       await tx.challanItem.createMany({
@@ -228,17 +232,18 @@ const getAllAdvanceInvoiceService = async (user: TAuthUser, query: TQuery) => {
 
 //  GET SINGLE INVOICE
 const getSingleInvoiceService = async (user: TAuthUser, id: string) => {
+  console.log(id)
   const result = await prisma.challan.findFirst({
-    where: { id: id, isDeleted: false, vataId: user.vataId },
+    where: { serial: Number(id), isDeleted: false, vataId: user.vataId },
     orderBy: {
       createdAt: "desc",
     },
     include: {
       customer: true,
       items: true,
-      createdBy:{
-        select:{
-          name:true
+      createdBy: {
+        select: {
+          name: true
         }
       }
     },
@@ -247,12 +252,16 @@ const getSingleInvoiceService = async (user: TAuthUser, id: string) => {
 };
 
 //  GET SINGLE INVOICE ITEMS
-const getSingleInvoiceItemsService = async (id: string, query: string) => {
+const getSingleInvoiceItemsService = async (user: TAuthUser, id: string, query: string) => {
   const splitIds = query.split(",");
   const parsedNumber = splitIds.map((id) => id);
+  const challanId = await prisma.challan.findFirst({
+    where: { serial: Number(id), vataId: user.vataId },
+    select: { id: true }
+  })
   const result = await prisma.challanItem.findMany({
     where: {
-      challanId: id,
+      challanId: challanId?.id,
       id: { in: parsedNumber },
       isDeleted: false,
     },
@@ -261,24 +270,28 @@ const getSingleInvoiceItemsService = async (id: string, query: string) => {
       createdAt: "desc",
     },
   });
+
   return result;
 };
 
 // UPDATE INVOICE
-const updateInvoiceController = async (
+const updateInvoiceService = async (
   user: TAuthUser,
-  invoiceId: string,
+  serialId: string,
   invoice: Challan,
   items: ChallanItem[],
 ) => {
-
+  const invoiceId = await prisma.challan.findFirst({
+    where: { serial: Number(serialId), vataId: user.vataId }, select: { id: true }
+  })
   const result = await prisma.$transaction(
+
     async (tx: Prisma.TransactionClient) => {
       // update invoice
       const updateInvoice = await tx.challan.update({
         data: invoice,
         where: {
-          id: invoiceId,
+          id: invoiceId?.id,
           vataId: user.vataId
         },
       });
@@ -292,7 +305,7 @@ const updateInvoiceController = async (
       const Ids = existItems.map((item) => item.id);
       await tx.challanItem.deleteMany({
         where: {
-          challanId: invoiceId,
+          challanId: invoiceId?.id,
           id: { notIn: Ids },
         },
       });
@@ -321,7 +334,7 @@ const updateInvoiceController = async (
             rate: Number(it.rate),
             quantity: Number(it.quantity),
             price: Number(it.price),
-            challanId: invoiceId,
+            challanId: invoiceId?.id!,
             deliveryDate: invoice.deliveryDate,
           };
         });
@@ -443,6 +456,14 @@ const updateItemsDateService = async (
 
 // UPDATE INVOICE DELIVERY
 const updateInvoiceDeliveryDateService = async (user: TAuthUser, id: string, updatedDate: string) => {
+  const challanId = await prisma.challan.findFirst({
+    where: {
+      serial: Number(id),
+      vataId: user.vataId
+    },
+    select: { id: true }
+  })
+
   const result = await prisma.challan.update({
     data: {
       deliveryDate: updatedDate,
@@ -451,12 +472,12 @@ const updateInvoiceDeliveryDateService = async (user: TAuthUser, id: string, upd
           data: {
             deliveryDate: updatedDate,
           },
-          where: { challanId: id, },
+          where: { challanId: challanId?.id, },
         },
       },
     },
     where: {
-      id, vataId: user.vataId
+      id: challanId?.id, vataId: user.vataId
     },
   });
   return result;
@@ -468,7 +489,7 @@ export const InvoiceService = {
   createInvoiceService,
   getAllInvoiceService,
   getSingleInvoiceService,
-  updateInvoiceController,
+  updateInvoiceService,
   deleteInvoiceService,
   getItemsWithInvoiceService,
   getSingleInvoiceItemsService,

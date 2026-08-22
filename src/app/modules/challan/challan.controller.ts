@@ -17,8 +17,8 @@ const getInvoiceSerial = catchAsync(async (req, res) => {
         vataId: user.vataId,
       },
     })) + 1;
-   
-    console.log(result)
+
+  console.log(result)
 
   if (!result) {
     throw new AppError(
@@ -67,7 +67,7 @@ const createInvoiceController = catchAsync(async (req, res) => {
 const getAllInvoiceController = catchAsync(async (req, res) => {
   const user = req.user as TAuthUser
   const { limit, page, search, date } = await parseListQuery(req.query);
-  const result = await InvoiceService.getAllInvoiceService(user,{
+  const result = await InvoiceService.getAllInvoiceService(user, {
     limit,
     page,
     search,
@@ -94,9 +94,9 @@ const getAllInvoiceController = catchAsync(async (req, res) => {
 
 // GET ADVANVCE INVOICE
 const getAllAdvanceInvoiceController = catchAsync(async (req, res) => {
-    const user = req.user as TAuthUser
+  const user = req.user as TAuthUser
   const { limit, page, search, date } = await parseListQuery(req.query);
-  const result = await InvoiceService.getAllAdvanceInvoiceService(user,{
+  const result = await InvoiceService.getAllAdvanceInvoiceService(user, {
     limit,
     page,
     search,
@@ -124,8 +124,8 @@ const getAllAdvanceInvoiceController = catchAsync(async (req, res) => {
 //  GET SINGLE INVOICE
 const getSingleInvoiceController = catchAsync(async (req, res) => {
   const id = req?.params?.id;
-    const user = req.user as TAuthUser
-  const result = await InvoiceService.getSingleInvoiceService(user,id);
+  const user = req.user as TAuthUser
+  const result = await InvoiceService.getSingleInvoiceService(user, id);
   if (!result?.id) {
     throw new AppError(StatusCodes.BAD_REQUEST, "চ্যালান পাওয়া যায়নি।");
   }
@@ -145,7 +145,9 @@ const getSingleInvoiceController = catchAsync(async (req, res) => {
 const getSingleInvoiceItemsController = catchAsync(async (req, res) => {
   const id = req?.params?.id;
   const query = req.query;
+  const user = req.user as TAuthUser
   const result = await InvoiceService.getSingleInvoiceItemsService(
+    user,
     id,
     query?.ids as string
   );
@@ -172,8 +174,8 @@ const getSingleInvoiceItemsController = catchAsync(async (req, res) => {
 const updateInvoiceController = catchAsync(async (req, res) => {
   const id = req?.params?.id;
   const body = req.body;
-    const user = req.user as TAuthUser
-  const result = await InvoiceService.updateInvoiceController(
+  const user = req.user as TAuthUser
+  const result = await InvoiceService.updateInvoiceService(
     user,
     id,
     body.invoice,
@@ -199,8 +201,8 @@ const updateInvoiceController = catchAsync(async (req, res) => {
 // DELETE INVOICE
 const deleteInvoiceController = catchAsync(async (req, res) => {
   const id = req?.params?.id;
-    const user = req.user as TAuthUser
-  const result = await InvoiceService.deleteInvoiceService(user,id);
+  const user = req.user as TAuthUser
+  const result = await InvoiceService.deleteInvoiceService(user, id);
   if (!result?.id) {
     throw new AppError(
       StatusCodes.BAD_REQUEST,
@@ -221,7 +223,7 @@ const deleteInvoiceController = catchAsync(async (req, res) => {
 // GET ITEMS WITH INVOICE
 const getItemsWithInvoiceController = catchAsync(async (req, res) => {
   const { startDate, endDate } = req.query;
-    const user = req.user as TAuthUser
+  const user = req.user as TAuthUser
   const result = await InvoiceService.getItemsWithInvoiceService(
     user,
     startDate as string,
@@ -245,7 +247,7 @@ const getItemsWithInvoiceController = catchAsync(async (req, res) => {
 const updateInvoiceDeliveryDateController = catchAsync(async (req, res) => {
   const id = req?.params.id;
   const updatedDate = req.body.updatedDate;
-    const user = req.user as TAuthUser
+  const user = req.user as TAuthUser
   const result = await InvoiceService.updateInvoiceDeliveryDateService(
     user,
     id,
@@ -269,7 +271,7 @@ const updateInvoiceDeliveryDateController = catchAsync(async (req, res) => {
 const updateInvoiceItemDeliveryDateController = catchAsync(async (req, res) => {
   const id = req?.params.id;
   const updatedDate = req.body.updatedDate;
-    const user = req.user as TAuthUser
+  const user = req.user as TAuthUser
   const result = await InvoiceService.updateItemsDateService(
     user,
     id,

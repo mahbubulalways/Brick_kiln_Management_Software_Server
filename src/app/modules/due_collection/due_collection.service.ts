@@ -20,10 +20,11 @@ const getDueOfCustomerService = async (user: TAuthUser, customerCode: string) =>
 const collectDueService = async (user: TAuthUser, payload: TDueCollectionData) => {
   const findCustomerId = await prisma.customer.findFirst({
     where: {
-      customerCode: payload.customerCode, vataId: user.vataId,
-    }, select: { id: true }
+      customerCode: payload.customerId, vataId: user.vataId,
+    },
   })
-
+  
+  const customer = await prisma.customer.findMany({where:{vataId:user.vataId}})
   const data = {
     customerId: findCustomerId?.id!,
     due: Number(payload.due),
@@ -32,6 +33,7 @@ const collectDueService = async (user: TAuthUser, payload: TDueCollectionData) =
     season: payload.season,
     nextDate: payload.nextDate,
   };
+  console.log(findCustomerId)
 
   const result = await prisma.$transaction(
     async (tx: Prisma.TransactionClient) => {
@@ -299,7 +301,7 @@ const updateDueCollectionService = async (
 ) => {
   const findCustomerId = await prisma.customer.findFirst({
     where: {
-      customerCode: payload.customerCode, vataId: user.vataId,
+      customerCode: payload.customerId, vataId: user.vataId,
     }, select: { id: true }
   })
 
@@ -347,20 +349,25 @@ const updateDueCollectionService = async (
 const getSingleDueCollectionDateService = async (user: TAuthUser, id: string) => {
   return await prisma.customer.findFirst({
     where:
-      { id, vataId: user.vataId }, select: { nextPaymentDate: true, id: true }
+      { customerCode: id, vataId: user.vataId }, select: { nextPaymentDate: true, id: true }
   })
 }
 
 
 // UPDATE DUE COLLECTION DATE 
 const upDateDueCollectionDateService = async (user: TAuthUser, id: string, info: { date: string, note: string }) => {
-  const due = await prisma.customer.findFirst({ where: { id: id, vataId: user.vataId } })
+  const due = await prisma.customer.findFirst({
+    where: { customerCode: id, vataId: user.vataId },
+    select: {
+      id: true,
+    }
+  })
   if (!due) {
     throw new AppError(StatusCodes.NOT_FOUND, "বাকি পাওয়া যায়নি।")
   }
   const result = await prisma.customer.update({
     data: { nextPaymentDate: info.date, note: info.note, },
-    where: { id: id, vataId: user.vataId }
+    where: { id: due?.id, vataId: user.vataId }
   })
   return result
 }

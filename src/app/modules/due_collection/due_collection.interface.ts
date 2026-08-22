@@ -1,5 +1,5 @@
 export type TDueCollectionData = {
-  customerCode: string;
+  customerId: string;
   due: number;
   collect: number;
   newDue: number;

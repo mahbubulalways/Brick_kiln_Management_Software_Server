@@ -7,6 +7,7 @@ import { paginationHelper } from "../../../helpers/paginationHelper";
 import { createMetaConfig } from "../../../utils/createMetaConfig";
 import { formatCustomerData } from "./customer.utils";
 import { getDateRangeDbSearch } from "../../../utils/getDateRangeDbSearch";
+import { TAuthUser } from "../../../interface/token";
 
 
 // GET SINGLE INFO
@@ -376,6 +377,54 @@ const getCustomerAllDuesService = async (id: number, query: TQuery) => {
   };
 }
 
+
+// GET OLD CUSTOMERS 
+const getOldCustomerService = async (
+  user: TAuthUser,
+  search: string
+) => {
+  console.log(search)
+  const result = await prisma.customer.findMany({
+    where: {
+      vataId: user.vataId,
+      isDeleted: false,
+      OR: [
+        {
+          name: {
+            contains: search,
+            mode: "insensitive",
+          },
+        },
+        {
+          phoneNumber: {
+            contains: search,
+          },
+        },
+        // {
+        //   customerCode: {
+        //     contains: search,
+        //     mode: "insensitive",
+        //   },
+        // },
+        // {
+        //   address: {
+        //     customerCode: search,
+        //     mode: "insensitive",
+        //   },
+        // },
+      ],
+    },
+    select: {
+      name: true,
+      phoneNumber: true,
+      address: true,
+      id: true,
+      customerCode: true
+    },
+  });
+  return result;
+};
+
 export const CustomerService = {
   getAllCustomerService,
   getSingleCustomerInformationService,
@@ -383,5 +432,6 @@ export const CustomerService = {
   getCustomerAllDeliveryService,
   getCustomerAllDuesService,
   getSingleCustomerService,
-  updateCustomerService
+  updateCustomerService,
+  getOldCustomerService,
 };

@@ -14,6 +14,12 @@ router.get(
     VataController.getVataInformationController
 )
 
+router.get(
+    '/me',
+    AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+    VataController.getMyVataInformationController
+)
+
 router.get('/verify-domain/:id', VataController.checkSubdomainExistController)
 
 export default router

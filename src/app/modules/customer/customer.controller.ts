@@ -4,6 +4,7 @@ import { sendResponse } from "../../../utils/sendResponse";
 import { CustomerService } from "./customer.service";
 import { parseListQuery } from "../../../utils/parseListQuery";
 import { AppError } from "../../errors/ApplicationError";
+import { TAuthUser } from "../../../interface/token";
 
 
 // GET DATA FOR UPDATE
@@ -156,6 +157,35 @@ const getCustomerAllDuesController = catchAsync(async (req, res) => {
 });
 
 
+//  GET OLD CUSTOMER
+const getOldCustomerController = catchAsync(async (req, res) => {
+    const user = req.user as TAuthUser
+    const {search}= await parseListQuery(req.query)
+    const result = await CustomerService.getOldCustomerService(user,search)
+    if (!result.length) {
+        sendResponse(res, {
+            statusCode: StatusCodes.OK,
+            success: true,
+            message: "কোনো কাস্টমার পাওয়া যায়নি।",
+            data: [],
+        });
+
+        return;
+    }
+    else {
+        sendResponse(res, {
+            statusCode: StatusCodes.OK,
+            success: true,
+            message: "কাস্টমারদের তথ্য সফলভাবে পাওয়া গেছে।",
+            data: result,
+        });
+    }
+});
+
+
+
+
+
 export const CustomerController = {
     getAllCustomertController,
     getSingleCustomertController,
@@ -163,5 +193,6 @@ export const CustomerController = {
     getCustomerAllDeliveryController,
     getCustomerAllDuesController,
     getSingleCustomerInfoController,
-    updateCustomerInfoController
+    updateCustomerInfoController,
+    getOldCustomerController,
 }

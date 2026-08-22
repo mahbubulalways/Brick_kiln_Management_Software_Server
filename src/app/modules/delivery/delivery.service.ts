@@ -88,6 +88,7 @@ const getDeliveryThatGoTodayService = async (user: TAuthUser, query: TQuery) => 
       select: {
         id: true,
         customer: true,
+        serial:true,
         items: {
           where: dateRange
             ? {
@@ -130,6 +131,11 @@ const createDeliveryService = async (user: TAuthUser, payload: TDelivery) => {
     throw new AppError(StatusCodes.CONFLICT, "এই ডেলিভারি নম্বর ইতিমধ্যে আছে");
   }
 
+
+  // HERE COME SERIAL ID AS INVOICE ID 
+  const mainInvoiceId = await prisma.challan.findFirst({
+    where: { serial: Number(payload.invoiceId), vataId: user.vataId }, select: { id: true }
+  },)
   const data = {
     deliveryDate: payload.deliveryDate,
     deliveryNo: Number(payload.deliveryNo),
@@ -141,7 +147,7 @@ const createDeliveryService = async (user: TAuthUser, payload: TDelivery) => {
     driverName: payload.driverName,
     driverPhoneNumber: payload.driverMobileNumber,
     carNo: payload.carNumber,
-    invoiceId: payload.invoiceId,
+    invoiceId: mainInvoiceId?.id!,
     carRent: Number(payload.carRent),
     deliveryById: user.userId
   };
@@ -161,7 +167,7 @@ const createDeliveryService = async (user: TAuthUser, payload: TDelivery) => {
           carNo: data.carNo,
           driverName: data.driverName,
           driverPhoneNumber: data.driverPhoneNumber,
-          invoiceId: payload.invoiceId,
+          invoiceId: data.invoiceId,
           carRent: data.carRent,
           deliveryById: data.deliveryById,
         },
@@ -311,6 +317,8 @@ const getAllDeliveryListService = async (user: TAuthUser, query: TQuery) => {
       where,
       select: {
         id: true,
+        serial:true,
+        note:true,
         customer: true,
         items: {
           where: dateRange
@@ -379,11 +387,11 @@ const getSingleDeliveryService = async (id: string) => {
           id: true, serial: true,
           challanDate: true,
           deliveryDate: true,
-          customer:{
-            select:{
-              name:true,
-              phoneNumber:true,
-              address:true
+          customer: {
+            select: {
+              name: true,
+              phoneNumber: true,
+              address: true
             }
           }
         }

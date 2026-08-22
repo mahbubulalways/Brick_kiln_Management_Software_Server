@@ -22,12 +22,14 @@ const getDueOfCustomerController = catchAsync(async (req, res) => {
       data: {},
     });
   }
-  sendResponse(res, {
-    message: "সফলভাবে পাওয়া গেছে।",
-    statusCode: StatusCodes.OK,
-    success: true,
-    data: result,
-  });
+  else {
+    sendResponse(res, {
+      message: "সফলভাবে পাওয়া গেছে।",
+      statusCode: StatusCodes.OK,
+      success: true,
+      data: result,
+    });
+  }
 });
 
 //INSERT NEW DUE
@@ -171,12 +173,14 @@ const updateDueCollectionController = catchAsync(async (req, res) => {
   if (!result?.id) {
     throw new AppError(StatusCodes.BAD_REQUEST, "আপডেট করতে ব্যর্থ হয়েছে");
   }
-  sendResponse(res, {
-    message: "সফলভাবে আপডেট করেছে",
-    statusCode: StatusCodes.OK,
-    success: true,
-    data: result,
-  });
+  else {
+    sendResponse(res, {
+      message: "সফলভাবে আপডেট করেছে",
+      statusCode: StatusCodes.OK,
+      success: true,
+      data: result,
+    });
+  }
 });
 
 
@@ -194,12 +198,14 @@ const updateDueCollectionDateController = catchAsync(async (req, res) => {
   if (!result?.id) {
     throw new AppError(StatusCodes.BAD_REQUEST, "আপডেট করতে ব্যর্থ হয়েছে");
   }
-  sendResponse(res, {
-    message: "সফলভাবে আপডেট করেছে",
-    statusCode: StatusCodes.OK,
-    success: true,
-    data: result,
-  });
+  else {
+    sendResponse(res, {
+      message: "সফলভাবে আপডেট করেছে",
+      statusCode: StatusCodes.OK,
+      success: true,
+      data: result,
+    });
+  }
 });
 
 export const DueCollectionController = {
