@@ -33,4 +33,10 @@ router.patch(
   AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
   ClassAndRateController.updateClassAndRateController
 );
+
+router.delete(
+  API_ENDPOINTS.CLASS_AND_RATE.DELETE,
+  AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+  ClassAndRateController.deleteClassAndRateController
+);
 export default router;

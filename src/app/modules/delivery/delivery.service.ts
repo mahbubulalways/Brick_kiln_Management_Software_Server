@@ -88,7 +88,7 @@ const getDeliveryThatGoTodayService = async (user: TAuthUser, query: TQuery) => 
       select: {
         id: true,
         customer: true,
-        serial:true,
+        serial: true,
         items: {
           where: dateRange
             ? {
@@ -317,8 +317,8 @@ const getAllDeliveryListService = async (user: TAuthUser, query: TQuery) => {
       where,
       select: {
         id: true,
-        serial:true,
-        note:true,
+        serial: true,
+        note: true,
         customer: true,
         items: {
           where: dateRange
@@ -384,9 +384,11 @@ const getSingleDeliveryService = async (id: string) => {
     where: { id }, include: {
       invoice: {
         select: {
-          id: true, serial: true,
+          id: true,
+          serial: true,
           challanDate: true,
           deliveryDate: true,
+
           customer: {
             select: {
               name: true,

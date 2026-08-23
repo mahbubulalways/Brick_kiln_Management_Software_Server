@@ -2,10 +2,11 @@ import { Prisma } from "../../../generated/prisma/client";
 import { paginationHelper } from "../../../helpers/paginationHelper";
 import { prisma } from "../../../helpers/prisma";
 import { TQuery } from "../../../interface/query";
+import { TAuthUser } from "../../../interface/token";
 import { createMetaConfig } from "../../../utils/createMetaConfig";
 
 
-const createContactService = async (payload: {
+const createContactService = async (user: TAuthUser, payload: {
     name: string;
     address: string;
     occupation: string;
@@ -17,15 +18,16 @@ const createContactService = async (payload: {
             address: payload.address,
             occupation: payload.occupation,
             phone: payload.phone,
+            vataId: user.vataId
         },
     });
 
     return result;
 };
 
-const getAllContactService = async (query: TQuery) => {
+const getAllContactService = async (user: TAuthUser, query: TQuery) => {
     const { limit, page, skip } = paginationHelper(query.page, query.limit);
-    const where: Prisma.ContactWhereInput = {};
+    const where: Prisma.ContactWhereInput = { vataId: user.vataId };
     if (query.search?.trim()) {
         const search = query.search.trim();
         where.OR = [
@@ -57,6 +59,8 @@ const getAllContactService = async (query: TQuery) => {
             orderBy: {
                 createdAt: "desc",
             },
+            skip,
+            take: limit
         }),
         prisma.contact.count({ where })
 
@@ -74,16 +78,18 @@ const getAllContactService = async (query: TQuery) => {
     };
 };
 
-const getSingleContactService = async (id: string) => {
+const getSingleContactService = async (user: TAuthUser, id: string) => {
     const result = await prisma.contact.findUnique({
         where: {
             id,
+            vataId: user.vataId
         },
     });
     return result;
 };
 
 const updateContactService = async (
+    user: TAuthUser,
     id: string,
     payload: {
         name?: string;
@@ -95,6 +101,7 @@ const updateContactService = async (
     const result = await prisma.contact.update({
         where: {
             id,
+            vataId: user.vataId
         },
         data: payload,
     });
@@ -102,10 +109,11 @@ const updateContactService = async (
     return result;
 };
 
-const deleteContactService = async (id: string) => {
+const deleteContactService = async (user: TAuthUser, id: string) => {
     const result = await prisma.contact.delete({
         where: {
             id,
+            vataId: user.vataId
         },
     });
 

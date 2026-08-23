@@ -6,13 +6,15 @@ import { AppError } from "../../errors/ApplicationError"
 import { TQuery } from "../../../interface/query"
 import { paginationHelper } from "../../../helpers/paginationHelper"
 import { createMetaConfig } from "../../../utils/createMetaConfig"
+import { TAuthUser } from "../../../interface/token"
 
 
 
-const createUserServie = async (payload: User) => {
+const createUserServie = async (user: TAuthUser, payload: User) => {
     const existUsername = await prisma.user.findFirst({
         where: {
             username: payload.username,
+            vataId: user.vataId,
         },
     });
 
@@ -26,7 +28,7 @@ const createUserServie = async (payload: User) => {
     const hashPassword = await bcryptHelper.hashPassword(payload.password);
 
     payload.password = hashPassword;
-
+    payload.vataId = user.vataId
     const result = await prisma.user.create({
         data: payload,
     });
@@ -35,13 +37,14 @@ const createUserServie = async (payload: User) => {
 };
 
 // Get All Users
-const getAllUsersService = async () => {
+const getAllUsersService = async (user: TAuthUser) => {
     const result = await prisma.user.findMany({
         orderBy: {
             createdAt: "desc",
         },
         where: {
-            isDeleted: false
+            isDeleted: false,
+            vataId: user.vataId
         }
     });
 
@@ -49,24 +52,27 @@ const getAllUsersService = async () => {
 };
 
 // Get Single User
-const getSingleUserService = async (id: string) => {
-    const user = await prisma.user.findFirst({
+const getSingleUserService = async (user: TAuthUser, id: string) => {
+    const result = await prisma.user.findFirst({
         where: {
             id,
+            vataId: user.vataId
         },
     });
 
-    return user;
+    return result;
 };
 
 // Update User
 const updateUserService = async (
+    userAuth: TAuthUser,
     id: string,
     payload: Partial<User>
 ) => {
     const user = await prisma.user.findFirst({
         where: {
             id,
+            vataId: userAuth.vataId
         },
     });
 
@@ -82,6 +88,7 @@ const updateUserService = async (
         const existUsername = await prisma.user.findFirst({
             where: {
                 username: payload.username,
+                vataId: userAuth.vataId,
                 NOT: {
                     id,
                 },
@@ -106,6 +113,7 @@ const updateUserService = async (
     const result = await prisma.user.update({
         where: {
             id,
+            vataId: userAuth.vataId
         },
         data: payload,
     });
@@ -114,10 +122,11 @@ const updateUserService = async (
 };
 
 // Delete User
-const deleteUserService = async (id: string) => {
+const deleteUserService = async (userAuth: TAuthUser, id: string) => {
     const user = await prisma.user.findFirst({
         where: {
             id,
+            vataId: userAuth.vataId
         },
     });
 
@@ -131,6 +140,7 @@ const deleteUserService = async (id: string) => {
     await prisma.user.update({
         where: {
             id,
+            vataId: userAuth.vataId
         },
         data: {
             isDeleted: true
@@ -144,14 +154,19 @@ const deleteUserService = async (id: string) => {
 
 // GET LOGIN LOGOUT HISTORY
 
-const getUserLoginHistoryService = async (query: TQuery) => {
+const getUserLoginHistoryService = async (user: TAuthUser, query: TQuery) => {
     const { limit, page, skip } = paginationHelper(query.page, query.limit)
     const [result, total] = await Promise.all([
         prisma.loginHistory.findMany({
+            where: {
+                user: {
+                    vataId: user.vataId
+                }
+            },
             include:
                 { user: { select: { name: true } } }
             , skip, take: limit,
-            orderBy:{createdAt:"desc"}
+            orderBy: { createdAt: "desc" }
         }),
         prisma.loginHistory.count({})
     ])
@@ -169,10 +184,11 @@ const getUserLoginHistoryService = async (query: TQuery) => {
 }
 
 // GET USER OPTIONS
-const getUserOptionService = async () => {
+const getUserOptionService = async (user:TAuthUser) => {
     const result = await prisma.user.findMany({
         where: {
-            isDeleted: false
+            isDeleted: false,
+              vataId:user.vataId
         },
         select: {
             name: true, id: true

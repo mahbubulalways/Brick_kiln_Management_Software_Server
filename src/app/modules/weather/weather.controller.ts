@@ -3,20 +3,26 @@ import { prisma } from "../../../helpers/prisma";
 import catchAsync from "../../../utils/catchAsync";
 import { AppError } from "../../errors/ApplicationError";
 import { sendResponse } from "../../../utils/sendResponse";
+import { TAuthUser } from "../../../interface/token";
 
 // ================= CREATE MANY WEATHER =================
 const createWeatherController = catchAsync(async (req, res) => {
     const data = req.body;
-    const existingWeather = await prisma.weather.findFirst();
+    const user = req.user as TAuthUser
+    const existingWeather = await prisma.weather.findFirst({ where: { vataId: user.vataId } });
     let result;
     if (!existingWeather) {
         result = await prisma.weather.create({
-            data,
+            data: {
+                ...data,
+                vataId: user.vataId
+            },
         });
     } else {
         result = await prisma.weather.update({
             where: {
                 id: existingWeather.id,
+                vataId: user.vataId
             },
             data,
         });
@@ -42,10 +48,15 @@ const createWeatherController = catchAsync(async (req, res) => {
 
 // ================= GET ALL WEATHER =================
 const getAllWeatherController = catchAsync(async (req, res) => {
+    const user = req.user as TAuthUser
     const result = await prisma.weather.findMany({
+        where: {
+            vataId: user.vataId
+        },
         orderBy: {
             createdAt: "desc",
         },
+
     });
 
     sendResponse(res, {

@@ -5,17 +5,19 @@ import { prisma } from "../../../helpers/prisma"
 import { TQuery } from "../../../interface/query"
 import { createMetaConfig } from "../../../utils/createMetaConfig"
 import { AppError } from "../../errors/ApplicationError"
+import { TAuthUser } from "../../../interface/token"
 
 // CREATE RENT
-const createCarRentService = async (data: CarRent) => {
+const createCarRentService = async (user: TAuthUser, data: CarRent) => {
+    data.vataId = user.vataId
     const result = await prisma.carRent.create({ data })
     return result
 }
 
 // GET ALL RENT
-const getALlCarRentService = async (query: TQuery) => {
+const getALlCarRentService = async (user: TAuthUser, query: TQuery) => {
     const { limit, page, skip } = paginationHelper(query.page, query.limit);
-    const where: Prisma.CarRentWhereInput = {};
+    const where: Prisma.CarRentWhereInput = { vataId: user.vataId };
 
     // Search by ledger name
     if (query.search?.trim()) {
@@ -53,19 +55,21 @@ const getALlCarRentService = async (query: TQuery) => {
 }
 
 // GET SINGLE CAR RENT
-const getSingleCarRentService = async (id: number) => {
-    const result = await prisma.carRent.findFirst({ where: { id } })
+const getSingleCarRentService = async (user: TAuthUser, id: string) => {
+    const result = await prisma.carRent.findFirst({ where: { id, vataId: user.vataId } })
     return result
 }
 
 // UPDATE CAR RENT
 const updateCarRentService = async (
-    id: number,
+    user: TAuthUser,
+    id: string,
     payload: Prisma.CarRentUpdateInput
 ) => {
     const existing = await prisma.carRent.findUnique({
         where: {
             id,
+            vataId: user.vataId
         },
     });
 
@@ -79,6 +83,7 @@ const updateCarRentService = async (
     const result = await prisma.carRent.update({
         where: {
             id,
+            vataId: user.vataId
         },
         data: payload,
     });
@@ -88,10 +93,11 @@ const updateCarRentService = async (
 
 
 // DELETE CAR RENT
-const deleteCarRentService = async (id: number) => {
+const deleteCarRentService = async (user: TAuthUser, id: string) => {
     const existing = await prisma.carRent.findUnique({
         where: {
             id,
+            vataId: user.vataId
         },
     });
 
@@ -105,6 +111,7 @@ const deleteCarRentService = async (id: number) => {
     await prisma.carRent.delete({
         where: {
             id,
+            vataId: user.vataId
         },
     });
 

@@ -4,9 +4,11 @@ import { sendResponse } from "../../../utils/sendResponse";
 import { CarRentService } from "./car_rent.service";
 import catchAsync from "../../../utils/catchAsync";
 import { parseListQuery } from "../../../utils/parseListQuery";
+import { TAuthUser } from "../../../interface/token";
 
 const createCarRentController = catchAsync(async (req, res) => {
-    const result = await CarRentService.createCarRentService(req.body);
+        const user = req.user as TAuthUser;
+    const result = await CarRentService.createCarRentService(user,req.body);
 
     if (result) {
         sendResponse(res, {
@@ -25,8 +27,9 @@ const createCarRentController = catchAsync(async (req, res) => {
 
 
 const getALlCarRentController = catchAsync(async (req, res) => {
+        const user = req.user as TAuthUser;
     const { limit, page, search } = await parseListQuery(req.query);
-    const result = await CarRentService.getALlCarRentService({ limit, page, search });
+    const result = await CarRentService.getALlCarRentService(user,{ limit, page, search });
     if (result?.data.length) {
         sendResponse(res, {
             statusCode: StatusCodes.OK,
@@ -46,10 +49,11 @@ const getALlCarRentController = catchAsync(async (req, res) => {
 
 
 const getSingleCarRentController = catchAsync(async (req, res) => {
-    const id = Number(req.params.id);
+        const user = req.user as TAuthUser;
+    const id =req.params.id;
 
     const result =
-        await CarRentService.getSingleCarRentService(id);
+        await CarRentService.getSingleCarRentService(user,id);
 
     if (result) {
         sendResponse(res, {
@@ -68,10 +72,12 @@ const getSingleCarRentController = catchAsync(async (req, res) => {
 
 
 const updateCarRentController = catchAsync(async (req, res) => {
-    const id = Number(req.params.id);
+        const user = req.user as TAuthUser;
+    const id = req.params.id;
 
     const result =
         await CarRentService.updateCarRentService(
+            user,
             id,
             req.body
         );
@@ -93,10 +99,11 @@ const updateCarRentController = catchAsync(async (req, res) => {
 
 
 const deleteCarRentController = catchAsync(async (req, res) => {
-    const id = Number(req.params.id);
+        const user = req.user as TAuthUser;
+    const id = req.params.id;
 
     const result =
-        await CarRentService.deleteCarRentService(id);
+        await CarRentService.deleteCarRentService(user,id);
 
     if (result) {
         sendResponse(res, {

@@ -1,12 +1,14 @@
 import { prisma } from "../../../helpers/prisma";
+import { TAuthUser } from "../../../interface/token";
 import { ReportUtils } from "./report.utils";
 
 
-const getTopSellingAreasService = async () => {
+const getTopSellingAreasService = async (user: TAuthUser) => {
     const challans = await prisma.challan.findMany({
         where: {
             isDeleted: false,
             customer: {
+                vataId: user.vataId,
                 isDeleted: false,
             },
         },
@@ -14,13 +16,11 @@ const getTopSellingAreasService = async () => {
             id: true,
             totalPrice: true,
             customerId: true,
-
             customer: {
                 select: {
                     address: true,
                 },
             },
-
             items: {
                 where: {
                     isDeleted: false,
@@ -35,7 +35,7 @@ const getTopSellingAreasService = async () => {
     const areaMap = new Map<
         string,
         {
-            customerIds: Set<number>;
+            customerIds: Set<string>;
             totalChallan: number;
             totalQuantity: number;
             totalSales: number;
@@ -100,9 +100,9 @@ const getTopSellingAreasService = async () => {
 
 
 // GET ALL REPORT FOR DASHBOARD
-const dashboardAllReportService = async () => {
+const dashboardAllReportService = async (user: TAuthUser) => {
     const challans = await prisma.challan.findMany({
-        where: { isDeleted: false },
+        where: { isDeleted: false, vataId: user.vataId },
         select: {
             carRent: true,
             cash: true,
@@ -142,19 +142,48 @@ const dashboardAllReportService = async () => {
         0
     );
 
+
+    // DUE=====================================================================
+    const due = await prisma.due_Collection.aggregate({
+        where: {
+            customer: {
+                // vataId: vataId,
+            },
+        },
+        _sum: {
+            collect: true,
+        },
+    });
+
+
+    // CASH==================================================
+
+    const cash = await prisma.cash.aggregate({
+        where: {
+            // vataId: vataId,
+        },
+        _sum: {
+            amount: true,
+        },
+    });
+
+
+
     const Informations = {
         challan: {
             summary: challanReport,
             items,
         },
-        payment:{
-            total:totalPaymentGiven,
-            payments:paymentReport
-        }
+        payment: {
+            total: totalPaymentGiven,
+            payments: paymentReport
+        },
+
+        due:due?._sum,
+        cash:cash?._sum
     }
-
-
     return Informations
+
 
 }
 

@@ -1,162 +1,227 @@
 import { Request, Response } from "express";
+
 import catchAsync from "../../../utils/catchAsync";
 import { sendResponse } from "../../../utils/sendResponse";
 import { ReceivablePayableService } from "./receivable_payable.service";
 import { AppError } from "../../errors/ApplicationError";
 import { StatusCodes } from "http-status-codes";
-
+import { TAuthUser } from "../../../interface/token";
 
 // ==========================================
 // Create Receivable / Payable
 // ==========================================
+
 const createReceivablePayableController = catchAsync(
     async (req: Request, res: Response) => {
+        const user = req.user as TAuthUser;
+
         const result =
             await ReceivablePayableService.createReceivablePayable(
+                user,
                 req.body
             );
-        if (!result) {
+
+        if (result) {
+            sendResponse(res, {
+                statusCode: StatusCodes.CREATED,
+                success: true,
+                message: "লেনদেনের হিসাব সফলভাবে তৈরি হয়েছে।",
+                data: result,
+            });
+        } else {
             throw new AppError(
                 StatusCodes.BAD_REQUEST,
-                "সঠিক transactionType প্রদান করুন"
+                "সঠিক transactionType প্রদান করুন।"
             );
         }
-        sendResponse(res, {
-            statusCode: 201,
-            success: true,
-            message: "লেনদেনের হিসাব সফলভাবে তৈরি হয়েছে",
-            data: result,
-        });
     }
 );
 
 // ==========================================
 // Create Transaction
 // ==========================================
+
 const createTransactionController = catchAsync(
     async (req: Request, res: Response) => {
-        const id = req.params.id
-        const result =
-            await ReceivablePayableService.createTransaction(id, req.body);
+        const id = req.params.id;
+        const user = req.user as TAuthUser;
 
-        sendResponse(res, {
-            statusCode: 201,
-            success: true,
-            message: "লেনদেনের হিসাব সফলভাবে তৈরি হয়েছে",
-            data: result,
-        });
-    }
-);
-
-// ==========================================
-// Get All 
-// ==========================================
-const getAllReceivablePayableController = catchAsync(
-    async (req: Request, res: Response) => {
         const result =
-            await ReceivablePayableService.getAllReceivablePayable();
-        if (!result.length) {
+            await ReceivablePayableService.createTransaction(
+                user,
+                id,
+                req.body
+            );
+
+        if (result) {
             sendResponse(res, {
-                statusCode: 200,
+                statusCode: StatusCodes.CREATED,
                 success: true,
-                message: "কোনো লেনদেনের হিসাব পাওয়া যায়নি",
+                message: "লেনদেন সফলভাবে তৈরি হয়েছে।",
                 data: result,
             });
-
+        } else {
+            throw new AppError(
+                StatusCodes.BAD_REQUEST,
+                "লেনদেন তৈরি করা যায়নি।"
+            );
         }
-        sendResponse(res, {
-            statusCode: 200,
-            success: true,
-            message: "দেওয়া লেনদেনের হিসাব সফলভাবে পাওয়া গেছে",
-            data: result,
-        });
     }
 );
 
+// ==========================================
+// Get All Receivable / Payable
+// ==========================================
 
+const getAllReceivablePayableController = catchAsync(
+    async (req: Request, res: Response) => {
+        const user = req.user as TAuthUser;
+
+        const result =
+            await ReceivablePayableService.getAllReceivablePayable(user);
+
+        if (result.length > 0) {
+            sendResponse(res, {
+                statusCode: StatusCodes.OK,
+                success: true,
+                message: "লেনদেনের হিসাবসমূহ সফলভাবে পাওয়া গেছে।",
+                data: result,
+            });
+        } else {
+            sendResponse(res, {
+                statusCode: StatusCodes.OK,
+                success: true,
+                message: "কোনো লেনদেনের হিসাব পাওয়া যায়নি।",
+                data: [],
+            });
+        }
+    }
+);
 
 // ==========================================
 // Get Single Receivable / Payable
 // ==========================================
+
 const getSingleReceivablePayableController = catchAsync(
     async (req: Request, res: Response) => {
+        const user = req.user as TAuthUser;
+
         const result =
             await ReceivablePayableService.getSingleReceivablePayable(
+                user,
                 req.params.id
             );
 
-        sendResponse(res, {
-            statusCode: 200,
-            success: true,
-            message: "লেনদেনের হিসাব সফলভাবে পাওয়া গেছে",
-            data: result,
-        });
+        if (result) {
+            sendResponse(res, {
+                statusCode: StatusCodes.OK,
+                success: true,
+                message: "লেনদেনের হিসাব সফলভাবে পাওয়া গেছে।",
+                data: result,
+            });
+        } else {
+            throw new AppError(
+                StatusCodes.NOT_FOUND,
+                "লেনদেনের হিসাব পাওয়া যায়নি।"
+            );
+        }
     }
 );
 
 // ==========================================
 // Update Receivable / Payable
 // ==========================================
+
 const updateReceivablePayableController = catchAsync(
     async (req: Request, res: Response) => {
+        const user = req.user as TAuthUser;
+
         const result =
             await ReceivablePayableService.updateReceivablePayable(
+                user,
                 req.params.id,
                 req.body
             );
 
-        sendResponse(res, {
-            statusCode: 200,
-            success: true,
-            message: "লেনদেনের হিসাব সফলভাবে আপডেট হয়েছে",
-            data: result,
-        });
+        if (result) {
+            sendResponse(res, {
+                statusCode: StatusCodes.OK,
+                success: true,
+                message: "লেনদেনের হিসাব সফলভাবে আপডেট হয়েছে।",
+                data: result,
+            });
+        } else {
+            throw new AppError(
+                StatusCodes.NOT_FOUND,
+                "লেনদেনের হিসাব পাওয়া যায়নি বা আপডেট করা যায়নি।"
+            );
+        }
     }
 );
 
 // ==========================================
 // Delete Receivable / Payable
 // ==========================================
+
 const deleteReceivablePayableController = catchAsync(
     async (req: Request, res: Response) => {
+        const user = req.user as TAuthUser;
+
         const result =
             await ReceivablePayableService.deleteReceivablePayable(
+                user,
                 req.params.id
             );
 
-        sendResponse(res, {
-            statusCode: 200,
-            success: true,
-            message: "লেনদেনের হিসাব সফলভাবে মুছে ফেলা হয়েছে",
-            data: result,
-        });
-    }
-);
-
-
-// GET CURENT AMOUN
-const getCurrentAmountController = catchAsync(
-    async (req: Request, res: Response) => {
-        const result =
-            await ReceivablePayableService.getCurrentAmountService(
-                req.params.id
-            );
-
-        if (!result) {
+        if (result) {
+            sendResponse(res, {
+                statusCode: StatusCodes.OK,
+                success: true,
+                message: "লেনদেনের হিসাব সফলভাবে মুছে ফেলা হয়েছে।",
+                data: result,
+            });
+        } else {
             throw new AppError(
                 StatusCodes.NOT_FOUND,
-                "কোনো লেনদেনের হিসাব পাওয়া যায়নি"
+                "লেনদেনের হিসাব পাওয়া যায়নি বা মুছে ফেলা যায়নি।"
             );
         }
-
-        sendResponse(res, {
-            statusCode: 200,
-            success: true,
-            message: "লেনদেনের হিসাব সফলভাবে পাওয়া গেছে",
-            data: result,
-        });
     }
 );
+
+// ==========================================
+// Get Current Amount
+// ==========================================
+
+const getCurrentAmountController = catchAsync(
+    async (req: Request, res: Response) => {
+        const user = req.user as TAuthUser;
+
+        const result =
+            await ReceivablePayableService.getCurrentAmountService(
+                user,
+                req.params.id
+            );
+
+        if (result) {
+            sendResponse(res, {
+                statusCode: StatusCodes.OK,
+                success: true,
+                message: "বর্তমান বকেয়া পরিমাণ সফলভাবে পাওয়া গেছে।",
+                data: result,
+            });
+        } else {
+            throw new AppError(
+                StatusCodes.NOT_FOUND,
+                "লেনদেনের হিসাব বা বর্তমান বকেয়া পরিমাণ পাওয়া যায়নি।"
+            );
+        }
+    }
+);
+
+// ==========================================
+// Export Controller
+// ==========================================
 
 export const ReceivablePayableController = {
     createReceivablePayableController,
@@ -165,43 +230,5 @@ export const ReceivablePayableController = {
     getSingleReceivablePayableController,
     updateReceivablePayableController,
     deleteReceivablePayableController,
-    getCurrentAmountController
+    getCurrentAmountController,
 };
-
-
-
-// const getAllGivenController = catchAsync(
-//     async (req: Request, res: Response) => {
-//         const result =
-//             await ReceivablePayableService.getAllGivenService();
-//         if (!result.length) {
-//             throw new AppError(
-//                 StatusCodes.NOT_FOUND,
-//                 "কোনো লেনদেনের হিসাব পাওয়া যায়নি"
-//             );
-//         }
-//         sendResponse(res, {
-//             statusCode: 200,
-//             success: true,
-//             message: "দেওয়া লেনদেনের হিসাব সফলভাবে পাওয়া গেছে",
-//             data: result,
-//         });
-//     }
-// );
-
-// // ==========================================
-// // Get All TAKEN
-// // ==========================================
-// const getAllTakenController = catchAsync(
-//     async (req: Request, res: Response) => {
-//         const result =
-//             await ReceivablePayableService.getAllTakenService();
-
-//         sendResponse(res, {
-//             statusCode: 200,
-//             success: true,
-//             message: "নেওয়া লেনদেনের হিসাব সফলভাবে পাওয়া গেছে",
-//             data: result,
-//         });
-//     }
-// );

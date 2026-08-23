@@ -91,9 +91,33 @@ const updateClassAndRateController = catchAsync(async (req, res) => {
   }
 });
 
+
+const deleteClassAndRateController = catchAsync(async (req, res) => {
+  const id = req.params?.id;
+  const user = req.user as TAuthUser;
+  const result = await ClassAndRateService.deleteClassAndRateService(
+    user,
+    id
+  );
+  if (!result?.id) {
+    throw new AppError(
+      StatusCodes.BAD_REQUEST,
+      "দুঃখিত! শ্রেণী ও রেট মুছে ফেলতে ব্যর্থ হয়েছে"
+    );
+  } else {
+    sendResponse(res, {
+      message: "শ্রেণী ও রেট সফলভাবে মুছে ফেলা হয়েছে",
+      statusCode: StatusCodes.OK,
+      success: true,
+      data: result,
+    });
+  }
+});
+
 export const ClassAndRateController = {
   createClassAndRateController,
   getClassAndRateController,
   getSingleClassAndRateController,
   updateClassAndRateController,
+  deleteClassAndRateController
 };

@@ -3,13 +3,15 @@ import { TaskService } from "./task.service";
 import catchAsync from "../../../utils/catchAsync";
 import { sendResponse } from "../../../utils/sendResponse";
 import { parseListQuery } from "../../../utils/parseListQuery";
+import { TAuthUser } from "../../../interface/token";
 
 // ==========================================
 // Create Task
 // ==========================================
 const createTaskController = catchAsync(
     async (req: Request, res: Response) => {
-        const result = await TaskService.createTaskService(req.body);
+        const user = req.user as TAuthUser;
+        const result = await TaskService.createTaskService(user, req.body);
 
         if (!result) {
             throw new Error("কাজ তৈরি করা যায়নি");
@@ -29,8 +31,9 @@ const createTaskController = catchAsync(
 // ==========================================
 const getPendingTasksController = catchAsync(
     async (req: Request, res: Response) => {
+        const user = req.user as TAuthUser;
         const { date } = await parseListQuery(req.query);
-        const result = await TaskService.getPendingTasksService({ date });
+        const result = await TaskService.getPendingTasksService(user, { date });
 
         if (!result.length) {
             sendResponse(res, {
@@ -57,8 +60,9 @@ const getPendingTasksController = catchAsync(
 // ==========================================
 const getCompleteTasksController = catchAsync(
     async (req: Request, res: Response) => {
+        const user = req.user as TAuthUser;
         const { date } = await parseListQuery(req.query);
-        const result = await TaskService.getCompleteTasksService({ date });
+        const result = await TaskService.getCompleteTasksService(user, { date });
 
         if (!result.length) {
             sendResponse(res, {
@@ -86,8 +90,9 @@ const getCompleteTasksController = catchAsync(
 const getSingleTaskController = catchAsync(
     async (req: Request, res: Response) => {
         const { id } = req.params;
+        const user = req.user as TAuthUser;
 
-        const result = await TaskService.getSingleTaskService(id);
+        const result = await TaskService.getSingleTaskService(user, id);
 
         if (!result) {
             throw new Error("কাজটি পাওয়া যায়নি");
@@ -108,8 +113,10 @@ const getSingleTaskController = catchAsync(
 // ==========================================
 const updateTaskController = catchAsync(
     async (req: Request, res: Response) => {
+        const user = req.user as TAuthUser;
         const { id } = req.params;
         const result = await TaskService.updateTaskService(
+            user,
             id,
             req.body
         );
@@ -133,8 +140,9 @@ const updateTaskController = catchAsync(
 const deleteTaskController = catchAsync(
     async (req: Request, res: Response) => {
         const { id } = req.params;
+        const user = req.user as TAuthUser;
 
-        const result = await TaskService.deleteTaskService(id);
+        const result = await TaskService.deleteTaskService(user, id);
 
         if (!result) {
             throw new Error("কাজটি পাওয়া যায়নি");

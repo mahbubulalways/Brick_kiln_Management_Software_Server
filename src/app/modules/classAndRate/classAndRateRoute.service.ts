@@ -8,7 +8,8 @@ const createClassAndRateService = async (user: TAuthUser, payload: ClassAndRate)
   const isExist = await prisma.classAndRate.findFirst({
     where: {
       className: payload.className,
-      vataId: user.vataId
+      vataId: user.vataId,
+      isDeleted:false
     },
   });
 
@@ -32,8 +33,11 @@ const createClassAndRateService = async (user: TAuthUser, payload: ClassAndRate)
 const getClassAndRateService = async (user: TAuthUser) => {
   const result = await prisma.classAndRate.findMany({
     where: {
-      vataId: user.vataId
-    }, orderBy: { createdAt: "asc" }
+      vataId: user.vataId,
+      isDeleted:false
+    }, orderBy: { createdAt: "asc" },
+
+
   });
   return result;
 };
@@ -43,7 +47,8 @@ const getClassAndRateService = async (user: TAuthUser) => {
 const getSingleClassAndRateService = async (user: TAuthUser, id: string) => {
   const result = await prisma.classAndRate.findFirst({
     where: {
-      vataId: user.vataId, id
+      vataId: user.vataId, id,
+      isDeleted:false
     }
   });
   return result;
@@ -58,9 +63,21 @@ const updateClassAndRateService = async (user: TAuthUser, id: string, data: Clas
   return result;
 };
 
+// DELETYE
+const deleteClassAndRateService = async (user: TAuthUser, id: string) => {
+  const result = await prisma.classAndRate.update({
+    data: {
+      isDeleted: true
+    },
+    where: { vataId: user.vataId, id },
+  });
+  return result;
+};
+
 export const ClassAndRateService = {
   createClassAndRateService,
   getClassAndRateService,
   getSingleClassAndRateService,
   updateClassAndRateService,
+  deleteClassAndRateService
 };

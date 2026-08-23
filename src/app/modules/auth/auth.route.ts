@@ -24,4 +24,14 @@ router.post(
   AuthController.logoutController,
 );
 
+router.post(
+  "/change-password",
+  AuthGuard(
+    UserRole.ADMIN,
+    UserRole.MANAGER,
+    UserRole.OWNER
+  ),
+  AuthController.changePasswordController,
+);
+
 export default router;

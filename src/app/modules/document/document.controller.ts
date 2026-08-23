@@ -3,48 +3,58 @@ import catchAsync from "../../../utils/catchAsync";
 import { sendResponse } from "../../../utils/sendResponse";
 import { AppError } from "../../errors/ApplicationError";
 import { DocumentService } from "./document.service";
+import { TAuthUser } from "../../../interface/token";
 
 const createFolderController = catchAsync(async (req, res) => {
-    const result = await DocumentService.createFolderService(req.body);
+    const user = req.user as TAuthUser;
+    const result = await DocumentService.createFolderService(
+        user,
+        req.body
+    );
 
-    if (!result) {
+    if (result) {
+        sendResponse(res, {
+            message: "ফোল্ডারটি সফলভাবে তৈরি করা হয়েছে।",
+            statusCode: StatusCodes.CREATED,
+            success: true,
+            data: result,
+        });
+    } else {
         throw new AppError(
             StatusCodes.NOT_FOUND,
             "ফোল্ডার তৈরি করা যায়নি।"
         );
     }
-    sendResponse(res, {
-        message: "ফোল্ডারটি সফলভাবে তৈরি করা হয়েছে।",
-        statusCode: StatusCodes.CREATED,
-        success: true,
-        data: result,
-    });
 });
 
 const updateFolderController = catchAsync(async (req, res) => {
     const { id } = req.params;
+    const user = req.user as TAuthUser;
+
     const result = await DocumentService.updateFolderNameService(
+        user,
         id,
         req.body
     );
 
-    if (!result) {
+    if (result) {
+        sendResponse(res, {
+            message: "ফোল্ডারটি সফলভাবে আপডেট করা হয়েছে।",
+            statusCode: StatusCodes.OK,
+            success: true,
+            data: result,
+        });
+    } else {
         throw new AppError(
             StatusCodes.NOT_FOUND,
             "ফোল্ডারটি পাওয়া যায়নি বা আপডেট করা যায়নি।"
         );
     }
-
-    sendResponse(res, {
-        message: "ফোল্ডারটি সফলভাবে আপডেট করা হয়েছে।",
-        statusCode: StatusCodes.OK,
-        success: true,
-        data: result,
-    });
 });
 
 const getAllDocumentsController = catchAsync(async (req, res) => {
-    const result = await DocumentService.getAllDocumentsService();
+    const user = req.user as TAuthUser;
+    const result = await DocumentService.getAllDocumentsService(user);
 
     if (!result.length) {
         sendResponse(res, {
@@ -54,68 +64,82 @@ const getAllDocumentsController = catchAsync(async (req, res) => {
             data: [],
         });
 
-        return;
+    } else {
+        sendResponse(res, {
+            statusCode: StatusCodes.OK,
+            success: true,
+            message: "ডকুমেন্টসমূহ সফলভাবে পাওয়া গেছে।",
+            data: result,
+        });
     }
-
-    sendResponse(res, {
-        statusCode: StatusCodes.OK,
-        success: true,
-        message: "ডকুমেন্টসমূহ সফলভাবে পাওয়া গেছে।",
-        data: result,
-    });
 });
 
 // GET SINGLE FOLDER NAME
 const getSingleFolderController = catchAsync(async (req, res) => {
     const { id } = req.params;
+    const user = req.user as TAuthUser;
 
-    const result = await DocumentService.getSingleFolderService(id);
+    const result = await DocumentService.getSingleFolderService(
+        user,
+        id
+    );
 
-    if (!result) {
+    if (result) {
+        sendResponse(res, {
+            statusCode: StatusCodes.OK,
+            success: true,
+            message: "ফোল্ডারের তথ্য সফলভাবে পাওয়া গেছে।",
+            data: result,
+        });
+    } else {
         throw new AppError(
             StatusCodes.NOT_FOUND,
             "ফোল্ডারটি পাওয়া যায়নি।"
         );
     }
-
-    sendResponse(res, {
-        statusCode: StatusCodes.OK,
-        success: true,
-        message: "ফোল্ডারের তথ্য সফলভাবে পাওয়া গেছে।",
-        data: result,
-    });
 });
 
 // GET EACH FOLDER DOCUMENTS
 const getSingleDocumentController = catchAsync(async (req, res) => {
-    const result = await DocumentService.getSingleDocumentService(req.params.id);
-    if (!result) {
+    const user = req.user as TAuthUser;
+
+    const result = await DocumentService.getSingleDocumentService(
+        user,
+        req.params.id
+    );
+
+    if (result) {
+        sendResponse(res, {
+            statusCode: StatusCodes.OK,
+            success: true,
+            message: "ডকুমেন্টসমূহ সফলভাবে পাওয়া গেছে।",
+            data: result,
+        });
+    } else {
         sendResponse(res, {
             statusCode: StatusCodes.OK,
             success: true,
             message: "কোনো ডকুমেন্ট পাওয়া যায়নি।",
             data: [],
         });
-
-        return;
     }
-
-    sendResponse(res, {
-        statusCode: StatusCodes.OK,
-        success: true,
-        message: "ডকুমেন্টসমূহ সফলভাবে পাওয়া গেছে।",
-        data: result,
-    });
 });
 
 // UPLOAD
 const uploadDocumentController = catchAsync(async (req, res) => {
-    const result = await DocumentService.uploadDocumentService(req);
+    const user = req.user as TAuthUser;
+
+    const result = await DocumentService.uploadDocumentService(
+        user,
+        req
+    );
+
     if (result) {
         sendResponse(res, {
             statusCode: StatusCodes.CREATED,
             success: true,
             message: "ফাইল সফলভাবে আপলোড হয়েছে।",
+            data: result,
         });
     } else {
         throw new AppError(
@@ -123,44 +147,58 @@ const uploadDocumentController = catchAsync(async (req, res) => {
             "ফাইল আপলোড করা যায়নি।"
         );
     }
-
 });
 
-// DELETE 
+// DELETE DOCUMENT
+const deleteDocumentController = catchAsync(async (req, res) => {
+    const id = req.params.id;
+    const user = req.user as TAuthUser;
 
-const deleteDocumentController = catchAsync(
-    async (req, res) => {
-        const id =req.params.id;
+    const result = await DocumentService.deleteDocumentService(
+        user,
+        id
+    );
 
-        const result =
-            await DocumentService.deleteDocumentService(id);
-
-        if (result) {
-            sendResponse(res, {
-                statusCode: StatusCodes.OK,
-                success: true,
-                message: "ফাইলটি সফলভাবে ডিলেট করা হয়েছে।",
-            });
-        }
+    if (result) {
+        sendResponse(res, {
+            statusCode: StatusCodes.OK,
+            success: true,
+            message: "ফাইলটি সফলভাবে ডিলেট করা হয়েছে।",
+            data: result,
+        });
+    } else {
+        throw new AppError(
+            StatusCodes.NOT_FOUND,
+            "ফাইলটি পাওয়া যায়নি বা ডিলেট করা যায়নি।"
+        );
     }
-);
+});
 
 // DELETE FOLDER
-const deleteFolderController = catchAsync(
-    async (req, res) => {
-        const id =req.params.id;
-        const result =
-            await DocumentService.deleteFolderService(id);
+const deleteFolderController = catchAsync(async (req, res) => {
+    const id = req.params.id;
+    const user = req.user as TAuthUser;
 
-        if (result) {
-            sendResponse(res, {
-                statusCode: StatusCodes.OK,
-                success: true,
-                message: "ফাইলটি সফলভাবে ডিলেট করা হয়েছে।",
-            });
-        }
+    const result = await DocumentService.deleteFolderService(
+        user,
+        id
+    );
+
+    if (result) {
+        sendResponse(res, {
+            statusCode: StatusCodes.OK,
+            success: true,
+            message: "ফোল্ডারটি সফলভাবে ডিলেট করা হয়েছে।",
+            data: result,
+        });
+    } else {
+        throw new AppError(
+            StatusCodes.NOT_FOUND,
+            "ফোল্ডারটি পাওয়া যায়নি বা ডিলেট করা যায়নি।"
+        );
     }
-);
+});
+
 export const DocumentController = {
     createFolderController,
     getAllDocumentsController,

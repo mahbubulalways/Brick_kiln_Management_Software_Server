@@ -2,10 +2,11 @@ import { StatusCodes } from "http-status-codes";
 import catchAsync from "../../../utils/catchAsync";
 import { sendResponse } from "../../../utils/sendResponse";
 import { ReportService } from "./report.service";
+import { TAuthUser } from "../../../interface/token";
 
 const getAllCustomertController = catchAsync(async (req, res) => {
-    const result = await ReportService.getTopSellingAreasService();
-
+      const user = req.user as TAuthUser
+    const result = await ReportService.getTopSellingAreasService(user);
     if (!result.length) {
         sendResponse(res, {
             statusCode: StatusCodes.OK,
@@ -27,7 +28,8 @@ const getAllCustomertController = catchAsync(async (req, res) => {
 
 
 const dashboardAllReportController = catchAsync(async (req, res) => {
-    const result = await ReportService.dashboardAllReportService();
+      const user = req.user as TAuthUser
+    const result = await ReportService.dashboardAllReportService(user);
 
     if (!result) {
         sendResponse(res, {

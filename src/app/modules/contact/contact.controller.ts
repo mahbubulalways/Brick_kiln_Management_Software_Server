@@ -4,9 +4,11 @@ import { ContactService } from "./contact.service";
 import catchAsync from "../../../utils/catchAsync";
 import { sendResponse } from "../../../utils/sendResponse";
 import { parseListQuery } from "../../../utils/parseListQuery";
+import { TAuthUser } from "../../../interface/token";
 
 const createContactController = catchAsync(async (req: Request, res: Response) => {
-    const result = await ContactService.createContactService(req.body);
+    const user = req.user as TAuthUser
+    const result = await ContactService.createContactService(user, req.body);
 
     if (result) {
         sendResponse(res, {
@@ -22,7 +24,8 @@ const createContactController = catchAsync(async (req: Request, res: Response) =
 
 const getAllContactController = catchAsync(async (req: Request, res: Response) => {
     const { limit, page, search } = await parseListQuery(req.query);
-    const result = await ContactService.getAllContactService({ limit, page, search });
+    const user = req.user as TAuthUser
+    const result = await ContactService.getAllContactService(user, { limit, page, search });
 
     if (result.data.length > 0) {
         sendResponse(res, {
@@ -43,8 +46,8 @@ const getAllContactController = catchAsync(async (req: Request, res: Response) =
 
 const getSingleContactController = catchAsync(async (req: Request, res: Response) => {
     const { id } = req.params;
-
-    const result = await ContactService.getSingleContactService(id);
+    const user = req.user as TAuthUser
+    const result = await ContactService.getSingleContactService(user, id);
 
     if (result) {
         sendResponse(res, {
@@ -60,8 +63,9 @@ const getSingleContactController = catchAsync(async (req: Request, res: Response
 
 const updateContactController = catchAsync(async (req: Request, res: Response) => {
     const { id } = req.params;
-
+    const user = req.user as TAuthUser
     const result = await ContactService.updateContactService(
+        user,
         id,
         req.body
     );
@@ -80,8 +84,8 @@ const updateContactController = catchAsync(async (req: Request, res: Response) =
 
 const deleteContactController = catchAsync(async (req: Request, res: Response) => {
     const { id } = req.params;
-
-    const result = await ContactService.deleteContactService(id);
+    const user = req.user as TAuthUser
+    const result = await ContactService.deleteContactService(user, id);
 
     if (result) {
         sendResponse(res, {

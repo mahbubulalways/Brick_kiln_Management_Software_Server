@@ -212,7 +212,7 @@ const getSingleCustomerInformationService = async (user: TAuthUser, id: string) 
     where: {
       isDeleted: false,
       vataId: user.vataId,
-      customerCode:id
+      customerCode: id
     },
 
     include: {
@@ -286,7 +286,7 @@ const getCustomerAllChallanService = async (user: TAuthUser, id: string, query: 
 
 
 
-// GET CUSTOMER CHALLANS
+// GET CUSTOMER DELIVERIE
 const getCustomerAllDeliveryService = async (user: TAuthUser, id: string, query: TQuery) => {
   const { limit, page, skip } = paginationHelper(query.page, query.limit);
 
@@ -319,6 +319,8 @@ const getCustomerAllDeliveryService = async (user: TAuthUser, id: string, query:
       include: {
         invoice: {
           select: {
+            id: true,
+            serial: true,
             customer: {
               select: {
                 name: true,

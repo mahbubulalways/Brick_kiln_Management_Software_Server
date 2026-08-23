@@ -3,31 +3,37 @@
 // ==========================================
 // Create Task
 
-import { Prisma } from "../../../generated/prisma/client";
+import { Prisma, TaskManager } from "../../../generated/prisma/client";
 import { prisma } from "../../../helpers/prisma";
 import { TQuery } from "../../../interface/query";
+import { TAuthUser } from "../../../interface/token";
 import { getDateRangeDbSearch } from "../../../utils/getDateRangeDbSearch";
 
 // ==========================================
 const createTaskService = async (
-    payload: Prisma.TaskManagerCreateInput
+    user: TAuthUser,
+    payload: TaskManager
 ) => {
     const result = await prisma.taskManager.create({
-        data: payload
+        data: {
+            ...payload,
+            vataId: user.vataId
+        }
     });
 
     return result;
 };
 
 
-
-
-
 // ==========================================
 // Get Pending Tasks
 // ==========================================
-const getPendingTasksService = async (query: TQuery) => {
-    const where: Prisma.TaskManagerWhereInput = { isDeleted: false, status: "PENDING", };
+const getPendingTasksService = async (user: TAuthUser, query: TQuery) => {
+    const where: Prisma.TaskManagerWhereInput = {
+        vataId: user.vataId,
+        isDeleted: false,
+        status: "PENDING",
+    };
     if (query.date) {
         const dateRange = getDateRangeDbSearch(query.date);
         if (dateRange) {
@@ -55,8 +61,14 @@ const getPendingTasksService = async (query: TQuery) => {
 // ==========================================
 // Get Complete Tasks
 // ==========================================
-const getCompleteTasksService = async (query: TQuery) => {
-     const where: Prisma.TaskManagerWhereInput = { isDeleted: false, status: "COMPLETE", };
+const getCompleteTasksService = async (user: TAuthUser, query: TQuery) => {
+    const where: Prisma.TaskManagerWhereInput = {
+        isDeleted: false,
+        status: "COMPLETE",
+        vataId: user.vataId,
+    };
+
+    console.log(query.date)
     if (query.date) {
         const dateRange = getDateRangeDbSearch(query.date);
         if (dateRange) {
@@ -77,8 +89,8 @@ const getCompleteTasksService = async (query: TQuery) => {
             },
         },
     });
-    
-  
+
+
     return result;
 };
 
@@ -86,10 +98,11 @@ const getCompleteTasksService = async (query: TQuery) => {
 // ==========================================
 // Get Single Task
 // ==========================================
-const getSingleTaskService = async (id: string) => {
+const getSingleTaskService = async (user: TAuthUser, id: string) => {
     const result = await prisma.taskManager.findUnique({
         where: {
             id,
+            vataId: user.vataId,
         },
         include: {
             user: {
@@ -109,6 +122,7 @@ const getSingleTaskService = async (id: string) => {
 // Update Task
 // ==========================================
 const updateTaskService = async (
+    user: TAuthUser,
     id: string,
     payload: Prisma.TaskManagerUpdateInput
 ) => {
@@ -122,6 +136,7 @@ const updateTaskService = async (
     const result = await prisma.taskManager.update({
         where: {
             id,
+            vataId: user.vataId,
         },
         data: updateData,
         include: {
@@ -140,10 +155,11 @@ const updateTaskService = async (
 // ==========================================
 // Delete Task
 // ==========================================
-const deleteTaskService = async (id: string) => {
+const deleteTaskService = async (user: TAuthUser, id: string) => {
     const result = await prisma.taskManager.delete({
         where: {
             id,
+            vataId: user.vataId,
         },
     });
 

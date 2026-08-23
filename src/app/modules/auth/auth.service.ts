@@ -6,6 +6,7 @@ import { bcryptHelper } from "../../../helpers/bcryptHelper";
 import { jwtHelper } from "./auth.utils";
 import { prisma } from "../../../helpers/prisma";
 import { UserService } from "../user/user.service";
+import { TAuthUser } from "../../../interface/token";
 
 const userData = {
   name: "Mahbubul Hasan",
@@ -63,7 +64,7 @@ const loginUserToSystemService = async (
     username: user.username,
     userId: user.id,
     role: user.role,
-    vataId:user.vataId
+    vataId: user.vataId
   };
 
   // Access token
@@ -89,10 +90,12 @@ const loginUserToSystemService = async (
 
 // LOGOUT
 
-const logoutUserService = async (username: string, ip: string, payload: { device: string, browser: string }) => {
+const logoutUserService = async (userAuth: TAuthUser, username: string, ip: string, payload: { device: string, browser: string }) => {
+
   const user = await prisma.user.findUnique({
     where: {
       username,
+      vataId: userAuth.vataId
     },
   });
 
@@ -115,4 +118,59 @@ const logoutUserService = async (username: string, ip: string, payload: { device
   return result
 }
 
-export const AuthService = { loginUserToSystemService, logoutUserService };
+
+// CHANGE PASSWORD
+const changePasswordServie = async (
+  user: TAuthUser,
+  payload: {
+    oldPassword: string;
+    newPassword: string;
+  },
+) => {
+  const mainUser = await prisma.user.findFirst({
+    where: {
+      username: user.username,
+      vataId: user.vataId,
+    },
+  });
+
+  if (!mainUser) {
+    throw new AppError(
+      StatusCodes.NOT_FOUND,
+      "ব্যবহারকারী খুঁজে পাওয়া যায়নি।",
+    );
+  }
+
+  const matchPassword = await bcryptHelper.comparePassword(
+    payload.oldPassword,
+    mainUser.password,
+  );
+
+  if (!matchPassword) {
+    throw new AppError(
+      StatusCodes.BAD_REQUEST,
+      "পুরাতন পাসওয়ার্ড সঠিক নয়।",
+    );
+  }
+
+  const hashedPassword = await bcryptHelper.hashPassword(
+    payload.newPassword,
+  );
+
+  const result = await prisma.user.update({
+    where: {
+      id: mainUser.id,
+    },
+    data: {
+      password: hashedPassword,
+    },
+  });
+
+  return result;
+};
+
+export const AuthService = {
+  loginUserToSystemService,
+  logoutUserService,
+  changePasswordServie
+};
