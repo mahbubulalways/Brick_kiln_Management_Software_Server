@@ -11,7 +11,8 @@ const ApplicationError_1 = require("../../errors/ApplicationError");
 const delivery_service_1 = require("./delivery.service");
 const http_status_codes_1 = require("http-status-codes");
 const getNextDeliveryNoController = (0, catchAsync_1.default)(async (req, res) => {
-    const result = await delivery_service_1.DeliveryService.getNextDeliveryNo();
+    const user = req.user;
+    const result = await delivery_service_1.DeliveryService.getNextDeliveryNo(user);
     if (!result) {
         throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.NOT_FOUND, "কোনো ডেলিভারি পাওয়া যায়নি।");
     }
@@ -26,8 +27,10 @@ const getNextDeliveryNoController = (0, catchAsync_1.default)(async (req, res) =
 });
 // GET DELIVERY THAT GO TODAY
 const getDeliveryThatGoTodayController = (0, catchAsync_1.default)(async (req, res) => {
+    const user = req.user;
     const { limit, page, date, search } = await (0, parseListQuery_1.parseListQuery)(req.query);
-    const result = await delivery_service_1.DeliveryService.getDeliveryThatGoTodayService({ date, limit, page, search });
+    console.log(req.query);
+    const result = await delivery_service_1.DeliveryService.getDeliveryThatGoTodayService(user, { date, limit, page, search });
     if (!result?.data?.length) {
         (0, sendResponse_1.sendResponse)(res, {
             message: "আজকের জন্য কোনো ডেলিভারি পাওয়া যায়নি।",
@@ -46,8 +49,9 @@ const getDeliveryThatGoTodayController = (0, catchAsync_1.default)(async (req, r
     }
 });
 const getAllDeliveryListController = (0, catchAsync_1.default)(async (req, res) => {
+    const user = req.user;
     const { limit, page, date, search } = await (0, parseListQuery_1.parseListQuery)(req.query);
-    const result = await delivery_service_1.DeliveryService.getAllDeliveryListService({ date, limit, page, search });
+    const result = await delivery_service_1.DeliveryService.getAllDeliveryListService(user, { date, limit, page, search });
     if (!result?.data?.length) {
         (0, sendResponse_1.sendResponse)(res, {
             message: "কোনো ডেলিভারি পাওয়া যায়নি।",
@@ -67,7 +71,8 @@ const getAllDeliveryListController = (0, catchAsync_1.default)(async (req, res) 
 });
 const createDeliveryController = (0, catchAsync_1.default)(async (req, res) => {
     const body = req.body;
-    const result = await delivery_service_1.DeliveryService.createDeliveryService(body);
+    const user = req.user;
+    const result = await delivery_service_1.DeliveryService.createDeliveryService(user, body);
     if (!result) {
         throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.BAD_REQUEST, "ডেলিভারি তৈরি করা সম্ভব হয়নি।");
     }
@@ -81,7 +86,8 @@ const createDeliveryController = (0, catchAsync_1.default)(async (req, res) => {
 });
 const getTodaysDeliveryThatDoneController = (0, catchAsync_1.default)(async (req, res) => {
     const { limit, page, date } = await (0, parseListQuery_1.parseListQuery)(req.query);
-    const result = await delivery_service_1.DeliveryService.getTodaysDeliveryThatDone({ date, limit, page });
+    const user = req.user;
+    const result = await delivery_service_1.DeliveryService.getTodaysDeliveryThatDone(user, { date, limit, page });
     if (!result?.data?.length) {
         (0, sendResponse_1.sendResponse)(res, {
             message: "আজকের জন্য কোনো ডেলিভারি পাওয়া যায়নি।",
@@ -102,7 +108,7 @@ const getTodaysDeliveryThatDoneController = (0, catchAsync_1.default)(async (req
 // GET SINGLE
 const getSingleDeliveryController = (0, catchAsync_1.default)(async (req, res) => {
     const id = req.params.id;
-    const result = await delivery_service_1.DeliveryService.getSingleDeliveryService(Number(id));
+    const result = await delivery_service_1.DeliveryService.getSingleDeliveryService(id);
     if (!result) {
         throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.NOT_FOUND, "কোনো ডেলিভারি পাওয়া যায়নি।");
     }

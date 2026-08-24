@@ -15,7 +15,24 @@ const app = (0, express_1.default)();
 app.use(express_1.default.json());
 app.set("trust proxy", true);
 app.use((0, cors_1.default)({
-    origin: ["https://itvata.vercel.app", "http://localhost:3000"],
+    origin: (origin, callback) => {
+        // origin না থাকলে allow
+        if (!origin) {
+            return callback(null, true);
+        }
+        // Localhost এবং যেকোনো localhost subdomain
+        const isLocalhost = /^http:\/\/([a-zA-Z0-9-]+\.)?localhost:3000$/.test(origin);
+        // Production এবং যেকোনো production subdomain
+        const isProduction = /^https:\/\/([a-zA-Z0-9-]+\.)?itvata\.com$/.test(origin);
+        // Vercel frontend
+        const isVercel = origin === "https://itvata.vercel.app";
+        if (isLocalhost ||
+            isProduction ||
+            isVercel) {
+            return callback(null, true);
+        }
+        return callback(new Error("Not allowed by CORS"));
+    },
     credentials: true,
 }));
 app.use((0, cookie_parser_1.default)());

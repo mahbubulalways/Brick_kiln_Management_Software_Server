@@ -27,7 +27,6 @@ const createNewVataController = catchAsync(async (req, res) => {
 
 // GET SUBDOMAIN EXITS OR NOT
 const checkSubdomainExistController = catchAsync(async (req, res) => {
-    console.log(req.params.id)
     const result = await VataService.checkSubdomainExistService(req.params.id);
 
     if (result) {

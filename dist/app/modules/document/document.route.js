@@ -1,15 +1,20 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const document_controller_1 = require("./document.controller");
 const uploader_1 = require("../../../utils/uploader");
+const AuthGuard_1 = __importDefault(require("../../middlewares/AuthGuard"));
+const enums_1 = require("../../../generated/prisma/enums");
 const router = (0, express_1.Router)();
-router.post("/create", document_controller_1.DocumentController.createFolderController);
-router.post("/upload", uploader_1.fileUploader.upload.single("file"), document_controller_1.DocumentController.uploadDocumentController);
-router.get("/all", document_controller_1.DocumentController.getAllDocumentsController);
-router.get("/folder/:id", document_controller_1.DocumentController.getSingleDocumentController);
-router.get("/folder-name/:id", document_controller_1.DocumentController.getSingleFolderController);
-router.delete("/delete-file/:id", document_controller_1.DocumentController.deleteDocumentController);
-router.delete("/delete-folder/:id", document_controller_1.DocumentController.deleteFolderController);
-router.patch("/update-folder/:id", document_controller_1.DocumentController.updateFolderController);
+router.post("/create", (0, AuthGuard_1.default)(enums_1.UserRole.OWNER, enums_1.UserRole.ADMIN, enums_1.UserRole.MANAGER), document_controller_1.DocumentController.createFolderController);
+router.post("/upload", (0, AuthGuard_1.default)(enums_1.UserRole.OWNER, enums_1.UserRole.ADMIN, enums_1.UserRole.MANAGER), uploader_1.fileUploader.upload.single("file"), document_controller_1.DocumentController.uploadDocumentController);
+router.get("/all", (0, AuthGuard_1.default)(enums_1.UserRole.OWNER, enums_1.UserRole.ADMIN, enums_1.UserRole.MANAGER), document_controller_1.DocumentController.getAllDocumentsController);
+router.get("/folder/:id", (0, AuthGuard_1.default)(enums_1.UserRole.OWNER, enums_1.UserRole.ADMIN, enums_1.UserRole.MANAGER), document_controller_1.DocumentController.getSingleDocumentController);
+router.get("/folder-name/:id", (0, AuthGuard_1.default)(enums_1.UserRole.OWNER, enums_1.UserRole.ADMIN, enums_1.UserRole.MANAGER), document_controller_1.DocumentController.getSingleFolderController);
+router.delete("/delete-file/:id", (0, AuthGuard_1.default)(enums_1.UserRole.OWNER, enums_1.UserRole.ADMIN, enums_1.UserRole.MANAGER), document_controller_1.DocumentController.deleteDocumentController);
+router.delete("/delete-folder/:id", (0, AuthGuard_1.default)(enums_1.UserRole.OWNER, enums_1.UserRole.ADMIN, enums_1.UserRole.MANAGER), document_controller_1.DocumentController.deleteFolderController);
+router.patch("/update-folder/:id", (0, AuthGuard_1.default)(enums_1.UserRole.OWNER, enums_1.UserRole.ADMIN, enums_1.UserRole.MANAGER), document_controller_1.DocumentController.updateFolderController);
 exports.default = router;

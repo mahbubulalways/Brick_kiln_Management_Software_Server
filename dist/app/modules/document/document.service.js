@@ -9,23 +9,25 @@ const prisma_1 = require("../../../helpers/prisma");
 const ApplicationError_1 = require("../../errors/ApplicationError");
 const promises_1 = __importDefault(require("fs/promises"));
 const path_1 = __importDefault(require("path"));
-const createFolderService = async (payload) => {
+const createFolderService = async (user, payload) => {
     const isExist = await prisma_1.prisma.document.findFirst({
         where: {
             name: payload.name,
-            type: "FOLDER"
+            type: "FOLDER",
+            vataId: user.vataId
         }
     });
     if (isExist?.id) {
         throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.CONFLICT, "এই নামে একটি ফোল্ডার ইতোমধ্যে রয়েছে।");
     }
     payload.type = "FOLDER";
+    payload.vataId = user.vataId;
     const result = await prisma_1.prisma.document.create({ data: payload });
     return result;
 };
 // UPDATE FOLDER NAME
-const updateFolderNameService = async (id, payload) => {
-    const exist = await prisma_1.prisma.document.findFirst({ where: { id } });
+const updateFolderNameService = async (user, id, payload) => {
+    const exist = await prisma_1.prisma.document.findFirst({ where: { id, vataId: user.vataId } });
     if (!exist?.id) {
         throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.NOT_FOUND, "কোনো ডকুমেন্ট পাওয়া যায়নি।");
     }
@@ -33,10 +35,11 @@ const updateFolderNameService = async (id, payload) => {
     return result;
 };
 // GET ROOT FOLDERS + ROOT FILES
-const getAllDocumentsService = async () => {
+const getAllDocumentsService = async (user) => {
     const result = await prisma_1.prisma.document.findMany({
         where: {
             parentId: null,
+            vataId: user.vataId
         },
         orderBy: {
             createdAt: "desc",
@@ -48,11 +51,12 @@ const getAllDocumentsService = async () => {
     }));
 };
 // GET SINGLE FOLDER
-const getSingleFolderService = async (id) => {
+const getSingleFolderService = async (user, id) => {
     return await prisma_1.prisma.document.findFirst({
         where: {
             id,
             type: "FOLDER",
+            vataId: user.vataId
         },
         select: {
             id: true,
@@ -61,10 +65,11 @@ const getSingleFolderService = async (id) => {
     });
 };
 // GET EACH FOLDER DOCUMENTS
-const getSingleDocumentService = async (id) => {
+const getSingleDocumentService = async (user, id) => {
     const result = await prisma_1.prisma.document.findFirst({
         where: {
             id: id,
+            vataId: user.vataId,
             type: "FOLDER"
         }, include: {
             children: true
@@ -84,7 +89,7 @@ const getSingleDocumentService = async (id) => {
     };
 };
 // const upload 
-const uploadDocumentService = async (req) => {
+const uploadDocumentService = async (user, req) => {
     const parentId = req.body.parentId;
     const file = req.file;
     if (!file) {
@@ -96,6 +101,7 @@ const uploadDocumentService = async (req) => {
             where: {
                 id: parentId,
                 type: "FOLDER",
+                vataId: user.vataId
             },
         });
         if (!parentFolder) {
@@ -107,6 +113,7 @@ const uploadDocumentService = async (req) => {
         where: {
             name: file.filename,
             parentId: parentId ?? null,
+            vataId: user.vataId
         },
     });
     if (isExist) {
@@ -122,6 +129,7 @@ const uploadDocumentService = async (req) => {
             name: file.filename,
             type: "FILE",
             parentId: parentId ?? null,
+            vataId: user.vataId,
             fileUrl,
             fileKey,
             mimeType: file.mimetype,
@@ -132,10 +140,11 @@ const uploadDocumentService = async (req) => {
     return true;
 };
 // DELETE DOCUEMTS
-const deleteDocumentService = async (id) => {
+const deleteDocumentService = async (user, id) => {
     const document = await prisma_1.prisma.document.findUnique({
         where: {
             id,
+            vataId: user.vataId
         },
     });
     if (!document) {
@@ -160,17 +169,19 @@ const deleteDocumentService = async (id) => {
     await prisma_1.prisma.document.delete({
         where: {
             id,
+            vataId: user.vataId
         },
     });
     return true;
 };
 // DELETE FOLDER
-const deleteFolderService = async (id) => {
+const deleteFolderService = async (user, id) => {
     // Check folder
     const folder = await prisma_1.prisma.document.findFirst({
         where: {
             id,
             type: "FOLDER",
+            vataId: user.vataId
         },
     });
     if (!folder) {
@@ -183,6 +194,7 @@ const deleteFolderService = async (id) => {
         const children = await prisma_1.prisma.document.findMany({
             where: {
                 parentId,
+                vataId: user.vataId
             },
         });
         let allChildren = [];
@@ -227,6 +239,7 @@ const deleteFolderService = async (id) => {
                 id: {
                     in: children.map((item) => item.id),
                 },
+                vataId: user.vataId
             },
         });
     }
@@ -234,6 +247,7 @@ const deleteFolderService = async (id) => {
     await prisma_1.prisma.document.delete({
         where: {
             id,
+            vataId: user.vataId
         },
     });
     return true;

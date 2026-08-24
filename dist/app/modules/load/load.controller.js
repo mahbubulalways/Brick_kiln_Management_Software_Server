@@ -14,7 +14,8 @@ const parseListQuery_1 = require("../../../utils/parseListQuery");
 // CREATE LOAD INFO
 // ===============================
 const createLoadInfoController = (0, catchAsync_1.default)(async (req, res) => {
-    const result = await load_service_1.LoadInfoService.createLoadInfoService(req.body);
+    const user = req.user;
+    const result = await load_service_1.LoadInfoService.createLoadInfoService(user, req.body);
     if (result) {
         (0, sendResponse_1.sendResponse)(res, {
             statusCode: http_status_codes_1.StatusCodes.CREATED,
@@ -31,8 +32,9 @@ const createLoadInfoController = (0, catchAsync_1.default)(async (req, res) => {
 // GET ALL LOAD INFO
 // ===============================
 const getAllLoadInfoController = (0, catchAsync_1.default)(async (req, res) => {
+    const user = req.user;
     const { limit, page, search, date } = await (0, parseListQuery_1.parseListQuery)(req.query);
-    const result = await load_service_1.LoadInfoService.getAllLoadInfoService({ date, limit, page, search });
+    const result = await load_service_1.LoadInfoService.getAllLoadInfoService(user, { date, limit, page, search });
     if (result.data.length) {
         (0, sendResponse_1.sendResponse)(res, {
             statusCode: http_status_codes_1.StatusCodes.OK,
@@ -54,11 +56,12 @@ const getAllLoadInfoController = (0, catchAsync_1.default)(async (req, res) => {
 // GET SINGLE LOAD INFO
 // ===============================
 const getSingleLoadInfoController = (0, catchAsync_1.default)(async (req, res) => {
-    const id = Number(req.params.id);
+    const id = req.params.id;
+    const user = req.user;
     if (!id) {
         throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.BAD_REQUEST, "লোডের তথ্যের আইডি সঠিক নয়");
     }
-    const result = await load_service_1.LoadInfoService.getSingleLoadInfoService(id);
+    const result = await load_service_1.LoadInfoService.getSingleLoadInfoService(user, id);
     if (result) {
         (0, sendResponse_1.sendResponse)(res, {
             statusCode: http_status_codes_1.StatusCodes.OK,
@@ -75,15 +78,16 @@ const getSingleLoadInfoController = (0, catchAsync_1.default)(async (req, res) =
 // UPDATE LOAD INFO
 // ===============================
 const updateLoadInfoController = (0, catchAsync_1.default)(async (req, res) => {
-    const id = Number(req.params.id);
+    const id = req.params.id;
+    const user = req.user;
     if (!id) {
         throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.BAD_REQUEST, "লোডের তথ্যের আইডি সঠিক নয়");
     }
-    const existing = await load_service_1.LoadInfoService.getSingleLoadInfoService(id);
+    const existing = await load_service_1.LoadInfoService.getSingleLoadInfoService(user, id);
     if (!existing) {
         throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.NOT_FOUND, "লোডের তথ্য পাওয়া যায়নি");
     }
-    const result = await load_service_1.LoadInfoService.updateLoadInfoService(id, req.body);
+    const result = await load_service_1.LoadInfoService.updateLoadInfoService(user, id, req.body);
     if (result) {
         (0, sendResponse_1.sendResponse)(res, {
             statusCode: http_status_codes_1.StatusCodes.OK,
@@ -100,15 +104,16 @@ const updateLoadInfoController = (0, catchAsync_1.default)(async (req, res) => {
 // DELETE LOAD INFO
 // ===============================
 const deleteLoadInfoController = (0, catchAsync_1.default)(async (req, res) => {
-    const id = Number(req.params.id);
+    const id = req.params.id;
+    const user = req.user;
     if (!id) {
         throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.BAD_REQUEST, "লোডের তথ্যের আইডি সঠিক নয়");
     }
-    const existing = await load_service_1.LoadInfoService.getSingleLoadInfoService(id);
+    const existing = await load_service_1.LoadInfoService.getSingleLoadInfoService(user, id);
     if (!existing) {
         throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.NOT_FOUND, "লোডের তথ্য পাওয়া যায়নি");
     }
-    const result = await load_service_1.LoadInfoService.deleteLoadInfoService(id);
+    const result = await load_service_1.LoadInfoService.deleteLoadInfoService(user, id);
     if (result) {
         (0, sendResponse_1.sendResponse)(res, {
             statusCode: http_status_codes_1.StatusCodes.OK,

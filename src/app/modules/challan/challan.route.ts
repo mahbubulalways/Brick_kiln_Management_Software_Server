@@ -3,12 +3,14 @@ import { API_ENDPOINTS } from "../../endpoints/api_endpoints";
 import { InvoiceController } from "./challan.controller";
 import { UserRole } from "../../../generated/prisma/enums";
 import AuthGuard from "../../middlewares/AuthGuard";
+import ActiveSeasonGuard from "../../middlewares/ActiveSeasonGuard";
 
 const router = Router();
 // CREATE INVOICE
 router.post(
   API_ENDPOINTS.INVOICE.CREATE_INVOICE,
   AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+  ActiveSeasonGuard,
   InvoiceController.createInvoiceController
 );
 
@@ -22,6 +24,7 @@ router.get(
 // GET ALL INVOICE
 router.get(
   API_ENDPOINTS.INVOICE.GET_ALL_INVOICE,
+  ActiveSeasonGuard,
   AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
   InvoiceController.getAllInvoiceController
 );
@@ -29,6 +32,7 @@ router.get(
 // GET ALL ADVANCE INVOICE
 router.get(
   API_ENDPOINTS.INVOICE.GET_ADVANCE_INVOICE,
+  ActiveSeasonGuard,
   AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
   InvoiceController.getAllAdvanceInvoiceController
 );
@@ -37,6 +41,7 @@ router.get(
 // GET ITEMS WITH INVOICE
 router.get(
   API_ENDPOINTS.INVOICE.GET_ITEMS_WITH_INVOICE,
+    ActiveSeasonGuard,
   AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
   InvoiceController.getItemsWithInvoiceController
 );

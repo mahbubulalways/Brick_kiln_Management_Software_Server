@@ -38,11 +38,12 @@ const updateCustomerService = async (user: TAuthUser, id: string, data: Customer
 }
 
 
-const getAllCustomerService = async (user: TAuthUser, query: TQuery) => {
+const getAllCustomerService = async (user: TAuthUser,seasonId:string, query: TQuery) => {
   const { limit, page, skip } = paginationHelper(query.page, query.limit);
   const where: Prisma.CustomerWhereInput = {
     isDeleted: false,
-    vataId: user.vataId
+    vataId: user.vataId,
+    seasonId
   };
 
   if (query.search?.trim()) {

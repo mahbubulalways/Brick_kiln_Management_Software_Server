@@ -12,17 +12,22 @@ const sendResponse_1 = require("../../../utils/sendResponse");
 // ================= CREATE MANY WEATHER =================
 const createWeatherController = (0, catchAsync_1.default)(async (req, res) => {
     const data = req.body;
-    const existingWeather = await prisma_1.prisma.weather.findFirst();
+    const user = req.user;
+    const existingWeather = await prisma_1.prisma.weather.findFirst({ where: { vataId: user.vataId } });
     let result;
     if (!existingWeather) {
         result = await prisma_1.prisma.weather.create({
-            data,
+            data: {
+                ...data,
+                vataId: user.vataId
+            },
         });
     }
     else {
         result = await prisma_1.prisma.weather.update({
             where: {
                 id: existingWeather.id,
+                vataId: user.vataId
             },
             data,
         });
@@ -43,7 +48,11 @@ const createWeatherController = (0, catchAsync_1.default)(async (req, res) => {
 });
 // ================= GET ALL WEATHER =================
 const getAllWeatherController = (0, catchAsync_1.default)(async (req, res) => {
+    const user = req.user;
     const result = await prisma_1.prisma.weather.findMany({
+        where: {
+            vataId: user.vataId
+        },
         orderBy: {
             createdAt: "desc",
         },

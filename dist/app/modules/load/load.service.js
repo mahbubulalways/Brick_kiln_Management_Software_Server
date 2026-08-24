@@ -6,12 +6,12 @@ const prisma_1 = require("../../../helpers/prisma");
 const createMetaConfig_1 = require("../../../utils/createMetaConfig");
 const getDateRangeDbSearch_1 = require("../../../utils/getDateRangeDbSearch");
 // CREATE LOAD INFO
-const createLoadInfoService = async (payload) => {
+const createLoadInfoService = async (user, payload) => {
     const round = payload.round;
     const result = await prisma_1.prisma.$transaction(async (tx) => {
-        let roundExist = await tx.round.findFirst({ where: { name: round } });
+        let roundExist = await tx.round.findFirst({ where: { name: round, vataId: user.vataId } });
         if (!roundExist) {
-            roundExist = await tx.round.create({ data: { name: round } });
+            roundExist = await tx.round.create({ data: { name: round, vataId: user.vataId } });
         }
         const loadData = {
             roundId: roundExist.id,
@@ -28,10 +28,11 @@ const createLoadInfoService = async (payload) => {
     return result;
 };
 // GET ALL LOAD INFO
-const getAllLoadInfoService = async (query) => {
+const getAllLoadInfoService = async (user, query) => {
     const { limit, page, skip } = (0, paginationHelper_1.paginationHelper)(query.page, query.limit);
     const where = {
         isDeleted: false,
+        round: { vataId: user.vataId }
     };
     // DATE FILTER
     if (query.date) {
@@ -87,11 +88,14 @@ const getAllLoadInfoService = async (query) => {
     };
 };
 // GET SINGLE LOAD INFO
-const getSingleLoadInfoService = async (id) => {
+const getSingleLoadInfoService = async (user, id) => {
     return await prisma_1.prisma.loadInfo.findFirst({
         where: {
             id,
             isDeleted: false,
+            round: {
+                vataId: user.vataId
+            }
         },
         include: {
             round: true,
@@ -99,13 +103,14 @@ const getSingleLoadInfoService = async (id) => {
     });
 };
 // UPDATE LOAD INFO
-const updateLoadInfoService = async (id, payload) => {
+const updateLoadInfoService = async (user, id, payload) => {
     const result = await prisma_1.prisma.$transaction(async (tx) => {
         // Round name
         const roundName = `${payload.round}`;
         // Check round exists
         let roundExist = await tx.round.findFirst({
             where: {
+                vataId: user.vataId,
                 name: roundName,
             },
         });
@@ -113,6 +118,7 @@ const updateLoadInfoService = async (id, payload) => {
         if (!roundExist) {
             roundExist = await tx.round.create({
                 data: {
+                    vataId: user.vataId,
                     name: roundName,
                 },
             });
@@ -121,6 +127,9 @@ const updateLoadInfoService = async (id, payload) => {
         const load = await tx.loadInfo.update({
             where: {
                 id,
+                round: {
+                    vataId: user.vataId
+                }
             },
             data: {
                 roundId: roundExist.id,
@@ -138,13 +147,16 @@ const updateLoadInfoService = async (id, payload) => {
     return result;
 };
 // DELETE LOAD INFO
-const deleteLoadInfoService = async (id) => {
+const deleteLoadInfoService = async (user, id) => {
     return await prisma_1.prisma.loadInfo.update({
         data: {
             isDeleted: true,
         },
         where: {
             id,
+            round: {
+                vataId: user.vataId
+            }
         },
     });
 };

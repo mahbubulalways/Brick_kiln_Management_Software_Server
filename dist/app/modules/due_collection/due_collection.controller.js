@@ -12,7 +12,8 @@ const sendResponse_1 = require("../../../utils/sendResponse");
 const parseListQuery_1 = require("../../../utils/parseListQuery");
 const getDueOfCustomerController = (0, catchAsync_1.default)(async (req, res) => {
     const customerId = req.params.customerId;
-    const result = await due_collection_service_1.DueCollectionService.getDueOfCustomerService(Number(customerId));
+    const user = req.user;
+    const result = await due_collection_service_1.DueCollectionService.getDueOfCustomerService(user, customerId);
     if (!result?.id) {
         (0, sendResponse_1.sendResponse)(res, {
             message: "সফলভাবে পাওয়া যায়নি।",
@@ -21,16 +22,19 @@ const getDueOfCustomerController = (0, catchAsync_1.default)(async (req, res) =>
             data: {},
         });
     }
-    (0, sendResponse_1.sendResponse)(res, {
-        message: "সফলভাবে পাওয়া গেছে।",
-        statusCode: http_status_codes_1.StatusCodes.OK,
-        success: true,
-        data: result,
-    });
+    else {
+        (0, sendResponse_1.sendResponse)(res, {
+            message: "সফলভাবে পাওয়া গেছে।",
+            statusCode: http_status_codes_1.StatusCodes.OK,
+            success: true,
+            data: result,
+        });
+    }
 });
 //INSERT NEW DUE
 const collectionNewDueController = (0, catchAsync_1.default)(async (req, res) => {
-    const result = await due_collection_service_1.DueCollectionService.collectDueService(req.body);
+    const user = req.user;
+    const result = await due_collection_service_1.DueCollectionService.collectDueService(user, req.body);
     if (!result?.id) {
         throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.BAD_REQUEST, "বাকি জমা করতে ব্যর্থ হয়েছে।");
     }
@@ -43,8 +47,9 @@ const collectionNewDueController = (0, catchAsync_1.default)(async (req, res) =>
 });
 // TODAY HAVE PAY
 const todayPayDueController = (0, catchAsync_1.default)(async (req, res) => {
+    const user = req.user;
     const { limit, page, date, search } = await (0, parseListQuery_1.parseListQuery)(req.query);
-    const result = await due_collection_service_1.DueCollectionService.todayPayDueService({ date, limit, page, search });
+    const result = await due_collection_service_1.DueCollectionService.todayPayDueService(user, { date, limit, page, search });
     if (!result?.data?.length) {
         (0, sendResponse_1.sendResponse)(res, {
             message: "আজকের  জন্য কোনো বাকি পাওয়া যায়নি।",
@@ -64,8 +69,9 @@ const todayPayDueController = (0, catchAsync_1.default)(async (req, res) => {
 });
 // TODAY PAID
 const getTodaysDuePaidController = (0, catchAsync_1.default)(async (req, res) => {
+    const user = req.user;
     const { limit, page, date } = await (0, parseListQuery_1.parseListQuery)(req.query);
-    const result = await due_collection_service_1.DueCollectionService.getTodaysDuePaidService({ date, limit, page });
+    const result = await due_collection_service_1.DueCollectionService.getTodaysDuePaidService(user, { date, limit, page });
     if (!result.data.length) {
         (0, sendResponse_1.sendResponse)(res, {
             message: "আজকের  জন্য কোনো বাকি পাওয়া যায়নি।",
@@ -85,7 +91,8 @@ const getTodaysDuePaidController = (0, catchAsync_1.default)(async (req, res) =>
 });
 const getAllDueListController = (0, catchAsync_1.default)(async (req, res) => {
     const { limit, page, search, date } = await (0, parseListQuery_1.parseListQuery)(req.query);
-    const result = await due_collection_service_1.DueCollectionService.getAllDueListService({ date, limit, page, search });
+    const user = req.user;
+    const result = await due_collection_service_1.DueCollectionService.getAllDueListService(user, { date, limit, page, search });
     if (!result?.data?.length) {
         (0, sendResponse_1.sendResponse)(res, {
             message: "বাকি পাওয়া যায়নি।",
@@ -106,7 +113,8 @@ const getAllDueListController = (0, catchAsync_1.default)(async (req, res) => {
 // GET SINGKE
 const getSingleDueCollectionController = (0, catchAsync_1.default)(async (req, res) => {
     const id = req.params.id;
-    const result = await due_collection_service_1.DueCollectionService.getSingleDueCollectionService(Number(id));
+    const user = req.user;
+    const result = await due_collection_service_1.DueCollectionService.getSingleDueCollectionService(user, id);
     if (!result?.id) {
         throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.NOT_FOUND, "NOT FOUND");
     }
@@ -122,7 +130,8 @@ const getSingleDueCollectionController = (0, catchAsync_1.default)(async (req, r
 // GET SINGLE DUE ONLY DATE
 const getSingleDueCollectionDateController = (0, catchAsync_1.default)(async (req, res) => {
     const id = req.params.id;
-    const result = await due_collection_service_1.DueCollectionService.getSingleDueCollectionDateService(Number(id));
+    const user = req.user;
+    const result = await due_collection_service_1.DueCollectionService.getSingleDueCollectionDateService(user, id);
     if (!result?.id) {
         throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.NOT_FOUND, "NOT FOUND");
     }
@@ -135,34 +144,41 @@ const getSingleDueCollectionDateController = (0, catchAsync_1.default)(async (re
         });
     }
 });
-//
+// UPDATE DUE COLLECTION
 const updateDueCollectionController = (0, catchAsync_1.default)(async (req, res) => {
     const id = req.params.id;
     const body = req.body;
-    const result = await due_collection_service_1.DueCollectionService.updateDueCollectionService(Number(id), body);
+    const user = req.user;
+    const result = await due_collection_service_1.DueCollectionService.updateDueCollectionService(user, id, body);
     if (!result?.id) {
         throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.BAD_REQUEST, "আপডেট করতে ব্যর্থ হয়েছে");
     }
-    (0, sendResponse_1.sendResponse)(res, {
-        message: "সফলভাবে আপডেট করেছে",
-        statusCode: http_status_codes_1.StatusCodes.OK,
-        success: true,
-        data: result,
-    });
+    else {
+        (0, sendResponse_1.sendResponse)(res, {
+            message: "সফলভাবে আপডেট করেছে",
+            statusCode: http_status_codes_1.StatusCodes.OK,
+            success: true,
+            data: result,
+        });
+    }
 });
+// UPDATE DUE COLLECTION DATE
 const updateDueCollectionDateController = (0, catchAsync_1.default)(async (req, res) => {
     const id = req.params.id;
     const body = req.body;
-    const result = await due_collection_service_1.DueCollectionService.upDateDueCollectionDateService(id, body);
+    const user = req.user;
+    const result = await due_collection_service_1.DueCollectionService.upDateDueCollectionDateService(user, id, body);
     if (!result?.id) {
         throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.BAD_REQUEST, "আপডেট করতে ব্যর্থ হয়েছে");
     }
-    (0, sendResponse_1.sendResponse)(res, {
-        message: "সফলভাবে আপডেট করেছে",
-        statusCode: http_status_codes_1.StatusCodes.OK,
-        success: true,
-        data: result,
-    });
+    else {
+        (0, sendResponse_1.sendResponse)(res, {
+            message: "সফলভাবে আপডেট করেছে",
+            statusCode: http_status_codes_1.StatusCodes.OK,
+            success: true,
+            data: result,
+        });
+    }
 });
 exports.DueCollectionController = {
     collectionNewDueController,

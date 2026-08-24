@@ -12,7 +12,8 @@ const http_status_codes_1 = require("http-status-codes");
 const parseListQuery_1 = require("../../../utils/parseListQuery");
 // CREATE CASH
 const createCash = (0, catchAsync_1.default)(async (req, res) => {
-    const result = await cash_service_1.CashService.createCashService(req.body);
+    const user = req.user;
+    const result = await cash_service_1.CashService.createCashService(user, req.body);
     if (result) {
         (0, sendResponse_1.sendResponse)(res, {
             statusCode: http_status_codes_1.StatusCodes.OK,
@@ -27,7 +28,8 @@ const createCash = (0, catchAsync_1.default)(async (req, res) => {
 // GET ALL CASH
 const getAllCash = (0, catchAsync_1.default)(async (req, res) => {
     const { limit, page, date, search } = await (0, parseListQuery_1.parseListQuery)(req.query);
-    const result = await cash_service_1.CashService.getAllCashService({ date, limit, page, search });
+    const user = req.user;
+    const result = await cash_service_1.CashService.getAllCashService(user, { date, limit, page, search });
     if (result.data.length > 0) {
         (0, sendResponse_1.sendResponse)(res, {
             statusCode: 200,
@@ -47,8 +49,9 @@ const getAllCash = (0, catchAsync_1.default)(async (req, res) => {
 });
 // GET SINGLE CASH
 const getSingleCash = (0, catchAsync_1.default)(async (req, res) => {
-    const id = Number(req.params.id);
-    const result = await cash_service_1.CashService.getSingleCashService(id);
+    const id = req.params.id;
+    const user = req.user;
+    const result = await cash_service_1.CashService.getSingleCashService(user, id);
     if (result) {
         (0, sendResponse_1.sendResponse)(res, {
             statusCode: 200,
@@ -63,8 +66,9 @@ const getSingleCash = (0, catchAsync_1.default)(async (req, res) => {
 });
 // UPDATE CASH
 const updateCash = (0, catchAsync_1.default)(async (req, res) => {
-    const id = Number(req.params.id);
-    const existingCash = await cash_service_1.CashService.getSingleCashService(id);
+    const user = req.user;
+    const id = req.params.id;
+    const existingCash = await cash_service_1.CashService.getSingleCashService(user, id);
     if (!existingCash) {
         (0, sendResponse_1.sendResponse)(res, {
             statusCode: 404,
@@ -74,7 +78,7 @@ const updateCash = (0, catchAsync_1.default)(async (req, res) => {
         });
     }
     else {
-        const result = await cash_service_1.CashService.updateCashService(id, req.body);
+        const result = await cash_service_1.CashService.updateCashService(user, id, req.body);
         if (result) {
             (0, sendResponse_1.sendResponse)(res, {
                 statusCode: 200,
@@ -90,8 +94,9 @@ const updateCash = (0, catchAsync_1.default)(async (req, res) => {
 });
 // DELETE CASH
 const deleteCash = (0, catchAsync_1.default)(async (req, res) => {
-    const id = Number(req.params.id);
-    const existingCash = await cash_service_1.CashService.getSingleCashService(id);
+    const id = req.params.id;
+    const user = req.user;
+    const existingCash = await cash_service_1.CashService.getSingleCashService(user, id);
     if (!existingCash) {
         (0, sendResponse_1.sendResponse)(res, {
             statusCode: 404,
@@ -100,7 +105,7 @@ const deleteCash = (0, catchAsync_1.default)(async (req, res) => {
         });
     }
     else {
-        const result = await cash_service_1.CashService.deleteCashService(id);
+        const result = await cash_service_1.CashService.deleteCashService(user, id);
         if (result) {
             (0, sendResponse_1.sendResponse)(res, {
                 statusCode: 200,

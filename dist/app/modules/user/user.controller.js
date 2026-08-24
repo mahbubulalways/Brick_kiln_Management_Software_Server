@@ -11,7 +11,8 @@ const catchAsync_1 = __importDefault(require("../../../utils/catchAsync"));
 const ApplicationError_1 = require("../../errors/ApplicationError");
 const parseListQuery_1 = require("../../../utils/parseListQuery");
 const createUserController = (0, catchAsync_1.default)(async (req, res) => {
-    const result = await user_service_1.UserService.createUserServie(req.body);
+    const user = req.user;
+    const result = await user_service_1.UserService.createUserServie(user, req.body);
     if (!result) {
         throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.BAD_REQUEST, "ইউজার তৈরি করা যায়নি।");
     }
@@ -24,7 +25,8 @@ const createUserController = (0, catchAsync_1.default)(async (req, res) => {
 });
 // Get All Users
 const getAllUsersController = (0, catchAsync_1.default)(async (req, res) => {
-    const result = await user_service_1.UserService.getAllUsersService();
+    const user = req.user;
+    const result = await user_service_1.UserService.getAllUsersService(user);
     if (!result.length) {
         (0, sendResponse_1.sendResponse)(res, {
             statusCode: http_status_codes_1.StatusCodes.OK,
@@ -42,7 +44,8 @@ const getAllUsersController = (0, catchAsync_1.default)(async (req, res) => {
 });
 // Get Single User
 const getSingleUserController = (0, catchAsync_1.default)(async (req, res) => {
-    const result = await user_service_1.UserService.getSingleUserService(req.params.id);
+    const user = req.user;
+    const result = await user_service_1.UserService.getSingleUserService(user, req.params.id);
     if (!result) {
         throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.NOT_FOUND, "ইউজার খুঁজে পাওয়া যায়নি।");
     }
@@ -55,7 +58,8 @@ const getSingleUserController = (0, catchAsync_1.default)(async (req, res) => {
 });
 // Update User
 const updateUserController = (0, catchAsync_1.default)(async (req, res) => {
-    const result = await user_service_1.UserService.updateUserService(req.params.id, req.body);
+    const user = req.user;
+    const result = await user_service_1.UserService.updateUserService(user, req.params.id, req.body);
     (0, sendResponse_1.sendResponse)(res, {
         statusCode: http_status_codes_1.StatusCodes.OK,
         success: true,
@@ -65,7 +69,8 @@ const updateUserController = (0, catchAsync_1.default)(async (req, res) => {
 });
 // Delete User
 const deleteUserController = (0, catchAsync_1.default)(async (req, res) => {
-    const result = await user_service_1.UserService.deleteUserService(req.params.id);
+    const user = req.user;
+    const result = await user_service_1.UserService.deleteUserService(user, req.params.id);
     (0, sendResponse_1.sendResponse)(res, {
         statusCode: http_status_codes_1.StatusCodes.OK,
         success: true,
@@ -75,7 +80,8 @@ const deleteUserController = (0, catchAsync_1.default)(async (req, res) => {
 });
 const getUserHistoryController = (0, catchAsync_1.default)(async (req, res) => {
     const { limit, page } = await (0, parseListQuery_1.parseListQuery)(req.query);
-    const result = await user_service_1.UserService.getUserLoginHistoryService({ page, limit });
+    const user = req.user;
+    const result = await user_service_1.UserService.getUserLoginHistoryService(user, { page, limit });
     if (!result.data.length) {
         (0, sendResponse_1.sendResponse)(res, {
             statusCode: http_status_codes_1.StatusCodes.OK,
@@ -92,7 +98,8 @@ const getUserHistoryController = (0, catchAsync_1.default)(async (req, res) => {
     });
 });
 const getUserOptionController = (0, catchAsync_1.default)(async (req, res) => {
-    const result = await user_service_1.UserService.getUserOptionService();
+    const user = req.user;
+    const result = await user_service_1.UserService.getUserOptionService(user);
     if (!result.length) {
         (0, sendResponse_1.sendResponse)(res, {
             statusCode: http_status_codes_1.StatusCodes.OK,

@@ -30,6 +30,7 @@ const formatCustomerData = (customers) => {
             name: customer.name,
             address: customer.address,
             phoneNumber: customer.phoneNumber,
+            customerCode: customer.customerCode,
             totalPurchasedQuantity,
             totalDeliveredQuantity,
             totalRemainingQuantity,

@@ -7,8 +7,13 @@ const prisma_1 = require("../../../helpers/prisma");
 const paginationHelper_1 = require("../../../helpers/paginationHelper");
 const createMetaConfig_1 = require("../../../utils/createMetaConfig");
 const getDateRangeDbSearch_1 = require("../../../utils/getDateRangeDbSearch");
-const getNextDeliveryNo = async () => {
+const getNextDeliveryNo = async (user) => {
     const result = await prisma_1.prisma.delivery.findFirst({
+        where: {
+            invoice: {
+                vataId: user.vataId,
+            }
+        },
         orderBy: {
             deliveryNo: "desc",
         },
@@ -18,9 +23,9 @@ const getNextDeliveryNo = async () => {
     });
     return result ? result.deliveryNo + 1 : 1;
 };
-const getDeliveryThatGoTodayService = async (query) => {
+const getDeliveryThatGoTodayService = async (user, query) => {
     const { limit, page, skip } = (0, paginationHelper_1.paginationHelper)(query.page, query.limit);
-    const where = { isDeleted: false };
+    const where = { vataId: user.vataId, isDeleted: false };
     // Create start and end of day boundaries
     if (query.search?.trim()) {
         const search = query.search.trim();
@@ -29,7 +34,7 @@ const getDeliveryThatGoTodayService = async (query) => {
             ...(isNumber
                 ? [
                     {
-                        id: Number(search),
+                        serial: Number(search),
                     },
                 ]
                 : []),
@@ -75,6 +80,7 @@ const getDeliveryThatGoTodayService = async (query) => {
             select: {
                 id: true,
                 customer: true,
+                serial: true,
                 items: {
                     where: dateRange
                         ? {
@@ -103,7 +109,7 @@ const getDeliveryThatGoTodayService = async (query) => {
     };
 };
 // CREATE DELIVERY
-const createDeliveryService = async (payload) => {
+const createDeliveryService = async (user, payload) => {
     const isDeliveryNoExist = await prisma_1.prisma.delivery.findFirst({
         where: {
             deliveryNo: Number(payload?.deliveryNo),
@@ -112,6 +118,10 @@ const createDeliveryService = async (payload) => {
     if (isDeliveryNoExist?.id) {
         throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.CONFLICT, "এই ডেলিভারি নম্বর ইতিমধ্যে আছে");
     }
+    // HERE COME SERIAL ID AS INVOICE ID 
+    const mainInvoiceId = await prisma_1.prisma.challan.findFirst({
+        where: { serial: Number(payload.invoiceId), vataId: user.vataId }, select: { id: true }
+    });
     const data = {
         deliveryDate: payload.deliveryDate,
         deliveryNo: Number(payload.deliveryNo),
@@ -123,52 +133,10 @@ const createDeliveryService = async (payload) => {
         driverName: payload.driverName,
         driverPhoneNumber: payload.driverMobileNumber,
         carNo: payload.carNumber,
-        invoiceId: Number(payload.invoiceId),
+        invoiceId: mainInvoiceId?.id,
         carRent: Number(payload.carRent),
+        deliveryById: user.userId
     };
-    // if (payload?.savingType == "saveOnly") {
-    //   if (!isDeliveryNoExist?.id) {
-    //     throw new AppError(
-    //       StatusCodes.CONFLICT,
-    //       "নতুন কোন ডেলিভারি ক্রিয়েট করা হয়নি"
-    //     );
-    //   }
-    //   const result = await prisma.$transaction(
-    //     async (tx: Prisma.TransactionClient) => {
-    //       const calculate =
-    //         isDeliveryNoExist.deliveryReceived - data.deliveryReceived;
-    //       const createDelivery = await tx.delivery.update({
-    //         data: {
-    //           deliveryDate: data.deliveryDate,
-    //           class: data.class,
-    //           deliveryReceived: data.deliveryReceived,
-    //           deliveryRemaining: data.deliveryRemaining,
-    //           nextDeliveryDate: data.nextDeliveryDate,
-    //           quantity: data.quantity,
-    //           carNo: data.carNo,
-    //           driverName: data.driverName,
-    //           driverPhoneNumber: data.driverPhoneNumber,
-    //           invoiceId: Number(payload.invoiceId),
-    //         },
-    //         where: {
-    //           deliveryNo: data?.deliveryNo,
-    //         },
-    //       });
-    //       const updateItem = await tx.challanItem.update({
-    //         data: {
-    //           delivered: {
-    //             increment: calculate,
-    //           },
-    //         },
-    //         where: {
-    //           id: Number(payload?.itemId),
-    //         },
-    //       });
-    //       console.log(updateItem);
-    //       return createDelivery;
-    //     }
-    //   );
-    // }
     const result = await prisma_1.prisma.$transaction(async (tx) => {
         const createDelivery = await tx.delivery.create({
             data: {
@@ -182,8 +150,9 @@ const createDeliveryService = async (payload) => {
                 carNo: data.carNo,
                 driverName: data.driverName,
                 driverPhoneNumber: data.driverPhoneNumber,
-                invoiceId: Number(payload.invoiceId),
+                invoiceId: data.invoiceId,
                 carRent: data.carRent,
+                deliveryById: data.deliveryById,
             },
         });
         if (data?.deliveryRemaining) {
@@ -203,7 +172,7 @@ const createDeliveryService = async (payload) => {
                 },
             },
             where: {
-                id: Number(payload?.itemId),
+                id: payload?.itemId,
             },
         });
         return createDelivery;
@@ -211,9 +180,13 @@ const createDeliveryService = async (payload) => {
     return result;
 };
 //
-const getTodaysDeliveryThatDone = async (query) => {
+const getTodaysDeliveryThatDone = async (user, query) => {
     const { limit, page, skip } = (0, paginationHelper_1.paginationHelper)(query.page, query.limit);
-    const where = { isDeleted: false };
+    const where = {
+        isDeleted: false, invoice: {
+            vataId: user.vataId
+        }
+    };
     // Create start and end of day boundaries
     if (query.date) {
         const dateRange = (0, getDateRangeDbSearch_1.getDateRangeDbSearch)(query.date);
@@ -227,6 +200,7 @@ const getTodaysDeliveryThatDone = async (query) => {
             include: {
                 invoice: {
                     select: {
+                        serial: true,
                         customer: true,
                     },
                 },
@@ -245,10 +219,11 @@ const getTodaysDeliveryThatDone = async (query) => {
     };
 };
 // GET ALL DELIVERY
-const getAllDeliveryListService = async (query) => {
+const getAllDeliveryListService = async (user, query) => {
     const { limit, page, skip } = (0, paginationHelper_1.paginationHelper)(query.page, query.limit);
     const where = {
         isDeleted: false,
+        vataId: user.vataId,
     };
     // Date range
     const dateRange = query.date
@@ -270,7 +245,7 @@ const getAllDeliveryListService = async (query) => {
             ...(isNumber
                 ? [
                     {
-                        id: Number(search),
+                        serial: Number(search),
                     },
                 ]
                 : []),
@@ -301,6 +276,8 @@ const getAllDeliveryListService = async (query) => {
             where,
             select: {
                 id: true,
+                serial: true,
+                note: true,
                 customer: true,
                 items: {
                     where: dateRange
@@ -350,7 +327,30 @@ const getAllDeliveryListService = async (query) => {
     };
 };
 const getSingleDeliveryService = async (id) => {
-    const result = await prisma_1.prisma.delivery.findFirst({ where: { id } });
+    const result = await prisma_1.prisma.delivery.findFirst({
+        where: { id }, include: {
+            invoice: {
+                select: {
+                    id: true,
+                    serial: true,
+                    challanDate: true,
+                    deliveryDate: true,
+                    customer: {
+                        select: {
+                            name: true,
+                            phoneNumber: true,
+                            address: true
+                        }
+                    }
+                }
+            },
+            deliveryBy: {
+                select: {
+                    name: true
+                }
+            },
+        }
+    });
     return result;
 };
 exports.DeliveryService = {

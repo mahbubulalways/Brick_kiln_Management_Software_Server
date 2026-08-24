@@ -13,24 +13,30 @@ const prisma_1 = require("../../../helpers/prisma");
 const parseListQuery_1 = require("../../../utils/parseListQuery");
 // GET INVOICE SERIAL
 const getInvoiceSerial = (0, catchAsync_1.default)(async (req, res) => {
-    const result = await prisma_1.prisma.challan.count() + 1;
+    const user = req.user;
+    const result = (await prisma_1.prisma.challan.count({
+        where: {
+            vataId: user.vataId,
+        },
+    })) + 1;
     if (!result) {
-        throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.BAD_REQUEST, "চ্যালান পাওয়া যায়নি।");
+        throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.BAD_REQUEST, "ইনভয়েস সিরিয়াল তৈরি করা যায়নি।");
     }
-    else {
-        (0, sendResponse_1.sendResponse)(res, {
-            message: "চ্যালান পাওয়া গেছে।",
-            statusCode: http_status_codes_1.StatusCodes.OK,
-            success: true,
-            data: { totalInvoice: result },
-        });
-    }
+    (0, sendResponse_1.sendResponse)(res, {
+        message: "ইনভয়েস সিরিয়াল সফলভাবে তৈরি হয়েছে।",
+        statusCode: http_status_codes_1.StatusCodes.OK,
+        success: true,
+        data: {
+            invoiceSerial: result,
+        },
+    });
 });
 // CREATE CUSTOMER AND INVOICE AND INVOICE ITEMS
 const createInvoiceController = (0, catchAsync_1.default)(async (req, res) => {
     const body = req.body;
-    const user = "Mahbubul Hasan"; // TODO : Here name comes from auth
-    const result = await challan_service_1.InvoiceService.createInvoiceService(user, body.customer, body.invoiceItems.items, body.invoice);
+    const user = req.user;
+    const seasonId = req.seasonId;
+    const result = await challan_service_1.InvoiceService.createInvoiceService(user, seasonId, body.customer, body.invoiceItems.items, body.invoice);
     if (!result?.id) {
         throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.BAD_REQUEST, "চ্যালান তৈরি করতে ব্যর্থ হয়েছে।");
     }
@@ -45,13 +51,10 @@ const createInvoiceController = (0, catchAsync_1.default)(async (req, res) => {
 });
 // GET AL INVOICE WITH CUSTOMER NAME AND ADDRESS
 const getAllInvoiceController = (0, catchAsync_1.default)(async (req, res) => {
+    const user = req.user;
+    const seasonId = req.seasonId;
     const { limit, page, search, date } = await (0, parseListQuery_1.parseListQuery)(req.query);
-    const result = await challan_service_1.InvoiceService.getAllInvoiceService({
-        limit,
-        page,
-        search,
-        date
-    });
+    const result = await challan_service_1.InvoiceService.getAllInvoiceService(user, seasonId, { limit, page, search, date });
     if (!result?.data.length) {
         (0, sendResponse_1.sendResponse)(res, {
             message: "চ্যালান পাওয়া যায়নি।",
@@ -71,8 +74,10 @@ const getAllInvoiceController = (0, catchAsync_1.default)(async (req, res) => {
 });
 // GET ADVANVCE INVOICE
 const getAllAdvanceInvoiceController = (0, catchAsync_1.default)(async (req, res) => {
+    const user = req.user;
+    const seasonId = req.seasonId;
     const { limit, page, search, date } = await (0, parseListQuery_1.parseListQuery)(req.query);
-    const result = await challan_service_1.InvoiceService.getAllAdvanceInvoiceService({
+    const result = await challan_service_1.InvoiceService.getAllAdvanceInvoiceService(user, seasonId, {
         limit,
         page,
         search,
@@ -98,7 +103,8 @@ const getAllAdvanceInvoiceController = (0, catchAsync_1.default)(async (req, res
 //  GET SINGLE INVOICE
 const getSingleInvoiceController = (0, catchAsync_1.default)(async (req, res) => {
     const id = req?.params?.id;
-    const result = await challan_service_1.InvoiceService.getSingleInvoiceService(Number(id));
+    const user = req.user;
+    const result = await challan_service_1.InvoiceService.getSingleInvoiceService(user, id);
     if (!result?.id) {
         throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.BAD_REQUEST, "চ্যালান পাওয়া যায়নি।");
     }
@@ -117,7 +123,8 @@ const getSingleInvoiceController = (0, catchAsync_1.default)(async (req, res) =>
 const getSingleInvoiceItemsController = (0, catchAsync_1.default)(async (req, res) => {
     const id = req?.params?.id;
     const query = req.query;
-    const result = await challan_service_1.InvoiceService.getSingleInvoiceItemsService(Number(id), query?.ids);
+    const user = req.user;
+    const result = await challan_service_1.InvoiceService.getSingleInvoiceItemsService(user, id, query?.ids);
     if (!result?.length) {
         (0, sendResponse_1.sendResponse)(res, {
             message: "চ্যালান পাওয়া যায়নি।",
@@ -139,7 +146,8 @@ const getSingleInvoiceItemsController = (0, catchAsync_1.default)(async (req, re
 const updateInvoiceController = (0, catchAsync_1.default)(async (req, res) => {
     const id = req?.params?.id;
     const body = req.body;
-    const result = await challan_service_1.InvoiceService.updateInvoiceController(Number(id), body.invoice, body.invoiceItems);
+    const user = req.user;
+    const result = await challan_service_1.InvoiceService.updateInvoiceService(user, id, body.invoice, body.invoiceItems);
     if (!result?.id) {
         throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.BAD_REQUEST, "চ্যালান হালনাগাদ করতে ব্যর্থ হয়েছে।");
     }
@@ -155,7 +163,8 @@ const updateInvoiceController = (0, catchAsync_1.default)(async (req, res) => {
 // DELETE INVOICE
 const deleteInvoiceController = (0, catchAsync_1.default)(async (req, res) => {
     const id = req?.params?.id;
-    const result = await challan_service_1.InvoiceService.deleteInvoiceService(Number(id));
+    const user = req.user;
+    const result = await challan_service_1.InvoiceService.deleteInvoiceService(user, id);
     if (!result?.id) {
         throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.BAD_REQUEST, "চ্যালান মুছে ফেলতে ব্যর্থ হয়েছে।");
     }
@@ -171,7 +180,9 @@ const deleteInvoiceController = (0, catchAsync_1.default)(async (req, res) => {
 // GET ITEMS WITH INVOICE
 const getItemsWithInvoiceController = (0, catchAsync_1.default)(async (req, res) => {
     const { startDate, endDate } = req.query;
-    const result = await challan_service_1.InvoiceService.getItemsWithInvoiceService(startDate, endDate);
+    const user = req.user;
+    const seasonId = req.seasonId;
+    const result = await challan_service_1.InvoiceService.getItemsWithInvoiceService(user, seasonId, startDate, endDate);
     if (!result?.length) {
         throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.BAD_REQUEST, "চ্যালান পাওয়া যায়নি।");
     }
@@ -188,7 +199,8 @@ const getItemsWithInvoiceController = (0, catchAsync_1.default)(async (req, res)
 const updateInvoiceDeliveryDateController = (0, catchAsync_1.default)(async (req, res) => {
     const id = req?.params.id;
     const updatedDate = req.body.updatedDate;
-    const result = await challan_service_1.InvoiceService.updateInvoiceDeliveryDateService(Number(id), updatedDate);
+    const user = req.user;
+    const result = await challan_service_1.InvoiceService.updateInvoiceDeliveryDateService(user, id, updatedDate);
     if (!result?.id) {
         throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.BAD_REQUEST, "চ্যালান আপডেট করতে ব্যর্থ হয়েছে।");
     }
@@ -204,7 +216,8 @@ const updateInvoiceDeliveryDateController = (0, catchAsync_1.default)(async (req
 const updateInvoiceItemDeliveryDateController = (0, catchAsync_1.default)(async (req, res) => {
     const id = req?.params.id;
     const updatedDate = req.body.updatedDate;
-    const result = await challan_service_1.InvoiceService.updateItemsDateService(Number(id), updatedDate);
+    const user = req.user;
+    const result = await challan_service_1.InvoiceService.updateItemsDateService(user, id, updatedDate);
     if (!result?.id) {
         throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.BAD_REQUEST, "চ্যালান আপডেট করতে ব্যর্থ হয়েছে।");
     }

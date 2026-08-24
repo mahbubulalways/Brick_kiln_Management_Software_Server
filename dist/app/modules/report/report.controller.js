@@ -9,7 +9,8 @@ const catchAsync_1 = __importDefault(require("../../../utils/catchAsync"));
 const sendResponse_1 = require("../../../utils/sendResponse");
 const report_service_1 = require("./report.service");
 const getAllCustomertController = (0, catchAsync_1.default)(async (req, res) => {
-    const result = await report_service_1.ReportService.getTopSellingAreasService();
+    const user = req.user;
+    const result = await report_service_1.ReportService.getTopSellingAreasService(user);
     if (!result.length) {
         (0, sendResponse_1.sendResponse)(res, {
             statusCode: http_status_codes_1.StatusCodes.OK,
@@ -27,7 +28,8 @@ const getAllCustomertController = (0, catchAsync_1.default)(async (req, res) => 
     });
 });
 const dashboardAllReportController = (0, catchAsync_1.default)(async (req, res) => {
-    const result = await report_service_1.ReportService.dashboardAllReportService();
+    const user = req.user;
+    const result = await report_service_1.ReportService.dashboardAllReportService(user);
     if (!result) {
         (0, sendResponse_1.sendResponse)(res, {
             statusCode: http_status_codes_1.StatusCodes.OK,

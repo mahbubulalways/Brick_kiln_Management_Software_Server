@@ -7,19 +7,26 @@ const ApplicationError_1 = require("../../errors/ApplicationError");
 const paginationHelper_1 = require("../../../helpers/paginationHelper");
 const getDateRangeDbSearch_1 = require("../../../utils/getDateRangeDbSearch");
 const createMetaConfig_1 = require("../../../utils/createMetaConfig");
-const createNewUnloadService = async (payload) => {
+const createNewUnloadService = async (user, payload) => {
     const startOfDay = new Date(payload.date);
     startOfDay.setHours(0, 0, 0, 0);
     const endOfDay = new Date(payload.date);
     endOfDay.setHours(23, 59, 59, 999);
     const result = await prisma_1.prisma.$transaction(async (tx) => {
-        const roundId = await tx.round.findFirst({ where: { name: payload.round }, select: { id: true } });
+        const roundId = await tx.round.findFirst({
+            where: { name: payload.round, vataId: user.vataId },
+            select: { id: true }
+        });
         if (!roundId?.id) {
             throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.NOT_FOUND, "ROUND ID PAI NAI");
         }
         let unload = await tx.unload.findFirst({
             where: {
-                roundId: roundId.id, date: {
+                roundId: roundId.id,
+                round: {
+                    vataId: user.vataId,
+                },
+                date: {
                     gte: startOfDay,
                     lte: endOfDay,
                 },
@@ -36,7 +43,7 @@ const createNewUnloadService = async (payload) => {
         }
         // FIND CLASS ID
         const classId = await tx.classAndRate.findFirst({
-            where: { className: payload.className },
+            where: { className: payload.className, vataId: user.vataId, },
             select: { id: true }
         });
         if (!classId) {
@@ -71,10 +78,13 @@ const createNewUnloadService = async (payload) => {
 };
 // gert
 // GET ALL UNLOAD
-const getAllUnloadService = async (query) => {
+const getAllUnloadService = async (user, query) => {
     const { limit, page, skip } = (0, paginationHelper_1.paginationHelper)(query.page, query.limit);
     const where = {
         isDeleted: false,
+        round: {
+            vataId: user.vataId,
+        }
     };
     // DATE FILTER
     if (query.date) {
@@ -128,10 +138,11 @@ const getAllUnloadService = async (query) => {
     };
 };
 //  GET ALL DATA NOT PAGINATE
-const getAllUnloadDataNoPaginateService = async () => {
+const getAllUnloadDataNoPaginateService = async (user) => {
     const result = await prisma_1.prisma.unload.findMany({
         where: {
             isDeleted: false,
+            round: { vataId: user.vataId, }
         },
         include: {
             round: true,
@@ -150,12 +161,12 @@ const getAllUnloadDataNoPaginateService = async () => {
     });
     return result;
 };
-const deleteUnloadService = async (id) => {
-    const isExist = await prisma_1.prisma.unload.findFirst({ where: { id } });
+const deleteUnloadService = async (user, id) => {
+    const isExist = await prisma_1.prisma.unload.findFirst({ where: { id, round: { vataId: user.vataId, } } });
     if (!isExist) {
         throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.NOT_FOUND, "আনলোডের তথ্য পাওয়া যায়নি");
     }
-    const result = await prisma_1.prisma.unload.update({ where: { id }, data: { isDeleted: true } });
+    const result = await prisma_1.prisma.unload.update({ where: { id, round: { vataId: user.vataId, } }, data: { isDeleted: true } });
     return result;
 };
 exports.UnloadService = {

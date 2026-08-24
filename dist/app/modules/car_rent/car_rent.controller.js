@@ -11,7 +11,8 @@ const car_rent_service_1 = require("./car_rent.service");
 const catchAsync_1 = __importDefault(require("../../../utils/catchAsync"));
 const parseListQuery_1 = require("../../../utils/parseListQuery");
 const createCarRentController = (0, catchAsync_1.default)(async (req, res) => {
-    const result = await car_rent_service_1.CarRentService.createCarRentService(req.body);
+    const user = req.user;
+    const result = await car_rent_service_1.CarRentService.createCarRentService(user, req.body);
     if (result) {
         (0, sendResponse_1.sendResponse)(res, {
             statusCode: http_status_codes_1.StatusCodes.CREATED,
@@ -25,8 +26,9 @@ const createCarRentController = (0, catchAsync_1.default)(async (req, res) => {
     }
 });
 const getALlCarRentController = (0, catchAsync_1.default)(async (req, res) => {
+    const user = req.user;
     const { limit, page, search } = await (0, parseListQuery_1.parseListQuery)(req.query);
-    const result = await car_rent_service_1.CarRentService.getALlCarRentService({ limit, page, search });
+    const result = await car_rent_service_1.CarRentService.getALlCarRentService(user, { limit, page, search });
     if (result?.data.length) {
         (0, sendResponse_1.sendResponse)(res, {
             statusCode: http_status_codes_1.StatusCodes.OK,
@@ -45,8 +47,9 @@ const getALlCarRentController = (0, catchAsync_1.default)(async (req, res) => {
     }
 });
 const getSingleCarRentController = (0, catchAsync_1.default)(async (req, res) => {
-    const id = Number(req.params.id);
-    const result = await car_rent_service_1.CarRentService.getSingleCarRentService(id);
+    const user = req.user;
+    const id = req.params.id;
+    const result = await car_rent_service_1.CarRentService.getSingleCarRentService(user, id);
     if (result) {
         (0, sendResponse_1.sendResponse)(res, {
             statusCode: http_status_codes_1.StatusCodes.OK,
@@ -60,8 +63,9 @@ const getSingleCarRentController = (0, catchAsync_1.default)(async (req, res) =>
     }
 });
 const updateCarRentController = (0, catchAsync_1.default)(async (req, res) => {
-    const id = Number(req.params.id);
-    const result = await car_rent_service_1.CarRentService.updateCarRentService(id, req.body);
+    const user = req.user;
+    const id = req.params.id;
+    const result = await car_rent_service_1.CarRentService.updateCarRentService(user, id, req.body);
     if (result) {
         (0, sendResponse_1.sendResponse)(res, {
             statusCode: http_status_codes_1.StatusCodes.OK,
@@ -75,8 +79,9 @@ const updateCarRentController = (0, catchAsync_1.default)(async (req, res) => {
     }
 });
 const deleteCarRentController = (0, catchAsync_1.default)(async (req, res) => {
-    const id = Number(req.params.id);
-    const result = await car_rent_service_1.CarRentService.deleteCarRentService(id);
+    const user = req.user;
+    const id = req.params.id;
+    const result = await car_rent_service_1.CarRentService.deleteCarRentService(user, id);
     if (result) {
         (0, sendResponse_1.sendResponse)(res, {
             statusCode: http_status_codes_1.StatusCodes.OK,

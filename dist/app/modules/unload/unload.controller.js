@@ -11,7 +11,8 @@ const unload_service_1 = require("./unload.service");
 const ApplicationError_1 = require("../../errors/ApplicationError");
 const parseListQuery_1 = require("../../../utils/parseListQuery");
 const createUnloadInfoController = (0, catchAsync_1.default)(async (req, res) => {
-    const result = await unload_service_1.UnloadService.createNewUnloadService(req.body);
+    const user = req.user;
+    const result = await unload_service_1.UnloadService.createNewUnloadService(user, req.body);
     if (result) {
         (0, sendResponse_1.sendResponse)(res, {
             statusCode: http_status_codes_1.StatusCodes.CREATED,
@@ -25,8 +26,9 @@ const createUnloadInfoController = (0, catchAsync_1.default)(async (req, res) =>
 });
 // GET ALL UNLOAD
 const getAllUnloadInfoController = (0, catchAsync_1.default)(async (req, res) => {
+    const user = req.user;
     const { limit, page, search, date } = await (0, parseListQuery_1.parseListQuery)(req.query);
-    const result = await unload_service_1.UnloadService.getAllUnloadService({ date, limit, page, search });
+    const result = await unload_service_1.UnloadService.getAllUnloadService(user, { date, limit, page, search });
     if (result.data.length) {
         (0, sendResponse_1.sendResponse)(res, {
             statusCode: http_status_codes_1.StatusCodes.OK,
@@ -46,7 +48,8 @@ const getAllUnloadInfoController = (0, catchAsync_1.default)(async (req, res) =>
 });
 //  GET ALL DATA NOT PAGINATE 
 const getAllUnloadDataNoPaginateController = (0, catchAsync_1.default)(async (req, res) => {
-    const result = await unload_service_1.UnloadService.getAllUnloadDataNoPaginateService();
+    const user = req.user;
+    const result = await unload_service_1.UnloadService.getAllUnloadDataNoPaginateService(user);
     if (result.length) {
         (0, sendResponse_1.sendResponse)(res, {
             statusCode: http_status_codes_1.StatusCodes.OK,
@@ -66,8 +69,9 @@ const getAllUnloadDataNoPaginateController = (0, catchAsync_1.default)(async (re
 });
 // DELETE
 const deleteUnloadInfoController = (0, catchAsync_1.default)(async (req, res) => {
-    const id = Number(req.params.id);
-    const result = await unload_service_1.UnloadService.deleteUnloadService(id);
+    const id = req.params.id;
+    const user = req.user;
+    const result = await unload_service_1.UnloadService.deleteUnloadService(user, id);
     if (result) {
         (0, sendResponse_1.sendResponse)(res, {
             statusCode: http_status_codes_1.StatusCodes.OK,

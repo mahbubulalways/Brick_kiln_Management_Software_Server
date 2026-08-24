@@ -12,7 +12,8 @@ const parseListQuery_1 = require("../../../utils/parseListQuery");
 // Create Task
 // ==========================================
 const createTaskController = (0, catchAsync_1.default)(async (req, res) => {
-    const result = await task_service_1.TaskService.createTaskService(req.body);
+    const user = req.user;
+    const result = await task_service_1.TaskService.createTaskService(user, req.body);
     if (!result) {
         throw new Error("কাজ তৈরি করা যায়নি");
     }
@@ -26,8 +27,9 @@ const createTaskController = (0, catchAsync_1.default)(async (req, res) => {
 // Get Pending Tasks
 // ==========================================
 const getPendingTasksController = (0, catchAsync_1.default)(async (req, res) => {
+    const user = req.user;
     const { date } = await (0, parseListQuery_1.parseListQuery)(req.query);
-    const result = await task_service_1.TaskService.getPendingTasksService({ date });
+    const result = await task_service_1.TaskService.getPendingTasksService(user, { date });
     if (!result.length) {
         (0, sendResponse_1.sendResponse)(res, {
             statusCode: 200,
@@ -48,8 +50,9 @@ const getPendingTasksController = (0, catchAsync_1.default)(async (req, res) => 
 // Get Complete Tasks
 // ==========================================
 const getCompleteTasksController = (0, catchAsync_1.default)(async (req, res) => {
+    const user = req.user;
     const { date } = await (0, parseListQuery_1.parseListQuery)(req.query);
-    const result = await task_service_1.TaskService.getCompleteTasksService({ date });
+    const result = await task_service_1.TaskService.getCompleteTasksService(user, { date });
     if (!result.length) {
         (0, sendResponse_1.sendResponse)(res, {
             statusCode: 200,
@@ -71,7 +74,8 @@ const getCompleteTasksController = (0, catchAsync_1.default)(async (req, res) =>
 // ==========================================
 const getSingleTaskController = (0, catchAsync_1.default)(async (req, res) => {
     const { id } = req.params;
-    const result = await task_service_1.TaskService.getSingleTaskService(id);
+    const user = req.user;
+    const result = await task_service_1.TaskService.getSingleTaskService(user, id);
     if (!result) {
         throw new Error("কাজটি পাওয়া যায়নি");
     }
@@ -86,8 +90,9 @@ const getSingleTaskController = (0, catchAsync_1.default)(async (req, res) => {
 // Update Task
 // ==========================================
 const updateTaskController = (0, catchAsync_1.default)(async (req, res) => {
+    const user = req.user;
     const { id } = req.params;
-    const result = await task_service_1.TaskService.updateTaskService(id, req.body);
+    const result = await task_service_1.TaskService.updateTaskService(user, id, req.body);
     if (!result) {
         throw new Error("কাজটি পাওয়া যায়নি");
     }
@@ -102,7 +107,8 @@ const updateTaskController = (0, catchAsync_1.default)(async (req, res) => {
 // ==========================================
 const deleteTaskController = (0, catchAsync_1.default)(async (req, res) => {
     const { id } = req.params;
-    const result = await task_service_1.TaskService.deleteTaskService(id);
+    const user = req.user;
+    const result = await task_service_1.TaskService.deleteTaskService(user, id);
     if (!result) {
         throw new Error("কাজটি পাওয়া যায়নি");
     }

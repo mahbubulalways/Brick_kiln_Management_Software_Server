@@ -9,11 +9,12 @@
 * 🟢 You can import this file directly.
 */
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.TransactionType = exports.TaskStatus = exports.DocumentType = exports.CashType = exports.UserRole = void 0;
+exports.SoftwareFeeStatus = exports.TransactionType = exports.TaskStatus = exports.DocumentType = exports.CashType = exports.UserRole = void 0;
 exports.UserRole = {
     OWNER: 'OWNER',
     ADMIN: 'ADMIN',
-    MANAGER: 'MANAGER'
+    MANAGER: 'MANAGER',
+    SYSTEM_ADMIN: 'SYSTEM_ADMIN'
 };
 exports.CashType = {
     INCOME: 'INCOME',
@@ -31,4 +32,9 @@ exports.TransactionType = {
     GIVEN: 'GIVEN',
     TAKEN: 'TAKEN',
     PAYMENT: 'PAYMENT'
+};
+exports.SoftwareFeeStatus = {
+    PENDING: 'PENDING',
+    REJECTED: 'REJECTED',
+    APPROVED: 'APPROVED'
 };

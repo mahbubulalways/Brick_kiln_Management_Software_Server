@@ -7,6 +7,7 @@ exports.API_ENDPOINTS = {
         GET_ALL_ClASS: "/class-and-rate",
         GET_CLASS_BY_ID: "/class-and-rate/:id",
         UPDATE_CLASS_BY_ID: "/update-class-and-rate/:id",
+        DELETE: "/delete/:id",
     },
     INVOICE: {
         INVOICE_SERIAL: "/serial",

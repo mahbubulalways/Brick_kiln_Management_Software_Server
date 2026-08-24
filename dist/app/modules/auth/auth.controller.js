@@ -38,7 +38,8 @@ const logoutController = (0, catchAsync_1.default)(async (req, res) => {
     const body = req.body;
     const ipAddress = req.ip;
     const username = req.user.username;
-    const result = await auth_service_1.AuthService.logoutUserService(username, ipAddress, body);
+    const user = req.user;
+    const result = await auth_service_1.AuthService.logoutUserService(user, username, ipAddress, body);
     if (!result?.id) {
         throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.BAD_REQUEST, "লগআউট করা সম্ভব হয়নি। অনুগ্রহ করে আবার চেষ্টা করুন।");
     }
@@ -51,4 +52,22 @@ const logoutController = (0, catchAsync_1.default)(async (req, res) => {
         message: "আপনি সফলভাবে লগআউট করেছেন।",
     });
 });
-exports.AuthController = { loginUserToSystemController, logoutController };
+// CHANGE PASS
+const changePasswordController = (0, catchAsync_1.default)(async (req, res) => {
+    const body = req.body;
+    const user = req.user;
+    const result = await auth_service_1.AuthService.changePasswordServie(user, body);
+    if (!result?.id) {
+        throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.BAD_REQUEST, "পাসওয়ার্ড পরিবর্তন করা সম্ভব হয়নি। অনুগ্রহ করে আবার চেষ্টা করুন।");
+    }
+    (0, sendResponse_1.sendResponse)(res, {
+        statusCode: http_status_codes_1.StatusCodes.OK,
+        success: true,
+        message: "আপনার পাসওয়ার্ড সফলভাবে পরিবর্তন করা হয়েছে।",
+    });
+});
+exports.AuthController = {
+    loginUserToSystemController,
+    logoutController,
+    changePasswordController
+};

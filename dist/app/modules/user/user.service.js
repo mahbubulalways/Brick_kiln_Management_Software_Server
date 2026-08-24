@@ -7,10 +7,11 @@ const prisma_1 = require("../../../helpers/prisma");
 const ApplicationError_1 = require("../../errors/ApplicationError");
 const paginationHelper_1 = require("../../../helpers/paginationHelper");
 const createMetaConfig_1 = require("../../../utils/createMetaConfig");
-const createUserServie = async (payload) => {
+const createUserServie = async (user, payload) => {
     const existUsername = await prisma_1.prisma.user.findFirst({
         where: {
             username: payload.username,
+            vataId: user.vataId,
         },
     });
     if (existUsername) {
@@ -18,37 +19,41 @@ const createUserServie = async (payload) => {
     }
     const hashPassword = await bcryptHelper_1.bcryptHelper.hashPassword(payload.password);
     payload.password = hashPassword;
+    payload.vataId = user.vataId;
     const result = await prisma_1.prisma.user.create({
         data: payload,
     });
     return result;
 };
 // Get All Users
-const getAllUsersService = async () => {
+const getAllUsersService = async (user) => {
     const result = await prisma_1.prisma.user.findMany({
         orderBy: {
             createdAt: "desc",
         },
         where: {
-            isDeleted: false
+            isDeleted: false,
+            vataId: user.vataId
         }
     });
     return result;
 };
 // Get Single User
-const getSingleUserService = async (id) => {
-    const user = await prisma_1.prisma.user.findFirst({
+const getSingleUserService = async (user, id) => {
+    const result = await prisma_1.prisma.user.findFirst({
         where: {
             id,
+            vataId: user.vataId
         },
     });
-    return user;
+    return result;
 };
 // Update User
-const updateUserService = async (id, payload) => {
+const updateUserService = async (userAuth, id, payload) => {
     const user = await prisma_1.prisma.user.findFirst({
         where: {
             id,
+            vataId: userAuth.vataId
         },
     });
     if (!user) {
@@ -59,6 +64,7 @@ const updateUserService = async (id, payload) => {
         const existUsername = await prisma_1.prisma.user.findFirst({
             where: {
                 username: payload.username,
+                vataId: userAuth.vataId,
                 NOT: {
                     id,
                 },
@@ -75,16 +81,18 @@ const updateUserService = async (id, payload) => {
     const result = await prisma_1.prisma.user.update({
         where: {
             id,
+            vataId: userAuth.vataId
         },
         data: payload,
     });
     return result;
 };
 // Delete User
-const deleteUserService = async (id) => {
+const deleteUserService = async (userAuth, id) => {
     const user = await prisma_1.prisma.user.findFirst({
         where: {
             id,
+            vataId: userAuth.vataId
         },
     });
     if (!user) {
@@ -93,6 +101,7 @@ const deleteUserService = async (id) => {
     await prisma_1.prisma.user.update({
         where: {
             id,
+            vataId: userAuth.vataId
         },
         data: {
             isDeleted: true
@@ -101,10 +110,15 @@ const deleteUserService = async (id) => {
     return null;
 };
 // GET LOGIN LOGOUT HISTORY
-const getUserLoginHistoryService = async (query) => {
+const getUserLoginHistoryService = async (user, query) => {
     const { limit, page, skip } = (0, paginationHelper_1.paginationHelper)(query.page, query.limit);
     const [result, total] = await Promise.all([
         prisma_1.prisma.loginHistory.findMany({
+            where: {
+                user: {
+                    vataId: user.vataId
+                }
+            },
             include: { user: { select: { name: true } } },
             skip, take: limit,
             orderBy: { createdAt: "desc" }
@@ -122,10 +136,11 @@ const getUserLoginHistoryService = async (query) => {
     };
 };
 // GET USER OPTIONS
-const getUserOptionService = async () => {
+const getUserOptionService = async (user) => {
     const result = await prisma_1.prisma.user.findMany({
         where: {
-            isDeleted: false
+            isDeleted: false,
+            vataId: user.vataId
         },
         select: {
             name: true, id: true

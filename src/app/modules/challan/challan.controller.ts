@@ -18,8 +18,6 @@ const getInvoiceSerial = catchAsync(async (req, res) => {
       },
     })) + 1;
 
-  console.log(result)
-
   if (!result) {
     throw new AppError(
       StatusCodes.BAD_REQUEST,
@@ -41,8 +39,11 @@ const getInvoiceSerial = catchAsync(async (req, res) => {
 const createInvoiceController = catchAsync(async (req, res) => {
   const body = req.body;
   const user = req.user as TAuthUser
+  const seasonId = req.seasonId
+
   const result = await InvoiceService.createInvoiceService(
     user,
+    seasonId,
     body.customer,
     body.invoiceItems.items,
     body.invoice
@@ -66,13 +67,12 @@ const createInvoiceController = catchAsync(async (req, res) => {
 // GET AL INVOICE WITH CUSTOMER NAME AND ADDRESS
 const getAllInvoiceController = catchAsync(async (req, res) => {
   const user = req.user as TAuthUser
+  const seasonId = req.seasonId
   const { limit, page, search, date } = await parseListQuery(req.query);
-  const result = await InvoiceService.getAllInvoiceService(user, {
-    limit,
-    page,
-    search,
-    date
-  });
+  const result = await InvoiceService.getAllInvoiceService(
+    user, 
+    seasonId,
+    {  limit, page,  search, date});
   if (!result?.data.length) {
     sendResponse(res, {
       message: "চ্যালান পাওয়া যায়নি।",
@@ -95,8 +95,9 @@ const getAllInvoiceController = catchAsync(async (req, res) => {
 // GET ADVANVCE INVOICE
 const getAllAdvanceInvoiceController = catchAsync(async (req, res) => {
   const user = req.user as TAuthUser
+    const seasonId = req.seasonId
   const { limit, page, search, date } = await parseListQuery(req.query);
-  const result = await InvoiceService.getAllAdvanceInvoiceService(user, {
+  const result = await InvoiceService.getAllAdvanceInvoiceService(user,seasonId, {
     limit,
     page,
     search,
@@ -224,8 +225,10 @@ const deleteInvoiceController = catchAsync(async (req, res) => {
 const getItemsWithInvoiceController = catchAsync(async (req, res) => {
   const { startDate, endDate } = req.query;
   const user = req.user as TAuthUser
+  const seasonId = req.seasonId
   const result = await InvoiceService.getItemsWithInvoiceService(
     user,
+    seasonId,
     startDate as string,
     endDate as string
   );

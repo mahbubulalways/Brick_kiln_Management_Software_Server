@@ -6,11 +6,11 @@ const ApplicationError_1 = require("../../errors/ApplicationError");
 const http_status_codes_1 = require("http-status-codes");
 const paginationHelper_1 = require("../../../helpers/paginationHelper");
 const createMetaConfig_1 = require("../../../utils/createMetaConfig");
-const createPaymentService = async (req) => {
+const createPaymentService = async (req, user) => {
     const file = req.file;
     const body = JSON.parse(req.body.data);
     const ledgerId = await prisma_1.prisma.ledger.findFirst({
-        where: { name: body.ledger },
+        where: { name: body.ledger, vataId: user.vataId },
         select: { id: true },
     });
     if (!ledgerId) {
@@ -28,13 +28,13 @@ const createPaymentService = async (req) => {
         paymentDifference: Number(body.paymentDifference),
         document: file.filename || null,
     };
-    const result = await prisma_1.prisma.payment.create({ data });
+    const result = await prisma_1.prisma.payment.create({ data: { ...data, vataId: user.vataId } });
     return result;
 };
 // GET ALL PAYMENTS
-const getAllPaymentService = async (query) => {
+const getAllPaymentService = async (user, query) => {
     const pagination = (0, paginationHelper_1.paginationHelper)(query.page, query.limit);
-    const where = { isDeleted: false };
+    const where = { vataId: user.vataId, isDeleted: false };
     // Search by ledger name
     if (query.search?.trim()) {
         where.ledger = {
@@ -92,9 +92,9 @@ const getAllPaymentService = async (query) => {
     };
 };
 // GET PAYMENT REPORT GROUP VIA DATE
-const paymentReportViaGroupService = async () => {
+const paymentReportViaGroupService = async (user) => {
     const result = await prisma_1.prisma.payment.findMany({
-        where: { isDeleted: false },
+        where: { isDeleted: false, vataId: user.vataId },
         include: { ledger: { include: { parent: true } } },
     });
     const groupedPayments = Object.values(result.reduce((acc, item) => {
@@ -127,12 +127,12 @@ const paymentReportViaGroupService = async () => {
     return groupedPayments;
 };
 // GET SINGLE PAYMENT 
-const getSinglePaymentService = async (id) => {
-    return prisma_1.prisma.payment.findFirst({ where: { id: Number(id) }, include: { ledger: { select: { name: true } } } });
+const getSinglePaymentService = async (user, id) => {
+    return prisma_1.prisma.payment.findFirst({ where: { vataId: user.vataId, id: id }, include: { ledger: { select: { name: true } } } });
 };
 // UPDATE PAYMENT
-const updatePaymentService = async (req) => {
-    const id = Number(req.params.id);
+const updatePaymentService = async (user, req) => {
+    const id = req.params.id;
     const file = req.file;
     const body = JSON.parse(req.body.data);
     // ============================================
@@ -140,6 +140,7 @@ const updatePaymentService = async (req) => {
     // ============================================
     const existingPayment = await prisma_1.prisma.payment.findUnique({
         where: {
+            vataId: user.vataId,
             id,
         },
     });
@@ -152,6 +153,7 @@ const updatePaymentService = async (req) => {
     const ledger = await prisma_1.prisma.ledger.findFirst({
         where: {
             name: body.ledger,
+            vataId: user.vataId,
         },
         select: {
             id: true,
@@ -187,14 +189,15 @@ const updatePaymentService = async (req) => {
     const result = await prisma_1.prisma.payment.update({
         where: {
             id,
+            vataId: user.vataId
         },
         data,
     });
     return result;
 };
 // DELETE PAYMENT 
-const deletePaymentServie = async (id) => {
-    return await prisma_1.prisma.payment.update({ where: { id: Number(id) }, data: { isDeleted: true } });
+const deletePaymentServie = async (user, id) => {
+    return await prisma_1.prisma.payment.update({ where: { id, vataId: user.vataId }, data: { isDeleted: true } });
 };
 exports.PaymentService = {
     createPaymentService,

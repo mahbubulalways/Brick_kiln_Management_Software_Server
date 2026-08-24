@@ -30,7 +30,7 @@ router.get("/active",
     AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
     SeasonController.getActiveSeason);
 
-router.get("/select/:id",
+router.patch("/select/:id",
     AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
     SeasonController.changeActiveSeason);
 

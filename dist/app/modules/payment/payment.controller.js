@@ -12,7 +12,8 @@ const sendResponse_1 = require("../../../utils/sendResponse");
 const parseListQuery_1 = require("../../../utils/parseListQuery");
 // CREATE NEW LEDGER
 const createPaymentController = (0, catchAsync_1.default)(async (req, res) => {
-    const result = await payment_service_1.PaymentService.createPaymentService(req);
+    const user = req.user;
+    const result = await payment_service_1.PaymentService.createPaymentService(req, user);
     if (!result) {
         throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.BAD_REQUEST, "পেমেন্ট তৈরি করা যায়নি। অনুগ্রহ করে আবার চেষ্টা করুন।");
     }
@@ -27,7 +28,8 @@ const createPaymentController = (0, catchAsync_1.default)(async (req, res) => {
 // GET ALL PAYMENT PAGINATE AND SEARCH
 const getAllPaymentController = (0, catchAsync_1.default)(async (req, res) => {
     const { limit, page, search, date } = await (0, parseListQuery_1.parseListQuery)(req.query);
-    const result = await payment_service_1.PaymentService.getAllPaymentService({
+    const user = req.user;
+    const result = await payment_service_1.PaymentService.getAllPaymentService(user, {
         limit,
         page,
         search,
@@ -53,7 +55,8 @@ const getAllPaymentController = (0, catchAsync_1.default)(async (req, res) => {
 //
 // GET ALL PAYMENT PAGINATE AND SEARCH
 const paymentReportViaGroupController = (0, catchAsync_1.default)(async (req, res) => {
-    const result = await payment_service_1.PaymentService.paymentReportViaGroupService();
+    const user = req.user;
+    const result = await payment_service_1.PaymentService.paymentReportViaGroupService(user);
     if (!result.length) {
         (0, sendResponse_1.sendResponse)(res, {
             statusCode: http_status_codes_1.StatusCodes.OK,
@@ -74,7 +77,8 @@ const paymentReportViaGroupController = (0, catchAsync_1.default)(async (req, re
 // GET SINGLE PAYMENT
 const getSinglePaymentController = (0, catchAsync_1.default)(async (req, res) => {
     const id = req.params.id;
-    const result = await payment_service_1.PaymentService.getSinglePaymentService(id);
+    const user = req.user;
+    const result = await payment_service_1.PaymentService.getSinglePaymentService(user, id);
     if (!result) {
         throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.NOT_FOUND, "কোনো পেমেন্ট পাওয়া যায়নি।");
     }
@@ -89,7 +93,8 @@ const getSinglePaymentController = (0, catchAsync_1.default)(async (req, res) =>
 });
 // UPDATE PAYMENT
 const updatePaymentController = (0, catchAsync_1.default)(async (req, res) => {
-    const result = await payment_service_1.PaymentService.updatePaymentService(req);
+    const user = req.user;
+    const result = await payment_service_1.PaymentService.updatePaymentService(user, req);
     if (!result) {
         throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.BAD_REQUEST, "পেমেন্ট আপডেট করা যায়নি। অনুগ্রহ করে আবার চেষ্টা করুন।");
     }
@@ -104,7 +109,8 @@ const updatePaymentController = (0, catchAsync_1.default)(async (req, res) => {
 // DELETE PAYMENT (SOFT)
 const deletePaymentController = (0, catchAsync_1.default)(async (req, res) => {
     const id = req.params.id;
-    const result = await payment_service_1.PaymentService.deletePaymentServie(id);
+    const user = req.user;
+    const result = await payment_service_1.PaymentService.deletePaymentServie(user, id);
     if (!result) {
         throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.BAD_REQUEST, "পেমেন্ট মুছে ফেলা যায়নি। অনুগ্রহ করে আবার চেষ্টা করুন।");
     }

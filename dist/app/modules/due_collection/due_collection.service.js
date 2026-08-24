@@ -7,20 +7,25 @@ const prisma_1 = require("../../../helpers/prisma");
 const createMetaConfig_1 = require("../../../utils/createMetaConfig");
 const getDateRangeDbSearch_1 = require("../../../utils/getDateRangeDbSearch");
 const ApplicationError_1 = require("../../errors/ApplicationError");
-const getDueOfCustomerService = async (customerId) => {
+const getDueOfCustomerService = async (user, customerCode) => {
     const result = await prisma_1.prisma.customer.findFirst({
-        where: { id: customerId },
+        where: { customerCode: customerCode, vataId: user.vataId },
     });
     return result;
 };
 // INSERT DUE
-const collectDueService = async (payload) => {
+const collectDueService = async (user, payload) => {
+    const findCustomerId = await prisma_1.prisma.customer.findFirst({
+        where: {
+            customerCode: payload.customerId, vataId: user.vataId,
+        },
+    });
+    const customer = await prisma_1.prisma.customer.findMany({ where: { vataId: user.vataId } });
     const data = {
-        customerId: Number(payload.customerId),
+        customerId: findCustomerId?.id,
         due: Number(payload.due),
         collect: Number(payload.collect),
         newDue: Number(payload.newDue),
-        season: payload.season,
         nextDate: payload.nextDate,
     };
     const result = await prisma_1.prisma.$transaction(async (tx) => {
@@ -41,22 +46,21 @@ const collectDueService = async (payload) => {
     return result;
 };
 // TODAY HAVE PAY
-const todayPayDueService = async (query) => {
+const todayPayDueService = async (user, query) => {
     const { limit, page, skip } = (0, paginationHelper_1.paginationHelper)(query.page, query.limit);
     const where = {
+        vataId: user.vataId,
         isDeleted: false,
     };
     if (query.search?.trim()) {
         const search = query.search.trim();
-        const isNumber = !isNaN(Number(search));
         where.OR = [
-            ...(isNumber
-                ? [
-                    {
-                        id: Number(search),
-                    },
-                ]
-                : []),
+            {
+                customerCode: {
+                    contains: search,
+                    mode: "insensitive",
+                }
+            },
             {
                 name: {
                     contains: search,
@@ -103,10 +107,13 @@ const todayPayDueService = async (query) => {
         data: result,
     };
 };
-const getTodaysDuePaidService = async (query) => {
+const getTodaysDuePaidService = async (user, query) => {
     const pagination = (0, paginationHelper_1.paginationHelper)(query.page, query.limit);
     const where = {
         isDeleted: false,
+        customer: {
+            vataId: user.vataId
+        }
     };
     if (query.date) {
         const dateRange = (0, getDateRangeDbSearch_1.getDateRangeDbSearch)(query.date);
@@ -141,22 +148,21 @@ const getTodaysDuePaidService = async (query) => {
     };
 };
 // GET ALL DUE
-const getAllDueListService = async (query) => {
+const getAllDueListService = async (user, query) => {
     const { limit, page, skip } = (0, paginationHelper_1.paginationHelper)(query.page, query.limit);
     const where = {
         isDeleted: false,
+        vataId: user.vataId
     };
     if (query.search?.trim()) {
         const search = query.search.trim();
-        const isNumber = !isNaN(Number(search));
         where.OR = [
-            ...(isNumber
-                ? [
-                    {
-                        id: Number(search),
-                    },
-                ]
-                : []),
+            {
+                customerCode: {
+                    contains: search,
+                    mode: "insensitive",
+                }
+            },
             {
                 name: {
                     contains: search,
@@ -237,20 +243,24 @@ const getAllDueListService = async (query) => {
     };
 };
 // GET SINGLE
-const getSingleDueCollectionService = async (id) => {
+const getSingleDueCollectionService = async (user, id) => {
     const result = await prisma_1.prisma.due_Collection.findFirst({
-        where: { id, isDeleted: false },
+        where: { id, isDeleted: false, customer: { vataId: user.vataId } },
         include: { customer: true },
     });
     return result;
 };
-const updateDueCollectionService = async (id, payload) => {
+const updateDueCollectionService = async (user, id, payload) => {
+    const findCustomerId = await prisma_1.prisma.customer.findFirst({
+        where: {
+            customerCode: payload.customerId, vataId: user.vataId,
+        }, select: { id: true }
+    });
     const data = {
-        customerId: Number(payload.customerId),
+        customerId: findCustomerId?.id,
         due: Number(payload.due),
         collect: Number(payload.collect),
         newDue: Number(payload.newDue),
-        season: payload.season,
         nextDate: payload.nextDate,
     };
     const result = await prisma_1.prisma.$transaction(async (tx) => {
@@ -280,18 +290,25 @@ const updateDueCollectionService = async (id, payload) => {
     });
     return result;
 };
-const getSingleDueCollectionDateService = async (id) => {
-    return await prisma_1.prisma.customer.findFirst({ where: { id }, select: { nextPaymentDate: true, id: true } });
+const getSingleDueCollectionDateService = async (user, id) => {
+    return await prisma_1.prisma.customer.findFirst({
+        where: { customerCode: id, vataId: user.vataId }, select: { nextPaymentDate: true, id: true }
+    });
 };
 // UPDATE DUE COLLECTION DATE 
-const upDateDueCollectionDateService = async (id, info) => {
-    const due = await prisma_1.prisma.customer.findFirst({ where: { id: Number(id) } });
+const upDateDueCollectionDateService = async (user, id, info) => {
+    const due = await prisma_1.prisma.customer.findFirst({
+        where: { customerCode: id, vataId: user.vataId },
+        select: {
+            id: true,
+        }
+    });
     if (!due) {
         throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.NOT_FOUND, "বাকি পাওয়া যায়নি।");
     }
     const result = await prisma_1.prisma.customer.update({
         data: { nextPaymentDate: info.date, note: info.note, },
-        where: { id: Number(id) }
+        where: { id: due?.id, vataId: user.vataId }
     });
     return result;
 };

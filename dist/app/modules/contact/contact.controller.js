@@ -9,7 +9,8 @@ const catchAsync_1 = __importDefault(require("../../../utils/catchAsync"));
 const sendResponse_1 = require("../../../utils/sendResponse");
 const parseListQuery_1 = require("../../../utils/parseListQuery");
 const createContactController = (0, catchAsync_1.default)(async (req, res) => {
-    const result = await contact_service_1.ContactService.createContactService(req.body);
+    const user = req.user;
+    const result = await contact_service_1.ContactService.createContactService(user, req.body);
     if (result) {
         (0, sendResponse_1.sendResponse)(res, {
             statusCode: 201,
@@ -24,7 +25,8 @@ const createContactController = (0, catchAsync_1.default)(async (req, res) => {
 });
 const getAllContactController = (0, catchAsync_1.default)(async (req, res) => {
     const { limit, page, search } = await (0, parseListQuery_1.parseListQuery)(req.query);
-    const result = await contact_service_1.ContactService.getAllContactService({ limit, page, search });
+    const user = req.user;
+    const result = await contact_service_1.ContactService.getAllContactService(user, { limit, page, search });
     if (result.data.length > 0) {
         (0, sendResponse_1.sendResponse)(res, {
             statusCode: 200,
@@ -44,7 +46,8 @@ const getAllContactController = (0, catchAsync_1.default)(async (req, res) => {
 });
 const getSingleContactController = (0, catchAsync_1.default)(async (req, res) => {
     const { id } = req.params;
-    const result = await contact_service_1.ContactService.getSingleContactService(id);
+    const user = req.user;
+    const result = await contact_service_1.ContactService.getSingleContactService(user, id);
     if (result) {
         (0, sendResponse_1.sendResponse)(res, {
             statusCode: 200,
@@ -59,7 +62,8 @@ const getSingleContactController = (0, catchAsync_1.default)(async (req, res) =>
 });
 const updateContactController = (0, catchAsync_1.default)(async (req, res) => {
     const { id } = req.params;
-    const result = await contact_service_1.ContactService.updateContactService(id, req.body);
+    const user = req.user;
+    const result = await contact_service_1.ContactService.updateContactService(user, id, req.body);
     if (result) {
         (0, sendResponse_1.sendResponse)(res, {
             statusCode: 200,
@@ -74,7 +78,8 @@ const updateContactController = (0, catchAsync_1.default)(async (req, res) => {
 });
 const deleteContactController = (0, catchAsync_1.default)(async (req, res) => {
     const { id } = req.params;
-    const result = await contact_service_1.ContactService.deleteContactService(id);
+    const user = req.user;
+    const result = await contact_service_1.ContactService.deleteContactService(user, id);
     if (result) {
         (0, sendResponse_1.sendResponse)(res, {
             statusCode: 200,

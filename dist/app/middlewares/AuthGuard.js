@@ -23,6 +23,7 @@ const AuthGuard = (...roles) => {
             where: {
                 username: token_info.username,
                 role: token_info?.role,
+                vataId: token_info.vataId
             }, select: {
                 id: true,
                 isDeleted: true,

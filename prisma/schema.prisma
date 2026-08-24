@@ -240,8 +240,8 @@ model Due_Collection {
   // Customer.id এখন String UUID,
   // তাই customerId-ও String হবে
   customerId String
-  seasonId   String
-  season     Season  @relation(fields: [seasonId], references: [id])
+  // seasonId   String
+  // season     Season  @relation(fields: [seasonId], references: [id])
   isDeleted  Boolean @default(false)
 
   createdAt DateTime @default(now())
@@ -256,8 +256,8 @@ model Ledger {
   // CHANGE 1:
   // Int autoincrement() → UUID
   id       String @id @default(uuid())
-  seasonId String
-  season   Season @relation(fields: [seasonId], references: [id])
+  // seasonId String
+  // season   Season @relation(fields: [seasonId], references: [id])
   name     String
   // CHANGE 2:
   // Global @unique বাদ
@@ -300,8 +300,8 @@ model Payment {
   // Int autoincrement() → UUID
   id String @id @default(uuid())
 
-  seasonId String
-  season   Season @relation(fields: [seasonId], references: [id])
+  // seasonId String
+  // season   Season @relation(fields: [seasonId], references: [id])
   quantity Float
   cutting  Float  @default(0)
   payment  Float
@@ -347,8 +347,8 @@ model Cash {
   // Int autoincrement() → UUID
   id String @id @default(uuid())
 
-  seasonId    String
-  season      Season   @relation(fields: [seasonId], references: [id])
+  // seasonId    String
+  // season      Season   @relation(fields: [seasonId], references: [id])
   type        CashType
   source      String
   description String
@@ -382,8 +382,8 @@ model Round {
   // CHANGE 1:
   // Int autoincrement() → UUID
   id       String @id @default(uuid())
-  seasonId String
-  season   Season @relation(fields: [seasonId], references: [id])
+  // seasonId String
+  // season   Season @relation(fields: [seasonId], references: [id])
   // CHANGE 2:
   // @unique বাদ দেওয়া হয়েছে
   // কারণ Multi-Vata হলে একই নামের Round
@@ -408,8 +408,8 @@ model LoadInfo {
   // CHANGE 5:
   // Int autoincrement() → UUID
   id       String   @id @default(uuid())
-  seasonId String
-  season   Season   @relation(fields: [seasonId], references: [id])
+  // seasonId String
+  // season   Season   @relation(fields: [seasonId], references: [id])
   date     DateTime
 
   // CHANGE 6:
@@ -433,8 +433,8 @@ model Unload {
   id String @id @default(uuid())
 
   date     DateTime
-  seasonId String
-  season   Season   @relation(fields: [seasonId], references: [id])
+  // seasonId String
+  // season   Season   @relation(fields: [seasonId], references: [id])
   roundId  String
   round    Round    @relation(fields: [roundId], references: [id])
 
@@ -448,8 +448,8 @@ model Unload {
 
 model UnloadItem {
   id       String @id @default(uuid())
-  seasonId String
-  season   Season @relation(fields: [seasonId], references: [id])
+  // seasonId String
+  // season   Season @relation(fields: [seasonId], references: [id])
   unloadId String
   unload   Unload @relation(fields: [unloadId], references: [id])
 
@@ -710,14 +710,14 @@ model Season {
   updatedAt      DateTime         @updatedAt
   challans       Challan[]
   customers      Customer[]
-  dueCollections Due_Collection[]
-  ledgers        Ledger[]
-  payments       Payment[]
-  cash           Cash[]
-  rounds         Round[]
-  loadInfos      LoadInfo[]
-  unloads        Unload[]
-  unloadItems    UnloadItem[]
+  // dueCollections Due_Collection[]
+  // ledgers        Ledger[]
+  // payments       Payment[]
+  // cash           Cash[]
+  // rounds         Round[]
+  // loadInfos      LoadInfo[]
+  // unloads        Unload[]
+  // unloadItems    UnloadItem[]
 
   @@unique([name])
 }

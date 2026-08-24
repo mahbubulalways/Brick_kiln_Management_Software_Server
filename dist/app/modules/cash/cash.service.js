@@ -6,14 +6,19 @@ const prisma_1 = require("../../../helpers/prisma");
 const createMetaConfig_1 = require("../../../utils/createMetaConfig");
 const getDateRangeDbSearch_1 = require("../../../utils/getDateRangeDbSearch");
 // CREATE CASH
-const createCashService = async (payload) => {
-    const result = prisma_1.prisma.cash.create({ data: payload });
+const createCashService = async (user, payload) => {
+    const result = prisma_1.prisma.cash.create({
+        data: {
+            ...payload,
+            vataId: user.vataId
+        }
+    });
     return result;
 };
 // GET ALL CASH 
-const getAllCashService = async (query) => {
+const getAllCashService = async (user, query) => {
     const { limit, page, skip } = (0, paginationHelper_1.paginationHelper)(query.page, query.limit);
-    const where = { isDeleted: false };
+    const where = { isDeleted: false, vataId: user.vataId };
     if (query.date) {
         const dateRange = (0, getDateRangeDbSearch_1.getDateRangeDbSearch)(query.date);
         if (dateRange) {
@@ -47,16 +52,16 @@ const getAllCashService = async (query) => {
     };
 };
 // GET SINGLE CASH
-const getSingleCashService = async (id) => {
-    return await prisma_1.prisma.cash.findFirst({ where: { id } });
+const getSingleCashService = async (user, id) => {
+    return await prisma_1.prisma.cash.findFirst({ where: { id, vataId: user.vataId } });
 };
 // UPDATE CASH
-const updateCashService = async (id, payload) => {
-    return prisma_1.prisma.cash.update({ data: payload, where: { id } });
+const updateCashService = async (user, id, payload) => {
+    return prisma_1.prisma.cash.update({ data: payload, where: { id, vataId: user.vataId } });
 };
 // DELETE CASH
-const deleteCashService = async (id) => {
-    return prisma_1.prisma.cash.update({ data: { isDeleted: true }, where: { id } });
+const deleteCashService = async (user, id) => {
+    return prisma_1.prisma.cash.update({ data: { isDeleted: true }, where: { id, vataId: user.vataId } });
 };
 exports.CashService = {
     createCashService,

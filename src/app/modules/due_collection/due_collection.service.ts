@@ -30,10 +30,9 @@ const collectDueService = async (user: TAuthUser, payload: TDueCollectionData) =
     due: Number(payload.due),
     collect: Number(payload.collect),
     newDue: Number(payload.newDue),
-    season: payload.season,
     nextDate: payload.nextDate,
   };
-  console.log(findCustomerId)
+  
 
   const result = await prisma.$transaction(
     async (tx: Prisma.TransactionClient) => {
@@ -310,7 +309,6 @@ const updateDueCollectionService = async (
     due: Number(payload.due),
     collect: Number(payload.collect),
     newDue: Number(payload.newDue),
-    season: payload.season,
     nextDate: payload.nextDate,
   };
 

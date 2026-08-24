@@ -18,6 +18,7 @@ import { StatusCodes } from "http-status-codes";
 // CREATE CUSTOMER AND INVOICE AND INVOICE ITEMS
 const createInvoiceService = async (
   user: TAuthUser,
+  seasonId: string,
   customer: Customer,
   invoiceItems: ChallanItem[],
   invoice: Challan,
@@ -49,6 +50,7 @@ const createInvoiceService = async (
       customer.totalPurchased = invoice.totalPrice;
       customer.totalPaid = Number(invoice?.cash) || 0;
       customer.nextPaymentDate = invoice.duePaymentDate!;
+      customer.seasonId = seasonId
       if (!existingCustomer) {
         const countCustomer =
           (await tx.customer.count({
@@ -84,11 +86,12 @@ const createInvoiceService = async (
       //  CREATE INVOICE
       invoice.customerId = existingCustomer.id;
       invoice.createdById = user.userId;
+
       const newInvoice = await tx.challan.create({
         data: {
           ...invoice,
           vataId: user.vataId,
-          season: getCurrentSession()
+          seasonId
         },
       });
 
@@ -101,12 +104,12 @@ const createInvoiceService = async (
           price: it.price,
           challanId: newInvoice.id,
           deliveryDate: invoice.deliveryDate,
-          season: getCurrentSession()
+
 
         };
       });
 
-      console.log(invokeInvoiceId)
+
 
       // CREATE ITEMS OF CHALLAN
       await tx.challanItem.createMany({
@@ -120,9 +123,9 @@ const createInvoiceService = async (
 
 
 // GET AL INVOICE WITH CUSTOMER NAME AND ADDRESS
-const getAllInvoiceService = async (user: TAuthUser, query: TQuery) => {
+const getAllInvoiceService = async (user: TAuthUser, seasonId: string, query: TQuery) => {
   const { limit, page, skip } = paginationHelper(query.page, query.limit);
-  const where: Prisma.ChallanWhereInput = { vataId: user.vataId, isDeleted: false, };
+  const where: Prisma.ChallanWhereInput = { vataId: user.vataId, isDeleted: false, seasonId: seasonId };
   if (query.search?.trim()) {
     const search = query.search.trim();
     where.customer = {
@@ -158,6 +161,7 @@ const getAllInvoiceService = async (user: TAuthUser, query: TQuery) => {
       include: {
         customer: true,
         items: true,
+        season: true
       }, skip, take: limit
     }),
 
@@ -179,9 +183,14 @@ const getAllInvoiceService = async (user: TAuthUser, query: TQuery) => {
 };
 
 // GET ADVANCE INVOICE
-const getAllAdvanceInvoiceService = async (user: TAuthUser, query: TQuery) => {
+const getAllAdvanceInvoiceService = async (user: TAuthUser, seasonId: string, query: TQuery) => {
   const { limit, page, skip } = paginationHelper(query.page, query.limit);
-  const where: Prisma.ChallanWhereInput = { vataId: user.vataId, isDeleted: false, chalanType: "অগ্রিম চালান" };
+  const where: Prisma.ChallanWhereInput = {
+    vataId: user.vataId,
+    isDeleted: false,
+    chalanType: "অগ্রিম চালান",
+    seasonId
+  };
   if (query.search?.trim()) {
     const search = query.search.trim();
     where.customer = {
@@ -374,13 +383,15 @@ const deleteInvoiceService = async (user: TAuthUser, invoiceId: string) => {
 // GET ITEMS WITH INVOICE
 const getItemsWithInvoiceService = async (
   user: TAuthUser,
+  seasonId:string,
   startDate?: string,
   endDate?: string,
 ) => {
   const whereCondition: Prisma.ChallanItemWhereInput = {
     isDeleted: false,
     challan: {
-      vataId: user.vataId
+      vataId: user.vataId,
+      seasonId,
     }
   };
 

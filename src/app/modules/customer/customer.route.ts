@@ -2,15 +2,18 @@ import { Router } from "express";
 import { CustomerController } from "./customer.controller";
 import AuthGuard from "../../middlewares/AuthGuard";
 import { UserRole } from "../../../generated/prisma/enums";
+import ActiveSeasonGuard from "../../middlewares/ActiveSeasonGuard";
 
 const router = Router();
 
 router.get("/all",
     AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+    ActiveSeasonGuard,
     CustomerController.getAllCustomertController)
 
 router.get("/old",
     AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+    ActiveSeasonGuard,
     CustomerController.getOldCustomerController)
 
 router.get("/single/:id",

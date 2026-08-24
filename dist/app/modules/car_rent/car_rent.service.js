@@ -7,14 +7,15 @@ const prisma_1 = require("../../../helpers/prisma");
 const createMetaConfig_1 = require("../../../utils/createMetaConfig");
 const ApplicationError_1 = require("../../errors/ApplicationError");
 // CREATE RENT
-const createCarRentService = async (data) => {
+const createCarRentService = async (user, data) => {
+    data.vataId = user.vataId;
     const result = await prisma_1.prisma.carRent.create({ data });
     return result;
 };
 // GET ALL RENT
-const getALlCarRentService = async (query) => {
+const getALlCarRentService = async (user, query) => {
     const { limit, page, skip } = (0, paginationHelper_1.paginationHelper)(query.page, query.limit);
-    const where = {};
+    const where = { vataId: user.vataId };
     // Search by ledger name
     if (query.search?.trim()) {
         const search = query.search.trim();
@@ -48,15 +49,16 @@ const getALlCarRentService = async (query) => {
     };
 };
 // GET SINGLE CAR RENT
-const getSingleCarRentService = async (id) => {
-    const result = await prisma_1.prisma.carRent.findFirst({ where: { id } });
+const getSingleCarRentService = async (user, id) => {
+    const result = await prisma_1.prisma.carRent.findFirst({ where: { id, vataId: user.vataId } });
     return result;
 };
 // UPDATE CAR RENT
-const updateCarRentService = async (id, payload) => {
+const updateCarRentService = async (user, id, payload) => {
     const existing = await prisma_1.prisma.carRent.findUnique({
         where: {
             id,
+            vataId: user.vataId
         },
     });
     if (!existing) {
@@ -65,16 +67,18 @@ const updateCarRentService = async (id, payload) => {
     const result = await prisma_1.prisma.carRent.update({
         where: {
             id,
+            vataId: user.vataId
         },
         data: payload,
     });
     return result;
 };
 // DELETE CAR RENT
-const deleteCarRentService = async (id) => {
+const deleteCarRentService = async (user, id) => {
     const existing = await prisma_1.prisma.carRent.findUnique({
         where: {
             id,
+            vataId: user.vataId
         },
     });
     if (!existing) {
@@ -83,6 +87,7 @@ const deleteCarRentService = async (id) => {
     await prisma_1.prisma.carRent.delete({
         where: {
             id,
+            vataId: user.vataId
         },
     });
     return true;

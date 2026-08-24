@@ -1,16 +1,21 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const cash_controller_1 = require("./cash.controller");
+const AuthGuard_1 = __importDefault(require("../../middlewares/AuthGuard"));
+const enums_1 = require("../../../generated/prisma/enums");
 const router = (0, express_1.Router)();
 // CREATE CASH
-router.post("/create", cash_controller_1.CashController.createCash);
+router.post("/create", (0, AuthGuard_1.default)(enums_1.UserRole.OWNER, enums_1.UserRole.ADMIN, enums_1.UserRole.MANAGER), cash_controller_1.CashController.createCash);
 // GET ALL CASH
-router.get("/all", cash_controller_1.CashController.getAllCash);
+router.get("/all", (0, AuthGuard_1.default)(enums_1.UserRole.OWNER, enums_1.UserRole.ADMIN, enums_1.UserRole.MANAGER), cash_controller_1.CashController.getAllCash);
 // GET SINGLE CASH
-router.get("/single/:id", cash_controller_1.CashController.getSingleCash);
+router.get("/single/:id", (0, AuthGuard_1.default)(enums_1.UserRole.OWNER, enums_1.UserRole.ADMIN, enums_1.UserRole.MANAGER), cash_controller_1.CashController.getSingleCash);
 // UPDATE CASH
-router.patch("/update/:id", cash_controller_1.CashController.updateCash);
+router.patch("/update/:id", (0, AuthGuard_1.default)(enums_1.UserRole.OWNER, enums_1.UserRole.ADMIN, enums_1.UserRole.MANAGER), cash_controller_1.CashController.updateCash);
 // DELETE CASH
-router.delete("/delete/:id", cash_controller_1.CashController.deleteCash);
+router.delete("/delete/:id", (0, AuthGuard_1.default)(enums_1.UserRole.OWNER, enums_1.UserRole.ADMIN, enums_1.UserRole.MANAGER), cash_controller_1.CashController.deleteCash);
 exports.default = router;

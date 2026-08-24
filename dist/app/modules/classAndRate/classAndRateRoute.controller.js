@@ -11,7 +11,8 @@ const classAndRateRoute_service_1 = require("./classAndRateRoute.service");
 const sendResponse_1 = require("../../../utils/sendResponse");
 const createClassAndRateController = (0, catchAsync_1.default)(async (req, res) => {
     const body = req.body;
-    const result = await classAndRateRoute_service_1.ClassAndRateService.createClassAndRateService(body);
+    const user = req.user;
+    const result = await classAndRateRoute_service_1.ClassAndRateService.createClassAndRateService(user, body);
     if (!result.id) {
         throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.BAD_REQUEST, "Failed to create Class & Rate");
     }
@@ -26,7 +27,8 @@ const createClassAndRateController = (0, catchAsync_1.default)(async (req, res) 
 });
 // GET ALL CLASS AND RATE
 const getClassAndRateController = (0, catchAsync_1.default)(async (req, res) => {
-    const result = await classAndRateRoute_service_1.ClassAndRateService.getClassAndRateService();
+    const user = req.user;
+    const result = await classAndRateRoute_service_1.ClassAndRateService.getClassAndRateService(user);
     if (!result.length) {
         throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.BAD_REQUEST, "শ্রেণী ও রেট নিয়ে তথ্য আনতে ব্যর্থ হয়েছে");
     }
@@ -42,7 +44,8 @@ const getClassAndRateController = (0, catchAsync_1.default)(async (req, res) => 
 // GET SINGLE CLASS AND RATE
 const getSingleClassAndRateController = (0, catchAsync_1.default)(async (req, res) => {
     const id = req.params?.id;
-    const result = await classAndRateRoute_service_1.ClassAndRateService.getSingleClassAndRateService(Number(id));
+    const user = req.user;
+    const result = await classAndRateRoute_service_1.ClassAndRateService.getSingleClassAndRateService(user, id);
     if (!result?.id) {
         throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.BAD_REQUEST, "শ্রেণী ও রেট নিয়ে তথ্য আনতে ব্যর্থ হয়েছে");
     }
@@ -59,7 +62,8 @@ const getSingleClassAndRateController = (0, catchAsync_1.default)(async (req, re
 const updateClassAndRateController = (0, catchAsync_1.default)(async (req, res) => {
     const id = req.params?.id;
     const body = req.body;
-    const result = await classAndRateRoute_service_1.ClassAndRateService.updateClassAndRateService(Number(id), body);
+    const user = req.user;
+    const result = await classAndRateRoute_service_1.ClassAndRateService.updateClassAndRateService(user, id, body);
     if (!result?.id) {
         throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.BAD_REQUEST, "দুঃখিত! শ্রেণী ও রেট আপডেট করতে ব্যর্থ হয়েছে");
     }
@@ -72,9 +76,26 @@ const updateClassAndRateController = (0, catchAsync_1.default)(async (req, res) 
         });
     }
 });
+const deleteClassAndRateController = (0, catchAsync_1.default)(async (req, res) => {
+    const id = req.params?.id;
+    const user = req.user;
+    const result = await classAndRateRoute_service_1.ClassAndRateService.deleteClassAndRateService(user, id);
+    if (!result?.id) {
+        throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.BAD_REQUEST, "দুঃখিত! শ্রেণী ও রেট মুছে ফেলতে ব্যর্থ হয়েছে");
+    }
+    else {
+        (0, sendResponse_1.sendResponse)(res, {
+            message: "শ্রেণী ও রেট সফলভাবে মুছে ফেলা হয়েছে",
+            statusCode: http_status_codes_1.StatusCodes.OK,
+            success: true,
+            data: result,
+        });
+    }
+});
 exports.ClassAndRateController = {
     createClassAndRateController,
     getClassAndRateController,
     getSingleClassAndRateController,
     updateClassAndRateController,
+    deleteClassAndRateController
 };

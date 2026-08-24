@@ -3,11 +3,12 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.ReportService = void 0;
 const prisma_1 = require("../../../helpers/prisma");
 const report_utils_1 = require("./report.utils");
-const getTopSellingAreasService = async () => {
+const getTopSellingAreasService = async (user) => {
     const challans = await prisma_1.prisma.challan.findMany({
         where: {
             isDeleted: false,
             customer: {
+                vataId: user.vataId,
                 isDeleted: false,
             },
         },
@@ -71,9 +72,9 @@ const getTopSellingAreasService = async () => {
     return result;
 };
 // GET ALL REPORT FOR DASHBOARD
-const dashboardAllReportService = async () => {
+const dashboardAllReportService = async (user) => {
     const challans = await prisma_1.prisma.challan.findMany({
-        where: { isDeleted: false },
+        where: { isDeleted: false, vataId: user.vataId },
         select: {
             carRent: true,
             cash: true,
@@ -105,6 +106,26 @@ const dashboardAllReportService = async () => {
     });
     const paymentReport = report_utils_1.ReportUtils.calculatePaymentReport(payments);
     const totalPaymentGiven = paymentReport.reduce((sum, item) => sum + item.paymentGiven, 0);
+    // DUE=====================================================================
+    const due = await prisma_1.prisma.due_Collection.aggregate({
+        where: {
+            customer: {
+            // vataId: vataId,
+            },
+        },
+        _sum: {
+            collect: true,
+        },
+    });
+    // CASH==================================================
+    const cash = await prisma_1.prisma.cash.aggregate({
+        where: {
+        // vataId: vataId,
+        },
+        _sum: {
+            amount: true,
+        },
+    });
     const Informations = {
         challan: {
             summary: challanReport,
@@ -113,7 +134,9 @@ const dashboardAllReportService = async () => {
         payment: {
             total: totalPaymentGiven,
             payments: paymentReport
-        }
+        },
+        due: due?._sum?.collect ?? 0,
+        cash: cash?._sum?.amount ?? 0
     };
     return Informations;
 };

@@ -9,9 +9,9 @@ const createMetaConfig_1 = require("../../../utils/createMetaConfig");
 const customer_utils_1 = require("./customer.utils");
 const getDateRangeDbSearch_1 = require("../../../utils/getDateRangeDbSearch");
 // GET SINGLE INFO
-const getSingleCustomerService = async (id) => {
+const getSingleCustomerService = async (user, id) => {
     const result = await prisma_1.prisma.customer.findFirst({
-        where: { id },
+        where: { id, vataId: user.vataId },
         select: {
             address: true,
             name: true,
@@ -22,35 +22,35 @@ const getSingleCustomerService = async (id) => {
     return result;
 };
 // UPDATE 
-const updateCustomerService = async (id, data) => {
-    const exist = await getSingleCustomerService(id);
+const updateCustomerService = async (user, id, data) => {
+    const exist = await getSingleCustomerService(user, id);
     if (!exist?.id) {
         throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.NOT_FOUND, "কোনো কাস্টমার পাওয়া যায়নি।");
     }
     const result = await prisma_1.prisma.customer.update({
-        where: { id },
+        where: { id, vataId: user.vataId },
         data: data
     });
     return result;
 };
-const getAllCustomerService = async (query) => {
+const getAllCustomerService = async (user, seasonId, query) => {
     const { limit, page, skip } = (0, paginationHelper_1.paginationHelper)(query.page, query.limit);
     const where = {
         isDeleted: false,
+        vataId: user.vataId,
+        seasonId
     };
     if (query.search?.trim()) {
         const search = query.search.trim();
-        const isNumber = !isNaN(Number(search));
         where.OR = [
-            ...(isNumber
-                ? [
-                    {
-                        id: Number(search),
-                    },
-                ]
-                : []),
             {
                 name: {
+                    contains: search,
+                    mode: "insensitive",
+                },
+            },
+            {
+                customerCode: {
                     contains: search,
                     mode: "insensitive",
                 },
@@ -176,11 +176,12 @@ const getAllCustomerService = async (query) => {
     };
 };
 // GET SINGLE CUSTOMER INFORMATION
-const getSingleCustomerInformationService = async (id) => {
+const getSingleCustomerInformationService = async (user, id) => {
     const customer = await prisma_1.prisma.customer.findMany({
         where: {
             isDeleted: false,
-            id
+            vataId: user.vataId,
+            customerCode: id
         },
         include: {
             challans: {
@@ -211,9 +212,9 @@ const getSingleCustomerInformationService = async (id) => {
     return result[0];
 };
 // GET CUSTOMER CHALLANS
-const getCustomerAllChallanService = async (id, query) => {
+const getCustomerAllChallanService = async (user, id, query) => {
     const { limit, page, skip } = (0, paginationHelper_1.paginationHelper)(query.page, query.limit);
-    const where = { customerId: id, isDeleted: false };
+    const where = { vataId: user.vataId, customerId: id, isDeleted: false };
     // Create start and end of day boundaries
     if (query.date) {
         const dateRange = (0, getDateRangeDbSearch_1.getDateRangeDbSearch)(query.date);
@@ -240,17 +241,20 @@ const getCustomerAllChallanService = async (id, query) => {
         data: result,
     };
 };
-// GET CUSTOMER CHALLANS
-const getCustomerAllDeliveryService = async (id, query) => {
+// GET CUSTOMER DELIVERIE
+const getCustomerAllDeliveryService = async (user, id, query) => {
     const { limit, page, skip } = (0, paginationHelper_1.paginationHelper)(query.page, query.limit);
     const chalans = await prisma_1.prisma.challan.findMany({
-        where: { customerId: id },
+        where: { customerId: id, vataId: user.vataId },
         select: { id: true },
     });
     const chalanIds = chalans.map((c) => c.id);
     const where = {
         invoiceId: { in: chalanIds },
         isDeleted: false,
+        invoice: {
+            vataId: user.vataId
+        }
     };
     if (query.date) {
         const dateRange = (0, getDateRangeDbSearch_1.getDateRangeDbSearch)(query.date);
@@ -266,6 +270,8 @@ const getCustomerAllDeliveryService = async (id, query) => {
             include: {
                 invoice: {
                     select: {
+                        id: true,
+                        serial: true,
                         customer: {
                             select: {
                                 name: true,
@@ -289,9 +295,11 @@ const getCustomerAllDeliveryService = async (id, query) => {
     };
 };
 // GET CUSTOMER ALL DUES
-const getCustomerAllDuesService = async (id, query) => {
+const getCustomerAllDuesService = async (user, id, query) => {
     const { limit, page, skip } = (0, paginationHelper_1.paginationHelper)(query.page, query.limit);
-    const where = { customerId: id, isDeleted: false };
+    const where = {
+        customerId: id, isDeleted: false, customer: { vataId: user.vataId }
+    };
     // Create start and end of day boundaries
     if (query.date) {
         const dateRange = (0, getDateRangeDbSearch_1.getDateRangeDbSearch)(query.date);
@@ -302,7 +310,11 @@ const getCustomerAllDuesService = async (id, query) => {
     const [result, total] = await Promise.all([
         prisma_1.prisma.due_Collection.findMany({
             where,
-            // include: { customer: true },
+            include: { customer: {
+                    select: {
+                        customerCode: true
+                    }
+                } },
             skip,
             take: limit,
             orderBy: { createdAt: "asc" }
@@ -319,6 +331,49 @@ const getCustomerAllDuesService = async (id, query) => {
         data: result,
     };
 };
+// GET OLD CUSTOMERS 
+const getOldCustomerService = async (user, search) => {
+    console.log(search);
+    const result = await prisma_1.prisma.customer.findMany({
+        where: {
+            vataId: user.vataId,
+            isDeleted: false,
+            OR: [
+                {
+                    name: {
+                        contains: search,
+                        mode: "insensitive",
+                    },
+                },
+                {
+                    phoneNumber: {
+                        contains: search,
+                    },
+                },
+                // {
+                //   customerCode: {
+                //     contains: search,
+                //     mode: "insensitive",
+                //   },
+                // },
+                // {
+                //   address: {
+                //     customerCode: search,
+                //     mode: "insensitive",
+                //   },
+                // },
+            ],
+        },
+        select: {
+            name: true,
+            phoneNumber: true,
+            address: true,
+            id: true,
+            customerCode: true
+        },
+    });
+    return result;
+};
 exports.CustomerService = {
     getAllCustomerService,
     getSingleCustomerInformationService,
@@ -326,5 +381,6 @@ exports.CustomerService = {
     getCustomerAllDeliveryService,
     getCustomerAllDuesService,
     getSingleCustomerService,
-    updateCustomerService
+    updateCustomerService,
+    getOldCustomerService,
 };

@@ -5,11 +5,12 @@ const prisma_1 = require("../../../helpers/prisma");
 // ==========================================
 // Create Receivable / Payable
 // ==========================================
-const createReceivablePayable = async (payload) => {
+const createReceivablePayable = async (user, payload) => {
     const result = await prisma_1.prisma.receivablePayable.create({
         data: {
             ...payload,
-            currentAmount: payload.amount,
+            vataId: user.vataId,
+            currentAmount: Number(payload.amount),
         },
         include: {
             transactions: true,
@@ -20,11 +21,12 @@ const createReceivablePayable = async (payload) => {
 // ==========================================
 // Create Transaction
 // ==========================================
-const createTransaction = async (id, payload) => {
+const createTransaction = async (user, id, payload) => {
     const result = await prisma_1.prisma.$transaction(async (tx) => {
         const parent = await tx.receivablePayable.findFirst({
             where: {
-                id
+                id,
+                vataId: user.vataId
             },
             select: {
                 amount: true, currentAmount: true,
@@ -36,7 +38,8 @@ const createTransaction = async (id, payload) => {
             amount: Number(payload.amount),
             transactionDate: payload.transactionDate,
             description: payload.description,
-            remaining: 0
+            remaining: 0,
+            vataId: user.vataId
         };
         if (payload.type === "GIVEN") {
             const currentAmount = Number(parent?.currentAmount) + data.amount;
@@ -44,7 +47,7 @@ const createTransaction = async (id, payload) => {
             data.remaining = currentAmount;
             const transaction = await tx.receivablePayableTransaction.create({ data });
             await tx.receivablePayable.update({
-                where: { id }, data: {
+                where: { id, vataId: user.vataId }, data: {
                     currentAmount,
                     amount: totalAmount,
                     paymentDate: data.transactionDate
@@ -58,7 +61,7 @@ const createTransaction = async (id, payload) => {
             data.remaining = currentAmount;
             const transaction = await tx.receivablePayableTransaction.create({ data });
             await tx.receivablePayable.update({
-                where: { id }, data: {
+                where: { id, vataId: user.vataId }, data: {
                     currentAmount,
                     amount: totalAmount,
                     paymentDate: data.transactionDate
@@ -71,7 +74,7 @@ const createTransaction = async (id, payload) => {
             data.remaining = currentAmount;
             const transaction = await tx.receivablePayableTransaction.create({ data });
             await tx.receivablePayable.update({
-                where: { id }, data: {
+                where: { id, vataId: user.vataId }, data: {
                     currentAmount,
                     paymentDate: data.transactionDate
                 }
@@ -84,10 +87,11 @@ const createTransaction = async (id, payload) => {
 // ==========================================
 // Get All Receivable / Payable
 // ==========================================
-const getAllReceivablePayable = async () => {
+const getAllReceivablePayable = async (user) => {
     const result = await prisma_1.prisma.receivablePayable.findMany({
         where: {
             isDeleted: false,
+            vataId: user.vataId
         },
         orderBy: {
             createdAt: "desc",
@@ -106,16 +110,17 @@ const getAllReceivablePayable = async () => {
 // ==========================================
 // Get Single Receivable / Payable
 // ==========================================
-const getSingleReceivablePayable = async (id) => {
+const getSingleReceivablePayable = async (user, id) => {
     const result = await prisma_1.prisma.receivablePayable.findFirst({
         where: {
             id,
             isDeleted: false,
+            vataId: user.vataId
         },
         include: {
             transactions: {
                 orderBy: {
-                    transactionDate: "desc",
+                    createdAt: "desc",
                 },
             },
         },
@@ -125,10 +130,11 @@ const getSingleReceivablePayable = async (id) => {
 // ==========================================
 // Update Receivable / Payable
 // ==========================================
-const updateReceivablePayable = async (id, payload) => {
+const updateReceivablePayable = async (user, id, payload) => {
     const result = await prisma_1.prisma.receivablePayable.update({
         where: {
             id,
+            vataId: user.vataId
         },
         data: payload,
         include: {
@@ -144,10 +150,11 @@ const updateReceivablePayable = async (id, payload) => {
 // ==========================================
 // Delete Receivable / Payable
 // ==========================================
-const deleteReceivablePayable = async (id) => {
+const deleteReceivablePayable = async (user, id) => {
     const result = await prisma_1.prisma.receivablePayable.update({
         where: {
             id,
+            vataId: user.vataId
         },
         data: {
             isDeleted: true,
@@ -156,9 +163,9 @@ const deleteReceivablePayable = async (id) => {
     return result;
 };
 // GET AMOUNT VIA GIVEN TAKEN
-const getCurrentAmountService = async (id) => {
+const getCurrentAmountService = async (user, id) => {
     const result = await prisma_1.prisma.receivablePayable.findFirst({
-        where: { id },
+        where: { id, vataId: user.vataId },
         select: { currentAmount: true, id: true }
     });
     return result;

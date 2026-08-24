@@ -6,17 +6,24 @@ exports.TaskService = void 0;
 const prisma_1 = require("../../../helpers/prisma");
 const getDateRangeDbSearch_1 = require("../../../utils/getDateRangeDbSearch");
 // ==========================================
-const createTaskService = async (payload) => {
+const createTaskService = async (user, payload) => {
     const result = await prisma_1.prisma.taskManager.create({
-        data: payload
+        data: {
+            ...payload,
+            vataId: user.vataId
+        }
     });
     return result;
 };
 // ==========================================
 // Get Pending Tasks
 // ==========================================
-const getPendingTasksService = async (query) => {
-    const where = { isDeleted: false, status: "PENDING", };
+const getPendingTasksService = async (user, query) => {
+    const where = {
+        vataId: user.vataId,
+        isDeleted: false,
+        status: "PENDING",
+    };
     if (query.date) {
         const dateRange = (0, getDateRangeDbSearch_1.getDateRangeDbSearch)(query.date);
         if (dateRange) {
@@ -42,8 +49,13 @@ const getPendingTasksService = async (query) => {
 // ==========================================
 // Get Complete Tasks
 // ==========================================
-const getCompleteTasksService = async (query) => {
-    const where = { isDeleted: false, status: "COMPLETE", };
+const getCompleteTasksService = async (user, query) => {
+    const where = {
+        isDeleted: false,
+        status: "COMPLETE",
+        vataId: user.vataId,
+    };
+    console.log(query.date);
     if (query.date) {
         const dateRange = (0, getDateRangeDbSearch_1.getDateRangeDbSearch)(query.date);
         if (dateRange) {
@@ -69,10 +81,11 @@ const getCompleteTasksService = async (query) => {
 // ==========================================
 // Get Single Task
 // ==========================================
-const getSingleTaskService = async (id) => {
+const getSingleTaskService = async (user, id) => {
     const result = await prisma_1.prisma.taskManager.findUnique({
         where: {
             id,
+            vataId: user.vataId,
         },
         include: {
             user: {
@@ -88,7 +101,7 @@ const getSingleTaskService = async (id) => {
 // ==========================================
 // Update Task
 // ==========================================
-const updateTaskService = async (id, payload) => {
+const updateTaskService = async (user, id, payload) => {
     const updateData = {
         ...payload,
         ...(payload.date && {
@@ -98,6 +111,7 @@ const updateTaskService = async (id, payload) => {
     const result = await prisma_1.prisma.taskManager.update({
         where: {
             id,
+            vataId: user.vataId,
         },
         data: updateData,
         include: {
@@ -114,10 +128,11 @@ const updateTaskService = async (id, payload) => {
 // ==========================================
 // Delete Task
 // ==========================================
-const deleteTaskService = async (id) => {
+const deleteTaskService = async (user, id) => {
     const result = await prisma_1.prisma.taskManager.delete({
         where: {
             id,
+            vataId: user.vataId,
         },
     });
     return result;
