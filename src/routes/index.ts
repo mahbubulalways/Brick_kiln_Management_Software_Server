@@ -21,6 +21,8 @@ import dueMateRoute from "../app/modules/receivable_payable/receivable_payable.r
 import contactRoute from "../app/modules/contact/contact.route";
 import weathertRoute from "../app/modules/weather/weather.route";
 import vataRoute from "../app/modules/vata/vata.route";
+import seasonRoute from "../app/modules/season/season.route";
+
 const router = Router();
 const applicationRoutes: IApplicationRoute[] = [
   { path: "/class", route: classAndRateRoute },
@@ -44,6 +46,7 @@ const applicationRoutes: IApplicationRoute[] = [
   { path: "/contact", route: contactRoute },
   { path: "/weather", route: weathertRoute },
   { path: "/vata", route: vataRoute },
+  { path: "/season", route: seasonRoute },
 ];
 
 applicationRoutes.forEach((route) => router.use(route.path, route.route));

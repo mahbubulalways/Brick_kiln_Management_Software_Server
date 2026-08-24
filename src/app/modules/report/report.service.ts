@@ -179,9 +179,10 @@ const dashboardAllReportService = async (user: TAuthUser) => {
             payments: paymentReport
         },
 
-        due:due?._sum,
-        cash:cash?._sum
+        due: due?._sum?.collect ?? 0,
+        cash: cash?._sum?.amount ?? 0
     }
+
     return Informations
 
 

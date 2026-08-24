@@ -364,7 +364,11 @@ const getCustomerAllDuesService = async (user: TAuthUser, id: string, query: TQu
   const [result, total] = await Promise.all([
     prisma.due_Collection.findMany({
       where,
-      // include: { customer: true },
+      include: { customer: {
+        select:{
+          customerCode:true
+        }
+      } },
       skip,
       take: limit,
       orderBy: { createdAt: "asc" }

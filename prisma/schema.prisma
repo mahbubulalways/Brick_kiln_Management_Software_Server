@@ -93,7 +93,8 @@ model Challan {
   note           String?
   createdById    String
   createdBy      User      @relation(fields: [createdById], references: [id])
-  season         String?
+  seasonId       String
+  season         Season    @relation(fields: [seasonId], references: [id])
   productPrice   Float
   discount       Float?
   carRent        Float?
@@ -155,7 +156,8 @@ model Customer {
   // User-facing Customer ID
   customerCode String
 
-  season      String?
+  seasonId    String
+  season      Season @relation(fields: [seasonId], references: [id])
   name        String
   address     String
   phoneNumber String
@@ -238,10 +240,9 @@ model Due_Collection {
   // Customer.id এখন String UUID,
   // তাই customerId-ও String হবে
   customerId String
-
-  season String?
-
-  isDeleted Boolean @default(false)
+  seasonId   String
+  season     Season  @relation(fields: [seasonId], references: [id])
+  isDeleted  Boolean @default(false)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -254,14 +255,14 @@ model Due_Collection {
 model Ledger {
   // CHANGE 1:
   // Int autoincrement() → UUID
-  id String @id @default(uuid())
-
-  name   String
-  season String?
+  id       String @id @default(uuid())
+  seasonId String
+  season   Season @relation(fields: [seasonId], references: [id])
+  name     String
   // CHANGE 2:
   // Global @unique বাদ
   // কারণ প্রতিটি Vata-এর আলাদা serial হতে পারে
-  serial Int
+  serial   Int
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -299,9 +300,10 @@ model Payment {
   // Int autoincrement() → UUID
   id String @id @default(uuid())
 
-  season   String?
+  seasonId String
+  season   Season @relation(fields: [seasonId], references: [id])
   quantity Float
-  cutting  Float   @default(0)
+  cutting  Float  @default(0)
   payment  Float
 
   // CHANGE 2:
@@ -345,7 +347,8 @@ model Cash {
   // Int autoincrement() → UUID
   id String @id @default(uuid())
 
-  season      String?
+  seasonId    String
+  season      Season   @relation(fields: [seasonId], references: [id])
   type        CashType
   source      String
   description String
@@ -378,14 +381,14 @@ model Cash {
 model Round {
   // CHANGE 1:
   // Int autoincrement() → UUID
-  id String @id @default(uuid())
-
-  season String?
+  id       String @id @default(uuid())
+  seasonId String
+  season   Season @relation(fields: [seasonId], references: [id])
   // CHANGE 2:
   // @unique বাদ দেওয়া হয়েছে
   // কারণ Multi-Vata হলে একই নামের Round
   // আলাদা Vata-তে থাকতে পারবে
-  name   String
+  name     String
 
   // CHANGE 3:
   // কোন Vata-এর Round
@@ -404,9 +407,10 @@ model Round {
 model LoadInfo {
   // CHANGE 5:
   // Int autoincrement() → UUID
-  id     String   @id @default(uuid())
-  season String?
-  date   DateTime
+  id       String   @id @default(uuid())
+  seasonId String
+  season   Season   @relation(fields: [seasonId], references: [id])
+  date     DateTime
 
   // CHANGE 6:
   // Round.id এখন String UUID
@@ -428,10 +432,11 @@ model LoadInfo {
 model Unload {
   id String @id @default(uuid())
 
-  date    DateTime
-  season  String?
-  roundId String
-  round   Round    @relation(fields: [roundId], references: [id])
+  date     DateTime
+  seasonId String
+  season   Season   @relation(fields: [seasonId], references: [id])
+  roundId  String
+  round    Round    @relation(fields: [roundId], references: [id])
 
   isDeleted Boolean @default(false)
 
@@ -442,10 +447,11 @@ model Unload {
 }
 
 model UnloadItem {
-  id       String  @id @default(uuid())
-  season   String?
+  id       String @id @default(uuid())
+  seasonId String
+  season   Season @relation(fields: [seasonId], references: [id])
   unloadId String
-  unload   Unload  @relation(fields: [unloadId], references: [id])
+  unload   Unload @relation(fields: [unloadId], references: [id])
 
   classId   String
   classType ClassAndRate @relation(fields: [classId], references: [id])
@@ -669,17 +675,49 @@ model Vata {
   receivablePayableTransactions ReceivablePayableTransaction[]
   contacts                      Contact[]
   weather                       Weather[]
+  softwareFees                  SoftwareFee[]
 
   @@map("vatainformation")
 }
 
+// SOFTWARE FEE
+enum SoftwareFeeStatus {
+  PENDING
+  REJECTED
+  APPROVED
+}
 
-// SEASON
-// model Season {
-//   id        String   @id @default(uuid())
-//   season    String   @unique 
-//   isActive  Boolean  @default(false)
+model SoftwareFee {
+  id            String            @id @default(uuid())
+  fee           Float
+  transactionId String
+  sender        String
+  status        SoftwareFeeStatus @default(PENDING)
+  vataId        String
+  vata          Vata              @relation(fields: [vataId], references: [vataId])
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+}
 
-//   createdAt DateTime @default(now())
-//   updatedAt DateTime @updatedAt
-// }
+model Season {
+  id        String   @id @default(uuid())
+  name      String
+  startDate DateTime
+  endDate   DateTime
+  isActive  Boolean  @default(false)
+
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  challans       Challan[]
+  customers      Customer[]
+  dueCollections Due_Collection[]
+  ledgers        Ledger[]
+  payments       Payment[]
+  cash           Cash[]
+  rounds         Round[]
+  loadInfos      LoadInfo[]
+  unloads        Unload[]
+  unloadItems    UnloadItem[]
+
+  @@unique([name])
+}

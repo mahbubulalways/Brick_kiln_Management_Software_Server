@@ -102,6 +102,7 @@ const getVataInformationService = async (user: TAuthUser) => {
             address: true,
             id: true,
             challansPhoneNumber: true,
+            ownerName:true
         }
     })
     return result
