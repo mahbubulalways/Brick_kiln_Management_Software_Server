@@ -8,498 +8,299 @@ datasource db {
   provider = "postgresql"
 }
 
-enum UserRole {
-  OWNER
-  ADMIN
-  MANAGER
-  SYSTEM_ADMIN
-}
-
 model User {
   id           String         @id @default(uuid())
   name         String         @default("Admin")
   username     String         @unique
   role         UserRole       @default(ADMIN)
   password     String
-  loginHistory LoginHistory[]
-  // taskManagers TaskManager[]
-
-  isDeleted    Boolean       @default(false)
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
-  vata         Vata?         @relation(fields: [vataId], references: [id])
+  isDeleted    Boolean        @default(false)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
   vataId       String?
+  taskManagers TaskManager[]
   challans     Challan[]
   deliveries   Delivery[]
-  taskManagers TaskManager[]
+  loginHistory LoginHistory[]
+  vata         Vata?          @relation(fields: [vataId], references: [id])
 
   @@map("users")
 }
 
 model LoginHistory {
-  id        String @id @default(uuid())
+  id        String   @id @default(uuid())
   type      String
   device    String
   browser   String
   ipAddress String
   userId    String
-  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-
   createdAt DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@map("login_histories")
 }
 
 model ClassAndRate {
-  // CHANGE 1:
-  // Int autoincrement() এর পরিবর্তে UUID ব্যবহার করা হয়েছে
-  id String @id @default(uuid())
-
-  classType String
-  className String
-  rate      Float
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @default(now()) @updatedAt
-  isDeleted Boolean  @default(false)
-
+  id          String       @id @default(uuid())
+  classType   String
+  className   String
+  rate        Float
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @default(now()) @updatedAt
+  isDeleted   Boolean      @default(false)
+  vataId      String
   unloadItems UnloadItem[]
+  vata        Vata         @relation(fields: [vataId], references: [id])
 
-  // CHANGE 2:
-  // আগে VataInfo-এর সাথে relation ছিল
-  // vataInfo   VataInfo?
-  // vataInfoId String?
-  //
-  // এখন সরাসরি Vata-এর সাথে relation হবে
-  vataId String
-  vata   Vata   @relation(fields: [vataId], references: [id])
-
-  // CHANGE 3:
-  // একই Vata-এর মধ্যে একই classType + className
-  // যেন duplicate না হয়
   @@unique([vataId, classType, className])
   @@map("classAndRates")
 }
 
 model Challan {
-  id String @id @default(uuid())
-
+  id             String        @id @default(uuid())
   serial         Int
   chalanType     String
   deliveryDate   DateTime
   challanDate    DateTime
   duePaymentDate DateTime?
   note           String?
-  createdById    String
-  createdBy      User      @relation(fields: [createdById], references: [id])
-  seasonId       String
-  season         Season    @relation(fields: [seasonId], references: [id])
   productPrice   Float
   discount       Float?
   carRent        Float?
   totalPrice     Float
   cash           Float?
   due            Float?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  customerId String
-  vataId     String
-
-  isDeleted Boolean @default(false)
-
-  items    ChallanItem[] @relation("ChallanItems")
-  customer Customer      @relation(fields: [customerId], references: [id])
-  vata     Vata          @relation(fields: [vataId], references: [id])
-
-  deliveries Delivery[]
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  customerId     String
+  vataId         String
+  isDeleted      Boolean       @default(false)
+  createdById    String
+  seasonId       String
+  items          ChallanItem[] @relation("ChallanItems")
+  createdBy      User          @relation(fields: [createdById], references: [id])
+  customer       Customer      @relation(fields: [customerId], references: [id])
+  season         Season        @relation(fields: [seasonId], references: [id])
+  vata           Vata          @relation(fields: [vataId], references: [id])
+  deliveries     Delivery[]
 
   @@unique([vataId, serial])
   @@map("chllans")
 }
 
 model ChallanItem {
-  // CHANGE 1:
-  // Int autoincrement() → UUID
-  id String @id @default(uuid())
-
-  season    String?
-  class     String
-  rate      Float
-  quantity  Int
-  delivered Int     @default(0)
-  price     Float
-
-  // CHANGE 2:
-  // Challan.id এখন String UUID,
-  // তাই challanId-ও String হবে
-  challanId String
-
+  id           String   @id @default(uuid())
+  class        String
+  rate         Float
+  quantity     Int
+  delivered    Int      @default(0)
+  price        Float
+  challanId    String
   deliveryDate DateTime
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  isDeleted Boolean  @default(false)
-
-  // Challan-এর সাথে relation
-  challan Challan @relation("ChallanItems", fields: [challanId], references: [id])
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  isDeleted    Boolean  @default(false)
+  season       String?
+  challan      Challan  @relation("ChallanItems", fields: [challanId], references: [id])
 
   @@map("challanItems")
 }
 
 model Customer {
-  // Internal ID
-  id String @id @default(uuid())
-
-  // User-facing Customer ID
-  customerCode String
-
-  seasonId    String
-  season      Season @relation(fields: [seasonId], references: [id])
-  name        String
-  address     String
-  phoneNumber String
-
-  totalPurchased Float @default(0)
-  totalPaid      Float @default(0)
-
+  id              String           @id @default(uuid())
+  customerCode    String
+  name            String
+  address         String
+  phoneNumber     String
+  totalPurchased  Float            @default(0)
+  totalPaid       Float            @default(0)
   nextPaymentDate DateTime?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  isDeleted       Boolean          @default(false)
+  note            String?
+  vataId          String
+  seasonId        String
+  challans        Challan[]
+  season          Season           @relation(fields: [seasonId], references: [id])
+  vata            Vata             @relation(fields: [vataId], references: [id])
+  dueCollections  Due_Collection[]
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  isDeleted Boolean  @default(false)
-
-  dueCollections Due_Collection[]
-  challans       Challan[]
-
-  note String?
-
-  vataId String
-  vata   Vata   @relation(fields: [vataId], references: [id])
-
-  // একই Vata-এর মধ্যে Customer ID unique
   @@unique([vataId, customerCode])
   @@map("customers")
 }
 
 model Delivery {
-  // CHANGE 1:
-  // Int autoincrement() → UUID
-  id String @id @default(uuid())
-
-  deliveryDate DateTime
-
-  // CHANGE 2:
-  // deliveryNo user-facing serial হলে Int রাখা যায়
-  // কিন্তু multi-vata হওয়ার কারণে global @unique দেওয়া ঠিক হবে না
-  deliveryNo       Int
-  season           String?
-  nextDeliveryDate DateTime?
-
+  id                String    @id @default(uuid())
+  deliveryDate      DateTime
+  deliveryNo        Int
+  nextDeliveryDate  DateTime?
   quantity          Int
   deliveryReceived  Int
   class             String
   deliveryRemaining Int
-
   driverName        String?
   driverPhoneNumber String?
   carNo             String?
   carRent           Float?
-  deliveryById      String
-  deliveryBy        User    @relation(fields: [deliveryById], references: [id])
-  // CHANGE 3:
-  // Challan.id এখন String UUID,
-  // তাই invoiceId-ও String হবে
   invoiceId         String
+  isDeleted         Boolean   @default(false)
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  season            String?
+  deliveryById      String
+  deliveryBy        User      @relation(fields: [deliveryById], references: [id])
+  invoice           Challan   @relation(fields: [invoiceId], references: [id])
 
-  isDeleted Boolean  @default(false)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  invoice Challan @relation(fields: [invoiceId], references: [id])
-
-  // CHANGE 4:
-  // একই Challan-এর delivery number duplicate হতে দেওয়া হবে না
   @@unique([invoiceId, deliveryNo])
   @@map("deliveries")
 }
 
 model Due_Collection {
-  // CHANGE 1:
-  // Int autoincrement() → UUID
-  id String @id @default(uuid())
-
-  due      Float
-  collect  Float
-  newDue   Float
-  nextDate DateTime?
-
-  // CHANGE 2:
-  // Customer.id এখন String UUID,
-  // তাই customerId-ও String হবে
+  id         String    @id @default(uuid())
+  due        Float
+  collect    Float
+  newDue     Float
+  nextDate   DateTime?
   customerId String
-  // seasonId   String
-  // season     Season  @relation(fields: [seasonId], references: [id])
-  isDeleted  Boolean @default(false)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  customer Customer @relation(fields: [customerId], references: [id])
+  isDeleted  Boolean   @default(false)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  customer   Customer  @relation(fields: [customerId], references: [id])
 
   @@map("due_collections")
 }
 
 model Ledger {
-  // CHANGE 1:
-  // Int autoincrement() → UUID
-  id       String @id @default(uuid())
-  // seasonId String
-  // season   Season @relation(fields: [seasonId], references: [id])
-  name     String
-  // CHANGE 2:
-  // Global @unique বাদ
-  // কারণ প্রতিটি Vata-এর আলাদা serial হতে পারে
-  serial   Int
+  id        String    @id @default(uuid())
+  name      String
+  serial    Int
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  parentId  String?
+  rate      Float?    @default(0)
+  quantity  Float?    @default(0)
+  isDeleted Boolean   @default(false)
+  vataId    String
+  parent    Ledger?   @relation("LedgerHierarchy", fields: [parentId], references: [id])
+  children  Ledger[]  @relation("LedgerHierarchy")
+  vata      Vata      @relation(fields: [vataId], references: [id])
+  payments  Payment[]
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // CHANGE 3:
-  // Ledger.id এখন String UUID
-  // তাই parentId-ও String হবে
-  parentId String?
-
-  rate     Float? @default(0)
-  quantity Float? @default(0)
-
-  isDeleted Boolean @default(false)
-
-  // Self relation
-  parent Ledger? @relation("LedgerHierarchy", fields: [parentId], references: [id])
-
-  children Ledger[] @relation("LedgerHierarchy")
-
-  payments Payment[]
-
-  // CHANGE 4:
-  // Ledger কোন Vata-এর সেটা identify করার জন্য
-  vataId String
-
-  vata Vata @relation(fields: [vataId], references: [id])
-
-  // CHANGE 5:
-  // একই Vata-এর মধ্যে serial unique হবে
   @@unique([vataId, serial])
 }
 
 model Payment {
-  // CHANGE 1:
-  // Int autoincrement() → UUID
-  id String @id @default(uuid())
-
-  // seasonId String
-  // season   Season @relation(fields: [seasonId], references: [id])
-  quantity Float
-  cutting  Float  @default(0)
-  payment  Float
-
-  // CHANGE 2:
-  // Ledger.id এখন String UUID
-  // তাই ledgerId-ও String
-  ledgerId String
-
-  // CHANGE 3:
-  // Payment কোন Vata-এর সেটা সরাসরি রাখা
-  vataId String
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  document       String?
-  paymentDetails String?
-
-  paymentDifference Float  @default(0)
+  id                String   @id @default(uuid())
+  quantity          Float
+  cutting           Float    @default(0)
+  payment           Float
+  ledgerId          String
+  vataId            String
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  document          String?
+  paymentDetails    String?
+  paymentDifference Float    @default(0)
   paymentType       String
   rate              Float
   totalBill         Float
-
-  isDeleted Boolean @default(false)
-
-  paymentDate DateTime @default(now())
-
-  ledger Ledger @relation(fields: [ledgerId], references: [id], onDelete: Cascade)
-
-  // CHANGE 4:
-  // Vata-এর সাথে direct relation
-  vata Vata @relation(fields: [vataId], references: [id])
-}
-
-enum CashType {
-  INCOME
-  EXPENSE
+  isDeleted         Boolean  @default(false)
+  paymentDate       DateTime @default(now())
+  ledger            Ledger   @relation(fields: [ledgerId], references: [id], onDelete: Cascade)
+  vata              Vata     @relation(fields: [vataId], references: [id])
 }
 
 model Cash {
-  // CHANGE 1:
-  // Int autoincrement() → UUID
-  id String @id @default(uuid())
-
-  // seasonId    String
-  // season      Season   @relation(fields: [seasonId], references: [id])
+  id          String   @id @default(uuid())
   type        CashType
   source      String
   description String
+  amount      Decimal  @db.Decimal(12, 2)
+  isDeleted   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  vataId      String
+  vata        Vata     @relation(fields: [vataId], references: [id])
 
-  // Decimal ঠিকই আছে
-  amount Decimal @db.Decimal(12, 2)
-
-  isDeleted Boolean @default(false)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // CHANGE 2:
-  // Cash কোন Vata-এর সেটা রাখছি
-  vataId String
-
-  // CHANGE 3:
-  // Vata-এর সাথে relation
-  vata Vata @relation(fields: [vataId], references: [id])
-
-  // Existing indexes
   @@index([type])
   @@index([createdAt])
-  // CHANGE 4:
-  // Vata-wise query দ্রুত করার জন্য
   @@index([vataId])
   @@map("cash")
 }
 
 model Round {
-  // CHANGE 1:
-  // Int autoincrement() → UUID
-  id       String @id @default(uuid())
-  // seasonId String
-  // season   Season @relation(fields: [seasonId], references: [id])
-  // CHANGE 2:
-  // @unique বাদ দেওয়া হয়েছে
-  // কারণ Multi-Vata হলে একই নামের Round
-  // আলাদা Vata-তে থাকতে পারবে
-  name     String
-
-  // CHANGE 3:
-  // কোন Vata-এর Round
-  vataId String
-  vata   Vata   @relation(fields: [vataId], references: [id])
-
+  id        String     @id @default(uuid())
+  name      String
+  vataId    String
   loadInfos LoadInfo[]
+  vata      Vata       @relation(fields: [vataId], references: [id])
   unloads   Unload[]
 
-  // CHANGE 4:
-  // একই Vata-এর মধ্যে Round name unique
   @@unique([vataId, name])
   @@index([vataId])
 }
 
 model LoadInfo {
-  // CHANGE 5:
-  // Int autoincrement() → UUID
-  id       String   @id @default(uuid())
-  // seasonId String
-  // season   Season   @relation(fields: [seasonId], references: [id])
-  date     DateTime
-
-  // CHANGE 6:
-  // Round.id এখন String UUID
-  // তাই roundId-ও String
-  roundId String
-
-  round Round @relation(fields: [roundId], references: [id])
-
+  id        String   @id @default(uuid())
+  date      DateTime
+  roundId   String
   quantity  Int
   loadType  String
   classType String?
-
-  isDeleted Boolean @default(false)
-
+  isDeleted Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  round     Round    @relation(fields: [roundId], references: [id])
 }
 
 model Unload {
-  id String @id @default(uuid())
-
-  date     DateTime
-  // seasonId String
-  // season   Season   @relation(fields: [seasonId], references: [id])
-  roundId  String
-  round    Round    @relation(fields: [roundId], references: [id])
-
-  isDeleted Boolean @default(false)
-
+  id          String       @id @default(uuid())
+  date        DateTime
+  roundId     String
+  isDeleted   Boolean      @default(false)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  round       Round        @relation(fields: [roundId], references: [id])
   unloadItems UnloadItem[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
 }
 
 model UnloadItem {
-  id       String @id @default(uuid())
-  // seasonId String
-  // season   Season @relation(fields: [seasonId], references: [id])
-  unloadId String
-  unload   Unload @relation(fields: [unloadId], references: [id])
-
+  id        String       @id @default(uuid())
+  unloadId  String
   classId   String
+  quantity  Int          @default(0)
+  isDeleted Boolean      @default(false)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
   classType ClassAndRate @relation(fields: [classId], references: [id])
-
-  quantity Int @default(0)
-
-  isDeleted Boolean @default(false)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  unload    Unload       @relation(fields: [unloadId], references: [id])
 
   @@unique([unloadId, classId])
 }
 
-// // DOCUMENT
-
-enum DocumentType {
-  FILE
-  FOLDER
-}
-
 model Document {
-  id   String       @id @default(cuid())
-  name String
-  type DocumentType
-
-  // Folder relation
-  parentId String?
-  parent   Document?  @relation("DocumentParent", fields: [parentId], references: [id])
-  children Document[] @relation("DocumentParent")
-
-  // File information
+  id        String       @id @default(cuid())
+  name      String
+  type      DocumentType
+  parentId  String?
   fileUrl   String?
   fileKey   String?
   mimeType  String?
   size      BigInt?
   extension String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
   vataId    String
-  vata      Vata?    @relation(fields: [vataId], references: [id])
+  parent    Document?    @relation("DocumentParent", fields: [parentId], references: [id])
+  children  Document[]   @relation("DocumentParent")
+  vata      Vata         @relation(fields: [vataId], references: [id])
 
   @@unique([parentId, name])
   @@index([type])
   @@index([parentId])
 }
-
-// // CAR RENT
 
 model CarRent {
   id        String   @id @default(uuid())
@@ -509,12 +310,11 @@ model CarRent {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   vataId    String
-  vata      Vata?    @relation(fields: [vataId], references: [id])
+  vata      Vata     @relation(fields: [vataId], references: [id])
 
   @@map("carrents")
 }
 
-// // NEW PRODUVC
 model Product {
   id           Int       @id @default(autoincrement())
   productName  String
@@ -524,45 +324,29 @@ model Product {
   price        Decimal   @db.Decimal(12, 2)
   productImage String?
   warranty     DateTime?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  vataId    String
-  vata      Vata?    @relation(fields: [vataId], references: [id])
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  vataId       String
+  vata         Vata      @relation(fields: [vataId], references: [id])
 
   @@index([category])
   @@index([shop])
   @@map("products")
 }
 
-// // TASK MANAGER
-enum TaskStatus {
-  COMPLETE
-  PENDING
-}
-
 model TaskManager {
-  id          String   @id @default(uuid())
+  id          String     @id @default(uuid())
   description String
   userId      String
   date        DateTime
   repeat      String
-
-  status TaskStatus @default(PENDING)
-  user   User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  vataId    String
-  vata      Vata?    @relation(fields: [vataId], references: [id])
-  isDeleted Boolean  @default(false)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-}
-
-// // Receive and pay
-enum TransactionType {
-  GIVEN
-  TAKEN
-  PAYMENT
+  status      TaskStatus @default(PENDING)
+  vataId      String
+  isDeleted   Boolean    @default(false)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  vata        Vata       @relation(fields: [vataId], references: [id])
 }
 
 model ReceivablePayable {
@@ -581,9 +365,9 @@ model ReceivablePayable {
   isDeleted       Boolean                        @default(false)
   createdAt       DateTime                       @default(now())
   updatedAt       DateTime                       @updatedAt
-  transactions    ReceivablePayableTransaction[]
   vataId          String
-  vata            Vata?                          @relation(fields: [vataId], references: [id])
+  vata            Vata                           @relation(fields: [vataId], references: [id])
+  transactions    ReceivablePayableTransaction[]
 
   @@index([transactionType])
   @@index([phone])
@@ -600,15 +384,13 @@ model ReceivablePayableTransaction {
   description         String?
   createdAt           DateTime          @default(now())
   updatedAt           DateTime          @updatedAt
-  receivablePayable   ReceivablePayable @relation(fields: [receivablePayableId], references: [id], onDelete: Cascade)
   vataId              String
-  vata                Vata?             @relation(fields: [vataId], references: [id])
+  receivablePayable   ReceivablePayable @relation(fields: [receivablePayableId], references: [id], onDelete: Cascade)
+  vata                Vata              @relation(fields: [vataId], references: [id])
 
   @@index([receivablePayableId])
   @@index([transactionDate])
 }
-
-// // CONTACT
 
 model Contact {
   id         String   @id @default(uuid())
@@ -619,10 +401,9 @@ model Contact {
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
   vataId     String
-  vata       Vata?    @relation(fields: [vataId], references: [id])
+  vata       Vata     @relation(fields: [vataId], references: [id])
 }
 
-// // WEATHER
 model Weather {
   id        String   @id @default(uuid())
   linkOne   String?
@@ -630,61 +411,43 @@ model Weather {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   vataId    String
-  vata      Vata?    @relation(fields: [vataId], references: [id])
+  vata      Vata     @relation(fields: [vataId], references: [id])
 }
-
-// // VATA INFO
 
 model Vata {
-  id String @id @default(uuid())
-
-  // Basic Information
-  subdomain   String @unique
-  vataId      String @unique
-  nameEnglish String
-  nameBangla  String
-  address     String
-
-  // Owner Information
-  ownerName        String
-  ownerPhoneNumber String
-
-  // Challan Information
-  challansPhoneNumber String
-
-  // Payment / Software Information
-  smsRate         Float?
-  softwareFee     Float
-  nextPaymentDate DateTime?
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-
-  users                         User[]
-  classAndRate                  ClassAndRate[]
-  challans                      Challan[]
-  customers                     Customer[]
+  id                            String                         @id @default(uuid())
+  vataId                        String                         @unique
+  nameEnglish                   String
+  nameBangla                    String
+  address                       String
+  ownerName                     String
+  ownerPhoneNumber              String
+  challansPhoneNumber           String
+  smsRate                       Float?
+  softwareFee                   Float
+  nextPaymentDate               DateTime?
+  createdAt                     DateTime                       @default(now())
+  updatedAt                     DateTime                       @updatedAt
+  subdomain                     String                         @unique
+  contacts                      Contact[]
+  documents                     Document[]
   ledgers                       Ledger[]
   payments                      Payment[]
-  cash                          Cash[]
-  rounds                        Round[]
-  documents                     Document[]
-  carRents                      CarRent[]
-  products                      Product[]
-  taskManagers                  TaskManager[]
   receivablePayables            ReceivablePayable[]
   receivablePayableTransactions ReceivablePayableTransaction[]
-  contacts                      Contact[]
-  weather                       Weather[]
+  rounds                        Round[]
   softwareFees                  SoftwareFee[]
+  taskManagers                  TaskManager[]
+  weather                       Weather[]
+  carRents                      CarRent[]
+  cash                          Cash[]
+  challans                      Challan[]
+  classAndRate                  ClassAndRate[]
+  customers                     Customer[]
+  products                      Product[]
+  users                         User[]
 
   @@map("vatainformation")
-}
-
-// SOFTWARE FEE
-enum SoftwareFeeStatus {
-  PENDING
-  REJECTED
-  APPROVED
 }
 
 model SoftwareFee {
@@ -694,30 +457,53 @@ model SoftwareFee {
   sender        String
   status        SoftwareFeeStatus @default(PENDING)
   vataId        String
-  vata          Vata              @relation(fields: [vataId], references: [vataId])
   createdAt     DateTime          @default(now())
   updatedAt     DateTime          @updatedAt
+  vata          Vata              @relation(fields: [vataId], references: [vataId])
 }
 
 model Season {
-  id        String   @id @default(uuid())
-  name      String
+  id        String     @id @default(uuid())
+  name      String     @unique
   startDate DateTime
   endDate   DateTime
-  isActive  Boolean  @default(false)
+  isActive  Boolean    @default(false)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  challans  Challan[]
+  customers Customer[]
+}
 
-  createdAt      DateTime         @default(now())
-  updatedAt      DateTime         @updatedAt
-  challans       Challan[]
-  customers      Customer[]
-  // dueCollections Due_Collection[]
-  // ledgers        Ledger[]
-  // payments       Payment[]
-  // cash           Cash[]
-  // rounds         Round[]
-  // loadInfos      LoadInfo[]
-  // unloads        Unload[]
-  // unloadItems    UnloadItem[]
+enum UserRole {
+  OWNER
+  ADMIN
+  MANAGER
+  SYSTEM_ADMIN
+}
 
-  @@unique([name])
+enum CashType {
+  INCOME
+  EXPENSE
+}
+
+enum DocumentType {
+  FILE
+  FOLDER
+}
+
+enum TaskStatus {
+  COMPLETE
+  PENDING
+}
+
+enum TransactionType {
+  GIVEN
+  TAKEN
+  PAYMENT
+}
+
+enum SoftwareFeeStatus {
+  PENDING
+  REJECTED
+  APPROVED
 }
