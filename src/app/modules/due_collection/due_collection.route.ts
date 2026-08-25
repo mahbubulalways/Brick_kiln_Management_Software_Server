@@ -3,6 +3,7 @@ import { API_ENDPOINTS } from "../../endpoints/api_endpoints";
 import { DueCollectionController } from "./due_collection.controller";
 import AuthGuard from "../../middlewares/AuthGuard";
 import { UserRole } from "../../../generated/prisma/enums";
+import ActiveSeasonGuard from "../../middlewares/ActiveSeasonGuard";
 
 const router = Router();
 
@@ -27,12 +28,14 @@ router.get(
 router.post(
   API_ENDPOINTS.DUE_COLLECTION.COLLECTION,
   AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+  ActiveSeasonGuard,
   DueCollectionController.collectionNewDueController
 );
 
 router.get(
   API_ENDPOINTS.DUE_COLLECTION.GET_CUSTOMER_DUE,
   AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+   ActiveSeasonGuard,
   DueCollectionController.getDueOfCustomerController
 );
 
@@ -40,6 +43,14 @@ router.get(
   API_ENDPOINTS.DUE_COLLECTION.GET_SINGLE,
   AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
   DueCollectionController.getSingleDueCollectionController
+);
+
+// SEARCH CUSTOMER VIA NAME AND GET DEU
+router.get(
+  API_ENDPOINTS.DUE_COLLECTION.SEARCH_CUSTOMER,
+  AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+  ActiveSeasonGuard,
+  DueCollectionController.searchCustomerForDeuController
 );
 
 router.get(

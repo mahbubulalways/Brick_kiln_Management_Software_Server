@@ -64,15 +64,43 @@ const createInvoiceController = catchAsync(async (req, res) => {
 
 });
 
+// SEARCH FOR DELIVERY
+const searchChallanForDeliveryController = catchAsync(async (req, res) => {
+  const user = req.user as TAuthUser;
+  const { search } = await parseListQuery(req.query);
+  const result = await InvoiceService.searchChallanForDeliveryService(
+    user,
+    { search },
+  );
+
+  if (!result) {
+    return sendResponse(res, {
+      message: "কোনো চ্যালান পাওয়া যায়নি।",
+      statusCode: StatusCodes.OK,
+      success: true,
+      data: [],
+    });
+  }
+
+  else {
+    return sendResponse(res, {
+      message: "চ্যালান সফলভাবে পাওয়া গেছে।",
+      statusCode: StatusCodes.OK,
+      success: true,
+      data: result,
+    });
+  }
+});
+
 // GET AL INVOICE WITH CUSTOMER NAME AND ADDRESS
 const getAllInvoiceController = catchAsync(async (req, res) => {
   const user = req.user as TAuthUser
   const seasonId = req.seasonId
   const { limit, page, search, date } = await parseListQuery(req.query);
   const result = await InvoiceService.getAllInvoiceService(
-    user, 
+    user,
     seasonId,
-    {  limit, page,  search, date});
+    { limit, page, search, date });
   if (!result?.data.length) {
     sendResponse(res, {
       message: "চ্যালান পাওয়া যায়নি।",
@@ -95,9 +123,9 @@ const getAllInvoiceController = catchAsync(async (req, res) => {
 // GET ADVANVCE INVOICE
 const getAllAdvanceInvoiceController = catchAsync(async (req, res) => {
   const user = req.user as TAuthUser
-    const seasonId = req.seasonId
+  const seasonId = req.seasonId
   const { limit, page, search, date } = await parseListQuery(req.query);
-  const result = await InvoiceService.getAllAdvanceInvoiceService(user,seasonId, {
+  const result = await InvoiceService.getAllAdvanceInvoiceService(user, seasonId, {
     limit,
     page,
     search,
@@ -307,5 +335,6 @@ export const InvoiceController = {
   getSingleInvoiceItemsController,
   updateInvoiceDeliveryDateController,
   updateInvoiceItemDeliveryDateController,
-  getAllAdvanceInvoiceController
+  getAllAdvanceInvoiceController,
+  searchChallanForDeliveryController
 };

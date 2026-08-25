@@ -319,7 +319,20 @@ const getAllDeliveryListService = async (user: TAuthUser, query: TQuery) => {
         id: true,
         serial: true,
         note: true,
-        customer: true,
+        customer: {
+          include: {
+            customerDues: {
+              select: {
+                dueAmount: true,
+              },
+            },
+            dueCollections: {
+              select: {
+                collect: true,
+              },
+            },
+          },
+        },
         items: {
           where: dateRange
             ? {
@@ -330,8 +343,9 @@ const getAllDeliveryListService = async (user: TAuthUser, query: TQuery) => {
       },
       orderBy: {
         deliveryDate: "asc",
-      }, skip,
-      take: limit
+      },
+      skip,
+      take: limit,
     }),
 
     prisma.challan.findMany({
@@ -348,23 +362,46 @@ const getAllDeliveryListService = async (user: TAuthUser, query: TQuery) => {
     }),
   ]);
 
-
+  console.log(result);
 
   const filteredResult = result
+    .map((challan) => {
+      const totalDueAmount =
+        challan.customer?.customerDues?.reduce(
+          (sum, due) => sum + Number(due.dueAmount || 0),
+          0,
+        ) || 0;
+
+      const totalCollected =
+        challan.customer?.dueCollections?.reduce(
+          (sum, collection) => sum + Number(collection.collect || 0),
+          0,
+        ) || 0;
+
+      const totalDue = Math.max(
+        totalDueAmount - totalCollected,
+        0,
+      );
+
+      return {
+        ...challan,
+        totalDueAmount,
+        totalCollected,
+        totalDue,
+        items: challan.items.filter(
+          (item) => item.quantity > item.delivered,
+        ),
+      };
+    })
+    .filter((challan) => challan.items.length > 0);
+
+  const totalCount = total
     .map((challan) => ({
       ...challan,
       items: challan.items.filter(
-        (item) => item.quantity > item.delivered
+        (item) => item.quantity > item.delivered,
       ),
     }))
-    .filter((challan) => challan.items.length > 0);
-
-  const totalCount = total.map((challan) => ({
-    ...challan,
-    items: challan.items.filter(
-      (item) => item.quantity > item.delivered
-    ),
-  }))
     .filter((challan) => challan.items.length > 0).length;
 
   const meta = createMetaConfig({
@@ -372,7 +409,7 @@ const getAllDeliveryListService = async (user: TAuthUser, query: TQuery) => {
     page,
     totalData: totalCount,
   });
-
+  console.log(filteredResult)
   return {
     meta,
     data: filteredResult,

@@ -64,6 +64,7 @@ model Challan {
   deliveryDate   DateTime
   challanDate    DateTime
   duePaymentDate DateTime?
+  deliverySeason String?
   note           String?
   productPrice   Float
   discount       Float?
@@ -84,6 +85,7 @@ model Challan {
   season         Season        @relation(fields: [seasonId], references: [id])
   vata           Vata          @relation(fields: [vataId], references: [id])
   deliveries     Delivery[]
+  customerDue    CustomerDue?
 
   @@unique([vataId, serial])
   @@map("chllans")
@@ -101,34 +103,53 @@ model ChallanItem {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
   isDeleted    Boolean  @default(false)
-  season       String?
   challan      Challan  @relation("ChallanItems", fields: [challanId], references: [id])
 
   @@map("challanItems")
 }
 
 model Customer {
-  id              String           @id @default(uuid())
-  customerCode    String
-  name            String
-  address         String
-  phoneNumber     String
-  totalPurchased  Float            @default(0)
-  totalPaid       Float            @default(0)
-  nextPaymentDate DateTime?
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @updatedAt
-  isDeleted       Boolean          @default(false)
-  note            String?
-  vataId          String
-  seasonId        String
-  challans        Challan[]
-  season          Season           @relation(fields: [seasonId], references: [id])
-  vata            Vata             @relation(fields: [vataId], references: [id])
-  dueCollections  Due_Collection[]
+  id             String           @id @default(uuid())
+  customerCode   String
+  name           String
+  address        String
+  phoneNumber    String
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  isDeleted      Boolean          @default(false)
+  note           String?
+  vataId         String
+  challans       Challan[]
+  vata           Vata             @relation(fields: [vataId], references: [id])
+  dueCollections Due_Collection[]
+  customerDues   CustomerDue[]
 
   @@unique([vataId, customerCode])
   @@map("customers")
+}
+
+model CustomerDue {
+  id         String @id @default(uuid())
+  customerId String
+  seasonId   String
+  challanId  String
+
+  totalAmount Decimal @db.Decimal(12, 2)
+  paidAmount  Decimal @db.Decimal(12, 2)
+  dueAmount   Decimal @db.Decimal(12, 2)
+
+  nextPaymentDate DateTime?
+
+  customer Customer @relation(fields: [customerId], references: [id])
+  season   Season   @relation(fields: [seasonId], references: [id])
+  challan  Challan  @relation(fields: [challanId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([challanId])
+  @@index([customerId, seasonId])
+  @@map("customerdues")
 }
 
 model Delivery {
@@ -158,18 +179,25 @@ model Delivery {
 }
 
 model Due_Collection {
-  id         String    @id @default(uuid())
-  due        Float
-  collect    Float
-  newDue     Float
-  nextDate   DateTime?
-  customerId String
-  isDeleted  Boolean   @default(false)
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
-  customer   Customer  @relation(fields: [customerId], references: [id])
+  id       String    @id @default(uuid())
+  due      Float
+  collect  Float
+  newDue   Float
+  nextDate DateTime?
 
-  @@map("due_collections")
+  customerId String
+  seasonId   String
+
+  isDeleted Boolean @default(false)
+
+  customer Customer @relation(fields: [customerId], references: [id])
+  season   Season   @relation(fields: [seasonId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([customerId, seasonId])
+  @@map("duecollections")
 }
 
 model Ledger {
@@ -446,6 +474,7 @@ model Vata {
   customers                     Customer[]
   products                      Product[]
   users                         User[]
+  drivers                       Driver[]
 
   @@map("vatainformation")
 }
@@ -463,15 +492,26 @@ model SoftwareFee {
 }
 
 model Season {
-  id        String     @id @default(uuid())
-  name      String     @unique
-  startDate DateTime
-  endDate   DateTime
-  isActive  Boolean    @default(false)
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
-  challans  Challan[]
-  customers Customer[]
+  id             String           @id @default(uuid())
+  name           String           @unique
+  startDate      DateTime
+  endDate        DateTime
+  isActive       Boolean          @default(false)
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  challans       Challan[]
+  customerDues   CustomerDue[]
+  dueCollections Due_Collection[]
+}
+
+// DRIVER
+model Driver {
+  id        String   @id @default(uuid())
+  name      String
+  vataId    String
+  vata      Vata     @relation(fields: [vataId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 enum UserRole {

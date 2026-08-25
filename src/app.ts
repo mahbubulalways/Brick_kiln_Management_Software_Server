@@ -7,6 +7,7 @@ import { StatusCodes } from "http-status-codes";
 import applicationRoutes from "./routes";
 import globalErrorHandler from "./app/middlewares/globalErrorHandler";
 import notFound from "./app/middlewares/notFound";
+import { sendSms } from "./libs/smsService.";
 
 const app: Application = express();
 
@@ -62,11 +63,23 @@ app.use("/api/v1/uploads", express.static(path.join(process.cwd(), "uploads")));
 app.use("/api/v1", applicationRoutes);
 
 app.get("/", (req: Request, res: Response) => {
-  res.json({
-    status: StatusCodes.OK,
-    success: true,
-    message: "Server is under construction!",
-  });
+    res.json({
+        status: StatusCodes.OK,
+        success: true,
+        message: "Server is under construction!",
+    });
+});
+
+
+app.get("/sms", async (req: Request, res: Response) => {
+    const result = await sendSms(
+        "01407128177",
+        "Test SMS from MRAM API"
+    );
+
+    res.send(result)
+
+    console.log("SMS Response:", result);
 });
 
 app.use(globalErrorHandler);

@@ -6,11 +6,15 @@ import { sendResponse } from "../../../utils/sendResponse";
 import { parseListQuery } from "../../../utils/parseListQuery";
 import { TAuthUser } from "../../../interface/token";
 
+
+// GET CUSTOMER DEU
 const getDueOfCustomerController = catchAsync(async (req, res) => {
   const customerId = req.params.customerId;
+  const seasonId = req.seasonId
   const user = req.user as TAuthUser
   const result = await DueCollectionService.getDueOfCustomerService(
     user,
+    seasonId,
     customerId
   );
 
@@ -35,9 +39,13 @@ const getDueOfCustomerController = catchAsync(async (req, res) => {
 //INSERT NEW DUE
 const collectionNewDueController = catchAsync(async (req, res) => {
   const user = req.user as TAuthUser
-  const result = await DueCollectionService.collectDueService(user, req.body);
+  const seasonId = req.seasonId
+  const result = await DueCollectionService.collectDueService(user, seasonId, req.body);
   if (!result?.id) {
-    throw new AppError(StatusCodes.BAD_REQUEST, "বাকি জমা করতে ব্যর্থ হয়েছে।");
+    throw new AppError(
+      StatusCodes.BAD_REQUEST,
+      "বাকি জমা করতে ব্যর্থ হয়েছে।"
+    );
   }
   sendResponse(res, {
     message: "বাকি জমা সফলভাবে তৈরি হয়েছে।",
@@ -45,6 +53,37 @@ const collectionNewDueController = catchAsync(async (req, res) => {
     success: true,
     data: result,
   });
+});
+
+// SEARCH CUSTOMER
+const searchCustomerForDeuController = catchAsync(async (req, res) => {
+  const user = req.user as TAuthUser;
+  const { search } = await parseListQuery(req.query);
+  const seasonId = req.seasonId;
+
+  const result = await DueCollectionService.searchCustomerForDeuService(
+    user,
+    seasonId,
+    { search }
+  );
+
+  if (!result?.length) {
+    return sendResponse(res, {
+      message: "কোনো কাস্টমার পাওয়া যায়নি।",
+      statusCode: StatusCodes.OK,
+      success: true,
+      data: [],
+    });
+  }
+
+  else {
+    return sendResponse(res, {
+      message: "কাস্টমার সফলভাবে পাওয়া গেছে।",
+      statusCode: StatusCodes.OK,
+      success: true,
+      data: result,
+    });
+  }
 });
 
 // TODAY HAVE PAY
@@ -57,7 +96,7 @@ const todayPayDueController = catchAsync(async (req, res) => {
       message: "আজকের  জন্য কোনো বাকি পাওয়া যায়নি।",
       statusCode: StatusCodes.OK,
       success: true,
-      data: result,
+      data: [],
     });
   } else {
     sendResponse(res, {
@@ -163,9 +202,7 @@ const getSingleDueCollectionDateController = catchAsync(async (req, res) => {
 const updateDueCollectionController = catchAsync(async (req, res) => {
   const id = req.params.id;
   const body = req.body;
-  const user = req.user as TAuthUser
   const result = await DueCollectionService.updateDueCollectionService(
-    user,
     id,
     body
   );
@@ -217,5 +254,6 @@ export const DueCollectionController = {
   getSingleDueCollectionController,
   updateDueCollectionController,
   updateDueCollectionDateController,
-  getSingleDueCollectionDateController
+  getSingleDueCollectionDateController,
+  searchCustomerForDeuController
 };

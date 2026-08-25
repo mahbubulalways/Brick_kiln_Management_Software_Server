@@ -21,6 +21,13 @@ router.get(
   InvoiceController.getInvoiceSerial
 );
 
+// SEARCH
+router.get(
+  API_ENDPOINTS.INVOICE.SEARCH_CHALLAN,
+  AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+  InvoiceController.searchChallanForDeliveryController
+);
+
 // GET ALL INVOICE
 router.get(
   API_ENDPOINTS.INVOICE.GET_ALL_INVOICE,
