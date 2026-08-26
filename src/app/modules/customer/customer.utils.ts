@@ -2,13 +2,30 @@ import { Prisma } from "../../../generated/prisma/client";
 
 type CustomerWithDetails = Prisma.CustomerGetPayload<{
   include: {
-    dueCollections: true,
+    dueCollections: {
+      where: {
+        isDeleted: false,
+      },
+      select: {
+        collect: true,
+      },
+      orderBy: { createdAt: "desc" }
+    },
+    customerDues: {
+      select: {
+        dueAmount: true,
+        paidAmount: true,
+        totalAmount: true,
+      },
+      orderBy: { createdAt: "desc" }
+    }
     challans: {
       include: {
         items: true;
         deliveries: true;
       };
     };
+
   };
 }>;
 
@@ -57,19 +74,24 @@ export const formatCustomerData = (
       totalPurchasedQuantity - totalDeliveredQuantity;
 
     // মোট বিল
-    const totalAmount = customer.challans.reduce(
-      (total, challan) => total + Number(challan.totalPrice),
+    const totalAmount = customer.customerDues.reduce(
+      (total, due) => total + Number(due.totalAmount),
       0
     );
 
     // মোট payment
-    const totalPaid = customer.challans.reduce(
-      (total, challan) => total + Number(challan.cash),
+    const totalPaid = customer.customerDues.reduce(
+      (total, due) => total + Number(due.paidAmount),
       0
     ) + totalDueCollection;
 
     // টাকা বাকি
     const totalDue = totalAmount - totalPaid;
+
+
+    // DUE PAYMENT DATE
+
+    const nexnextPaymentDate = customer.nextPaymentDate
 
     return {
       id: customer.id,
@@ -87,7 +109,7 @@ export const formatCustomerData = (
 
       note: customer.note || customer.challans[0]?.note || null,
 
-      nextPaymentDate: customer.nextPaymentDate,
+      nextPaymentDate: nexnextPaymentDate,
     };
   });
 };

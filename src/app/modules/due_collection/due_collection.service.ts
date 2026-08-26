@@ -98,6 +98,16 @@ const collectDueService = async (
           seasonId
         },
       });
+
+      await tx.customer.update({
+        data: { nextPaymentDate: payload.nextDate },
+        where: {
+          vataId_customerCode: {
+            customerCode: payload.customerId,
+            vataId: user.vataId,
+          }
+        }
+      })
       return result;
     },
   );
@@ -235,10 +245,16 @@ const todayPayDueService = async (user: TAuthUser, query: TQuery) => {
     ];
   }
 
+  if (query.date) {
+    const dateRange = getDateRangeDbSearch(query.date);
+    if (dateRange) {
+      where.nextPaymentDate = dateRange
+    }
+  }
+
   const [result, total] = await Promise.all([
     prisma.customer.findMany({
       where,
-
       include: {
         challans: {
           select: {
@@ -261,6 +277,9 @@ const todayPayDueService = async (user: TAuthUser, query: TQuery) => {
           select: {
             dueAmount: true,
           },
+          orderBy: {
+            createdAt: "desc"
+          }
         },
 
         dueCollections: {
@@ -299,9 +318,6 @@ const todayPayDueService = async (user: TAuthUser, query: TQuery) => {
       0
     );
 
-    // nextDate অনুযায়ী latest collection
-    const latestCollection = customer.dueCollections[0];
-
     const remainingDue = Math.max(
       totalDue - totalCollect,
       0
@@ -315,16 +331,9 @@ const todayPayDueService = async (user: TAuthUser, query: TQuery) => {
 
     return {
       ...customerData,
-
       totalDue,
       totalCollect,
       remainingDue,
-
-      // Latest collection-এর information
-      due: latestCollection?.collect || 0,
-      collect: latestCollection?.collect || 0,
-      newDue: latestCollection?.newDue || remainingDue,
-      nextDate: latestCollection?.nextDate || null,
     };
   });
 
@@ -455,7 +464,6 @@ const getAllDueListService = async (
         customerDues: {
           select: {
             dueAmount: true,
-            nextPaymentDate: true
           },
           orderBy: {
             createdAt: "desc"
@@ -526,8 +534,7 @@ const getAllDueListService = async (
       0
     );
 
-    const latestDate =
-      customer.dueCollections[0]?.nextDate || customer.customerDues[0]?.nextPaymentDate;
+  
 
     return {
       id: customer.id,
@@ -538,29 +545,15 @@ const getAllDueListService = async (
       totalDue,
       totalCollect,
       remainingDue,
-      // due: Number(
-      //   latestDueCollection?.due || 0
-      // ),
-      // collect: Number(
-      //   latestDueCollection?.collect || 0
-      // ),
-      // newDue: Number(
-      //   latestDueCollection?.newDue ||
-      //     remainingDue
-      // ),
-      nextDate:  latestDate || null,
-      remainingDelivery:totalQuantity - totalDelivered,
+      nextDate:customer?.nextPaymentDate,
+      remainingDelivery: totalQuantity - totalDelivered,
       totalQuantity,
       totalDelivered,
-      season:
-        customer.challans[0]?.season?.name || "",
-      notes: customer.challans
-        .map((challan) => challan.note)
-        .filter(Boolean),
+      season: customer.challans[0]?.season.name,
+      note: customer?.note,
     };
   });
 
-  console.log(formattedData)
 
   const meta = createMetaConfig({
     limit,
@@ -602,10 +595,19 @@ const updateDueCollectionService = async (
     newDue: Number(payload.newDue),
     nextDate: payload.nextDate,
   };
+
+  // UPDATE DUE COLLECTION INFORMATIONS AND CUSTOMER NEXT PAYMENT DATE
   const result = await prisma.$transaction(
     async (tx: Prisma.TransactionClient) => {
       const update = await tx.due_Collection.update({
-        data: data,
+        data: {
+          ...data,
+          customer: {
+            update: {
+              nextPaymentDate: data.nextDate
+            }
+          }
+        },
         where: { id },
       });
       return update;
@@ -624,7 +626,7 @@ const getSingleDueCollectionDateService = async (user: TAuthUser, id: string) =>
 
 
 // UPDATE DUE COLLECTION DATE 
-const upDateDueCollectionDateService = async (user: TAuthUser, id: string, info: { date: string, note: string }) => {
+const updateDueCollectionDateService = async (user: TAuthUser, id: string, info: { date: string, note: string }) => {
   const due = await prisma.customer.findFirst({
     where: { customerCode: id, vataId: user.vataId },
     select: {
@@ -649,7 +651,7 @@ export const DueCollectionService = {
   getAllDueListService,
   getSingleDueCollectionService,
   updateDueCollectionService,
-  upDateDueCollectionDateService,
+  updateDueCollectionDateService,
   getSingleDueCollectionDateService,
   searchCustomerForDeuService,
 

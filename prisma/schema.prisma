@@ -117,6 +117,7 @@ model Customer {
   createdAt      DateTime         @default(now())
   updatedAt      DateTime         @updatedAt
   isDeleted      Boolean          @default(false)
+  nextPaymentDate DateTime?
   note           String?
   vataId         String
   challans       Challan[]
@@ -138,7 +139,6 @@ model CustomerDue {
   paidAmount  Decimal @db.Decimal(12, 2)
   dueAmount   Decimal @db.Decimal(12, 2)
 
-  nextPaymentDate DateTime?
 
   customer Customer @relation(fields: [customerId], references: [id])
   season   Season   @relation(fields: [seasonId], references: [id])

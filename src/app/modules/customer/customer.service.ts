@@ -13,12 +13,13 @@ import { TAuthUser } from "../../../interface/token";
 // GET SINGLE INFO
 const getSingleCustomerService = async (user: TAuthUser, id: string) => {
   const result = await prisma.customer.findFirst({
-    where: { id, vataId: user.vataId },
+    where: { customerCode: id, vataId: user.vataId },
     select: {
       address: true,
       name: true,
       phoneNumber: true,
-      id: true
+      id: true,
+      customerCode: true,
     }
   })
   return result
@@ -31,24 +32,27 @@ const updateCustomerService = async (user: TAuthUser, id: string, data: Customer
     throw new AppError(StatusCodes.NOT_FOUND, "কোনো কাস্টমার পাওয়া যায়নি।")
   }
   const result = await prisma.customer.update({
-    where: { id, vataId: user.vataId },
-    data: data
-  })
+    where: {
+      vataId_customerCode: {
+        customerCode: id,
+        vataId: user.vataId,
+      },
+    },
+    data,
+  });
   return result
 }
 
 
-const getAllCustomerService = async (user: TAuthUser,seasonId:string, query: TQuery) => {
+const getAllCustomerService = async (user: TAuthUser, query: TQuery) => {
   const { limit, page, skip } = paginationHelper(query.page, query.limit);
   const where: Prisma.CustomerWhereInput = {
     isDeleted: false,
     vataId: user.vataId,
-    seasonId
-  };
 
+  };
   if (query.search?.trim()) {
     const search = query.search.trim();
-
     where.OR = [
       {
         name: {
@@ -95,7 +99,6 @@ const getAllCustomerService = async (user: TAuthUser,seasonId:string, query: TQu
                 isDeleted: false,
               },
             },
-
             deliveries: {
               where: {
                 isDeleted: false,
@@ -108,7 +111,19 @@ const getAllCustomerService = async (user: TAuthUser,seasonId:string, query: TQu
           where: {
             isDeleted: false,
           },
+          select: {
+            collect: true,
+          },
+          orderBy: { createdAt: "desc" }
         },
+        customerDues: {
+          select: {
+            dueAmount: true,
+            paidAmount: true,
+            totalAmount: true,
+          },
+          orderBy: { createdAt: "desc" }
+        }
       },
 
       skip,
@@ -123,76 +138,8 @@ const getAllCustomerService = async (user: TAuthUser,seasonId:string, query: TQu
       where,
     }),
   ]);
-
-  // const result = customers.map((customer) => {
-  //   // মোট কেনা quantity
-  //   const totalPurchasedQuantity = customer.challans.reduce(
-  //     (challanTotal, challan) => {
-  //       return (
-  //         challanTotal +
-  //         challan.items.reduce(
-  //           (itemTotal, item) => itemTotal + item.quantity,
-  //           0
-  //         )
-  //       );
-  //     },
-  //     0
-  //   );
-
-  //   // মোট delivery quantity
-  //   const totalDeliveredQuantity = customer.challans.reduce(
-  //     (challanTotal, challan) => {
-  //       return (
-  //         challanTotal +
-  //         challan.deliveries.reduce(
-  //           (deliveryTotal, delivery) =>
-  //             deliveryTotal + delivery.quantity,
-  //           0
-  //         )
-  //       );
-  //     },
-  //     0
-  //   );
-
-  //   // বাকি quantity
-  //   const totalRemainingQuantity =
-  //     totalPurchasedQuantity - totalDeliveredQuantity;
-
-  //   // মোট বিল
-  //   const totalAmount = customer.challans.reduce(
-  //     (total, challan) => total + challan.totalPrice,
-  //     0
-  //   );
-
-  //   // মোট payment
-  //   const totalPaid = customer.challans.reduce(
-  //     (total, payment) => total + Number(payment?.cash),
-  //     0
-  //   );
-
-  //   // টাকা বাকি
-  //   const totalDue = totalAmount - totalPaid;
-
-  //   return {
-  //     id: customer.id,
-  //     name: customer.name,
-  //     address: customer.address,
-  //     phoneNumber: customer.phoneNumber,
-
-  //     totalPurchasedQuantity,
-  //     totalDeliveredQuantity,
-  //     totalRemainingQuantity,
-
-  //     totalAmount,
-  //     totalPaid,
-  //     totalDue,
-
-  //     note: customer.note || customer?.challans[0]?.note,
-  //     nextPaymentDate: customer.nextPaymentDate,
-  //   };
-  // });
   const result = formatCustomerData(customers)
-
+console.log(result)
   const meta = createMetaConfig({
     limit: limit,
     page: page,
@@ -365,11 +312,13 @@ const getCustomerAllDuesService = async (user: TAuthUser, id: string, query: TQu
   const [result, total] = await Promise.all([
     prisma.due_Collection.findMany({
       where,
-      include: { customer: {
-        select:{
-          customerCode:true
+      include: {
+        customer: {
+          select: {
+            customerCode: true
+          }
         }
-      } },
+      },
       skip,
       take: limit,
       orderBy: { createdAt: "asc" }

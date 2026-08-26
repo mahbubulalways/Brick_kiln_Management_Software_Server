@@ -45,9 +45,8 @@ const updateCustomerInfoController = catchAsync(async (req, res) => {
 // GET ALL CUSTOMER INFO
 const getAllCustomertController = catchAsync(async (req, res) => {
     const { limit, page, search } = await parseListQuery(req.query);
-    const seasonId = req.seasonId
     const user = req.user as TAuthUser
-    const result = await CustomerService.getAllCustomerService(user,seasonId, { limit, page, search });
+    const result = await CustomerService.getAllCustomerService(user, { limit, page, search });
     if (!result || result.data.length === 0) {
         sendResponse(res, {
             statusCode: StatusCodes.OK,

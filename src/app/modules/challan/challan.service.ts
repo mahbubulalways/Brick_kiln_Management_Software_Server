@@ -45,7 +45,7 @@ const createInvoiceService = async (
         },
       });
 
-      //  IF CUSTOMER IS NOT EXIST THEN CREATE NEW
+      // IF CUSTOMER IS NOT EXIST THEN CREATE NEW
       if (!existingCustomer) {
         const countCustomer =
           (await tx.customer.count({
@@ -58,7 +58,18 @@ const createInvoiceService = async (
           data: {
             ...customer,
             customerCode: generateCode(countCustomer),
-            vataId: user.vataId
+            vataId: user.vataId,
+            nextPaymentDate: invoice.duePaymentDate,
+          },
+        });
+      } else {
+        // IF CUSTOMER ALREADY EXISTS THEN UPDATE NEXT PAYMENT DATE
+        existingCustomer = await tx.customer.update({
+          where: {
+            id: existingCustomer.id,
+          },
+          data: {
+            nextPaymentDate: invoice.duePaymentDate,
           },
         });
       }
@@ -84,8 +95,6 @@ const createInvoiceService = async (
           challanId: newInvoice.id,
           customerId: newInvoice.customerId,
           seasonId: seasonId,
-          nextPaymentDate: invoice.duePaymentDate
-
         }
       })
 

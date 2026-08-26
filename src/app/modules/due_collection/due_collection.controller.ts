@@ -226,7 +226,7 @@ const updateDueCollectionDateController = catchAsync(async (req, res) => {
   const id = req.params.id;
   const body = req.body;
   const user = req.user as TAuthUser
-  const result = await DueCollectionService.upDateDueCollectionDateService(
+  const result = await DueCollectionService.updateDueCollectionDateService(
     user,
     id,
     body
