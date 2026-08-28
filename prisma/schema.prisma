@@ -109,21 +109,21 @@ model ChallanItem {
 }
 
 model Customer {
-  id             String           @id @default(uuid())
-  customerCode   String
-  name           String
-  address        String
-  phoneNumber    String
-  createdAt      DateTime         @default(now())
-  updatedAt      DateTime         @updatedAt
-  isDeleted      Boolean          @default(false)
+  id              String           @id @default(uuid())
+  customerCode    String
+  name            String
+  address         String
+  phoneNumber     String
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  isDeleted       Boolean          @default(false)
   nextPaymentDate DateTime?
-  note           String?
-  vataId         String
-  challans       Challan[]
-  vata           Vata             @relation(fields: [vataId], references: [id])
-  dueCollections Due_Collection[]
-  customerDues   CustomerDue[]
+  note            String?
+  vataId          String
+  challans        Challan[]
+  vata            Vata             @relation(fields: [vataId], references: [id])
+  dueCollections  Due_Collection[]
+  customerDues    CustomerDue[]
 
   @@unique([vataId, customerCode])
   @@map("customers")
@@ -138,7 +138,6 @@ model CustomerDue {
   totalAmount Decimal @db.Decimal(12, 2)
   paidAmount  Decimal @db.Decimal(12, 2)
   dueAmount   Decimal @db.Decimal(12, 2)
-
 
   customer Customer @relation(fields: [customerId], references: [id])
   season   Season   @relation(fields: [seasonId], references: [id])
@@ -161,9 +160,8 @@ model Delivery {
   deliveryReceived  Int
   class             String
   deliveryRemaining Int
-  driverName        String?
-  driverPhoneNumber String?
   carNo             String?
+  lastDelivered     Int?
   carRent           Float?
   invoiceId         String
   isDeleted         Boolean   @default(false)
@@ -171,6 +169,8 @@ model Delivery {
   updatedAt         DateTime  @updatedAt
   season            String?
   deliveryById      String
+  driverId          String?
+  driver            Driver?   @relation(fields: [driverId], references: [id])
   deliveryBy        User      @relation(fields: [deliveryById], references: [id])
   invoice           Challan   @relation(fields: [invoiceId], references: [id])
 
@@ -506,12 +506,15 @@ model Season {
 
 // DRIVER
 model Driver {
-  id        String   @id @default(uuid())
-  name      String
-  vataId    String
-  vata      Vata     @relation(fields: [vataId], references: [id])
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id          String     @id @default(uuid())
+  name        String
+  PhoneNumber String
+  salary      Decimal    @db.Decimal(12, 2)
+  vataId      String
+  vata        Vata       @relation(fields: [vataId], references: [id])
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  deliveries  Delivery[]
 }
 
 enum UserRole {

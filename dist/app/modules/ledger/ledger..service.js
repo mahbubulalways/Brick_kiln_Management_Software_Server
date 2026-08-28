@@ -17,7 +17,8 @@ const createLedgerService = async (user, data) => {
     const isExist = await prisma_1.prisma.ledger.findFirst({
         where: {
             name: data.name,
-            vataId: user.vataId
+            vataId: user.vataId,
+            isDeleted: false
         },
     });
     if (isExist) {
@@ -73,7 +74,11 @@ const getAllLedgerWithChildrenService = async (user) => {
 // GET ALL LEDGERS WITH PAGINATION
 const getAllLedgerWithChildrenPaginationService = async (user, query) => {
     const { limit, page, skip, } = (0, paginationHelper_1.paginationHelper)(query.page, query.limit);
-    const where = { vataId: user.vataId, isDeleted: false, parentId: null, };
+    const where = {
+        vataId: user.vataId,
+        isDeleted: false,
+        // parentId: null, 
+    };
     if (query.search?.trim()) {
         const search = query.search.trim();
         where.OR = [
@@ -91,12 +96,20 @@ const getAllLedgerWithChildrenPaginationService = async (user, query) => {
             select: {
                 id: true,
                 name: true,
+                parentId: true,
                 rate: true,
                 quantity: true,
                 serial: true,
+                parent: {
+                    select: {
+                        name: true
+                    }
+                },
                 children: {
                     select: {
-                        name: true, id: true, rate: true,
+                        name: true,
+                        id: true,
+                        rate: true,
                         quantity: true,
                         serial: true,
                     }

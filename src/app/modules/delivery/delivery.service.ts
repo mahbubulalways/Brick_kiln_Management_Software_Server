@@ -136,6 +136,18 @@ const createDeliveryService = async (user: TAuthUser, payload: TDelivery) => {
   const mainInvoiceId = await prisma.challan.findFirst({
     where: { serial: Number(payload.invoiceId), vataId: user.vataId }, select: { id: true }
   },)
+
+  const lastDelivered = await prisma.delivery.aggregate({
+    where: {
+      invoiceId: mainInvoiceId?.id,
+      class: payload.items.class,
+    },
+    _sum: {
+      deliveryReceived: true,
+    },
+  });
+
+  const totalDelivered = lastDelivered._sum.deliveryReceived || 0;
   const data = {
     deliveryDate: payload.deliveryDate,
     deliveryNo: Number(payload.deliveryNo),
@@ -144,12 +156,13 @@ const createDeliveryService = async (user: TAuthUser, payload: TDelivery) => {
     deliveryReceived: Number(payload.items.todaysDelivery),
     class: payload.items.class,
     deliveryRemaining: Number(payload.items.remainingDelivery),
-    driverName: payload.driverName,
-    driverPhoneNumber: payload.driverMobileNumber,
     carNo: payload.carNumber,
     invoiceId: mainInvoiceId?.id!,
     carRent: Number(payload.carRent),
-    deliveryById: user.userId
+    deliveryById: user.userId,
+    driverId: payload.driverId,
+    lastDelivered: totalDelivered
+
   };
 
 
@@ -165,11 +178,11 @@ const createDeliveryService = async (user: TAuthUser, payload: TDelivery) => {
           nextDeliveryDate: data.nextDeliveryDate,
           quantity: data.quantity,
           carNo: data.carNo,
-          driverName: data.driverName,
-          driverPhoneNumber: data.driverPhoneNumber,
           invoiceId: data.invoiceId,
           carRent: data.carRent,
           deliveryById: data.deliveryById,
+          driverId: data.driverId,
+          lastDelivered: totalDelivered
         },
       });
 
@@ -229,6 +242,11 @@ const getTodaysDeliveryThatDone = async (user: TAuthUser, query: TQuery) => {
             customer: true,
           },
         },
+        driver: {
+          select: {
+            name: true
+          }
+        }
       }, skip, take: limit, orderBy: { createdAt: "desc" }
     }),
 
@@ -362,7 +380,7 @@ const getAllDeliveryListService = async (user: TAuthUser, query: TQuery) => {
     }),
   ]);
 
-  console.log(result);
+
 
   const filteredResult = result
     .map((challan) => {
@@ -409,7 +427,8 @@ const getAllDeliveryListService = async (user: TAuthUser, query: TQuery) => {
     page,
     totalData: totalCount,
   });
-  console.log(filteredResult)
+
+
   return {
     meta,
     data: filteredResult,
@@ -435,6 +454,12 @@ const getSingleDeliveryService = async (id: string) => {
           }
         }
       },
+      driver: {
+        select: {
+          name: true,
+          PhoneNumber: true
+        }
+      },
       deliveryBy: {
         select: {
           name: true
@@ -444,6 +469,8 @@ const getSingleDeliveryService = async (id: string) => {
   });
   return result;
 };
+
+
 
 export const DeliveryService = {
   getNextDeliveryNo,

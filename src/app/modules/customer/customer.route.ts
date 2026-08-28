@@ -18,6 +18,7 @@ router.get("/old",
 
 router.get("/single/:id",
     AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+    ActiveSeasonGuard,
     CustomerController.getSingleCustomertController)
 
 router.get("/info/:id",
@@ -26,14 +27,17 @@ router.get("/info/:id",
 
 router.get("/invoices/:id",
     AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+    ActiveSeasonGuard,
     CustomerController.getCustomertAllChallanController)
 
 router.get("/deliveries/:id",
     AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+    ActiveSeasonGuard,
     CustomerController.getCustomerAllDeliveryController)
 
 router.get("/dues/:id",
     AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+    ActiveSeasonGuard,
     CustomerController.getCustomerAllDuesController)
 
 router.patch("/update/:id",

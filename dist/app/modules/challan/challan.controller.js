@@ -49,6 +49,28 @@ const createInvoiceController = (0, catchAsync_1.default)(async (req, res) => {
         });
     }
 });
+// SEARCH FOR DELIVERY
+const searchChallanForDeliveryController = (0, catchAsync_1.default)(async (req, res) => {
+    const user = req.user;
+    const { search } = await (0, parseListQuery_1.parseListQuery)(req.query);
+    const result = await challan_service_1.InvoiceService.searchChallanForDeliveryService(user, { search });
+    if (!result) {
+        return (0, sendResponse_1.sendResponse)(res, {
+            message: "কোনো চ্যালান পাওয়া যায়নি।",
+            statusCode: http_status_codes_1.StatusCodes.OK,
+            success: true,
+            data: [],
+        });
+    }
+    else {
+        return (0, sendResponse_1.sendResponse)(res, {
+            message: "চ্যালান সফলভাবে পাওয়া গেছে।",
+            statusCode: http_status_codes_1.StatusCodes.OK,
+            success: true,
+            data: result,
+        });
+    }
+});
 // GET AL INVOICE WITH CUSTOMER NAME AND ADDRESS
 const getAllInvoiceController = (0, catchAsync_1.default)(async (req, res) => {
     const user = req.user;
@@ -240,5 +262,6 @@ exports.InvoiceController = {
     getSingleInvoiceItemsController,
     updateInvoiceDeliveryDateController,
     updateInvoiceItemDeliveryDateController,
-    getAllAdvanceInvoiceController
+    getAllAdvanceInvoiceController,
+    searchChallanForDeliveryController
 };

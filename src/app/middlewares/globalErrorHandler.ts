@@ -106,9 +106,13 @@ const globalErrorHandler = (
   // ================================
   // Normal Application Error
   // ================================
-  else {
-    console.error("Global Error:", error);
-  }
+ else {
+  console.error("========== GLOBAL ERROR ==========");
+  console.error("Error:", error);
+  console.error("Message:", error?.message);
+  console.error("Stack:", error?.stack);
+  console.error("==================================");
+}
 
   res.status(statusCode).json({
     statusCode,

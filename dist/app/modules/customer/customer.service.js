@@ -11,12 +11,13 @@ const getDateRangeDbSearch_1 = require("../../../utils/getDateRangeDbSearch");
 // GET SINGLE INFO
 const getSingleCustomerService = async (user, id) => {
     const result = await prisma_1.prisma.customer.findFirst({
-        where: { id, vataId: user.vataId },
+        where: { customerCode: id, vataId: user.vataId },
         select: {
             address: true,
             name: true,
             phoneNumber: true,
-            id: true
+            id: true,
+            customerCode: true,
         }
     });
     return result;
@@ -28,17 +29,118 @@ const updateCustomerService = async (user, id, data) => {
         throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.NOT_FOUND, "কোনো কাস্টমার পাওয়া যায়নি।");
     }
     const result = await prisma_1.prisma.customer.update({
-        where: { id, vataId: user.vataId },
-        data: data
+        where: {
+            vataId_customerCode: {
+                customerCode: id,
+                vataId: user.vataId,
+            },
+        },
+        data,
     });
     return result;
 };
+// const getAllCustomerService = async (user: TAuthUser, query: TQuery) => {
+//   const { limit, page, skip } = paginationHelper(query.page, query.limit);
+//   const where: Prisma.CustomerWhereInput = {
+//     isDeleted: false,
+//     vataId: user.vataId,
+//   };
+//   if (query.search?.trim()) {
+//     const search = query.search.trim();
+//     where.OR = [
+//       {
+//         name: {
+//           contains: search,
+//           mode: "insensitive",
+//         },
+//       },
+//       {
+//         customerCode: {
+//           contains: search,
+//           mode: "insensitive",
+//         },
+//       },
+//       {
+//         address: {
+//           contains: search,
+//           mode: "insensitive",
+//         },
+//       },
+//       {
+//         phoneNumber: {
+//           contains: search,
+//           mode: "insensitive",
+//         },
+//       },
+//     ];
+//   }
+//   const [customers, total] = await Promise.all([
+//     prisma.customer.findMany({
+//       where,
+//       include: {
+//         challans: {
+//           where: {
+//             isDeleted: false,
+//           },
+//           include: {
+//             items: {
+//               where: {
+//                 isDeleted: false,
+//               },
+//             },
+//             deliveries: {
+//               where: {
+//                 isDeleted: false,
+//               },
+//             },
+//           },
+//         },
+//         dueCollections: {
+//           where: {
+//             isDeleted: false,
+//           },
+//           select: {
+//             collect: true,
+//           },
+//           orderBy: { createdAt: "desc" }
+//         },
+//         customerDues: {
+//           select: {
+//             dueAmount: true,
+//             paidAmount: true,
+//             totalAmount: true,
+//           },
+//           orderBy: { createdAt: "desc" }
+//         }
+//       },
+//       skip,
+//       take: limit,
+//       orderBy: {
+//         id: "desc",
+//       },
+//     }),
+//     prisma.customer.count({
+//       where,
+//     }),
+//   ]);
+//   const result = formatCustomerData(customers)
+//   console.log(result)
+//   const meta = createMetaConfig({
+//     limit: limit,
+//     page: page,
+//     totalData: total,
+//   });
+//   return {
+//     meta,
+//     data: result,
+//   };
+// };
+// GET SINGLE CUSTOMER INFORMATION
 const getAllCustomerService = async (user, seasonId, query) => {
     const { limit, page, skip } = (0, paginationHelper_1.paginationHelper)(query.page, query.limit);
     const where = {
         isDeleted: false,
         vataId: user.vataId,
-        seasonId
     };
     if (query.search?.trim()) {
         const search = query.search.trim();
@@ -69,13 +171,17 @@ const getAllCustomerService = async (user, seasonId, query) => {
             },
         ];
     }
-    const [customers, total] = await Promise.all([
+    const [customers, total, previousDues, previousCollections] = await Promise.all([
+        // ==========================================
+        // CURRENT SEASON CUSTOMER DATA
+        // ==========================================
         prisma_1.prisma.customer.findMany({
             where,
             include: {
                 challans: {
                     where: {
                         isDeleted: false,
+                        seasonId,
                     },
                     include: {
                         items: {
@@ -90,9 +196,31 @@ const getAllCustomerService = async (user, seasonId, query) => {
                         },
                     },
                 },
+                // Current season collection
                 dueCollections: {
                     where: {
                         isDeleted: false,
+                        seasonId,
+                    },
+                    select: {
+                        collect: true,
+                    },
+                    orderBy: {
+                        createdAt: "desc",
+                    },
+                },
+                // Current season due
+                customerDues: {
+                    where: {
+                        seasonId,
+                    },
+                    select: {
+                        dueAmount: true,
+                        paidAmount: true,
+                        totalAmount: true,
+                    },
+                    orderBy: {
+                        createdAt: "desc",
                     },
                 },
             },
@@ -102,72 +230,57 @@ const getAllCustomerService = async (user, seasonId, query) => {
                 id: "desc",
             },
         }),
+        // ==========================================
+        // TOTAL CUSTOMER
+        // ==========================================
         prisma_1.prisma.customer.count({
             where,
         }),
+        // ==========================================
+        // PREVIOUS ALL SEASON DUE
+        // ==========================================
+        prisma_1.prisma.customerDue.findMany({
+            where: {
+                customer: {
+                    vataId: user.vataId,
+                    isDeleted: false,
+                },
+                seasonId: {
+                    not: seasonId,
+                },
+            },
+            select: {
+                customerId: true,
+                dueAmount: true,
+            },
+        }),
+        // ==========================================
+        // PREVIOUS ALL SEASON COLLECTION
+        // ==========================================
+        prisma_1.prisma.due_Collection.findMany({
+            where: {
+                customer: {
+                    vataId: user.vataId,
+                    isDeleted: false,
+                },
+                isDeleted: false,
+                seasonId: {
+                    not: seasonId,
+                },
+            },
+            select: {
+                customerId: true,
+                collect: true,
+            },
+        }),
     ]);
-    // const result = customers.map((customer) => {
-    //   // মোট কেনা quantity
-    //   const totalPurchasedQuantity = customer.challans.reduce(
-    //     (challanTotal, challan) => {
-    //       return (
-    //         challanTotal +
-    //         challan.items.reduce(
-    //           (itemTotal, item) => itemTotal + item.quantity,
-    //           0
-    //         )
-    //       );
-    //     },
-    //     0
-    //   );
-    //   // মোট delivery quantity
-    //   const totalDeliveredQuantity = customer.challans.reduce(
-    //     (challanTotal, challan) => {
-    //       return (
-    //         challanTotal +
-    //         challan.deliveries.reduce(
-    //           (deliveryTotal, delivery) =>
-    //             deliveryTotal + delivery.quantity,
-    //           0
-    //         )
-    //       );
-    //     },
-    //     0
-    //   );
-    //   // বাকি quantity
-    //   const totalRemainingQuantity =
-    //     totalPurchasedQuantity - totalDeliveredQuantity;
-    //   // মোট বিল
-    //   const totalAmount = customer.challans.reduce(
-    //     (total, challan) => total + challan.totalPrice,
-    //     0
-    //   );
-    //   // মোট payment
-    //   const totalPaid = customer.challans.reduce(
-    //     (total, payment) => total + Number(payment?.cash),
-    //     0
-    //   );
-    //   // টাকা বাকি
-    //   const totalDue = totalAmount - totalPaid;
-    //   return {
-    //     id: customer.id,
-    //     name: customer.name,
-    //     address: customer.address,
-    //     phoneNumber: customer.phoneNumber,
-    //     totalPurchasedQuantity,
-    //     totalDeliveredQuantity,
-    //     totalRemainingQuantity,
-    //     totalAmount,
-    //     totalPaid,
-    //     totalDue,
-    //     note: customer.note || customer?.challans[0]?.note,
-    //     nextPaymentDate: customer.nextPaymentDate,
-    //   };
-    // });
-    const result = (0, customer_utils_1.formatCustomerData)(customers);
+    // ==========================================
+    // ALL CALCULATION WILL HAPPEN INSIDE UTILITY
+    // ==========================================
+    const result = (0, customer_utils_1.formatCustomerDataWithPrevDue)(customers, previousDues, previousCollections);
     const meta = (0, createMetaConfig_1.createMetaConfig)({
-        limit: limit,
-        page: page,
+        limit,
+        page,
         totalData: total,
     });
     return {
@@ -175,46 +288,225 @@ const getAllCustomerService = async (user, seasonId, query) => {
         data: result,
     };
 };
-// GET SINGLE CUSTOMER INFORMATION
-const getSingleCustomerInformationService = async (user, id) => {
-    const customer = await prisma_1.prisma.customer.findMany({
+const getSingleCustomerInformationService = async (user, seasonId, id) => {
+    const findCustomerid = await prisma_1.prisma.customer.findFirst({
         where: {
-            isDeleted: false,
-            vataId: user.vataId,
-            customerCode: id
-        },
-        include: {
-            challans: {
-                where: {
-                    isDeleted: false,
-                },
-                include: {
-                    items: {
-                        where: {
-                            isDeleted: false,
-                        },
-                    },
-                    deliveries: {
-                        where: {
-                            isDeleted: false,
-                        },
-                    },
-                },
-            },
-            dueCollections: {
-                where: {
-                    isDeleted: false,
-                },
-            },
-        },
+            vataId: user.vataId, customerCode: id
+        }, select: { id: true }
     });
-    const result = (0, customer_utils_1.formatCustomerData)(customer);
+    const [customer, previousDues, previousCollections] = await Promise.all([
+        prisma_1.prisma.customer.findMany({
+            where: {
+                isDeleted: false,
+                vataId: user.vataId,
+                customerCode: id
+            },
+            include: {
+                challans: {
+                    where: {
+                        isDeleted: false,
+                        seasonId
+                    },
+                    include: {
+                        items: {
+                            where: {
+                                isDeleted: false,
+                            },
+                        },
+                        deliveries: {
+                            where: {
+                                isDeleted: false,
+                            },
+                        },
+                    },
+                },
+                // Current season collection
+                dueCollections: {
+                    where: {
+                        isDeleted: false,
+                        seasonId,
+                    },
+                    select: {
+                        collect: true,
+                    },
+                    orderBy: {
+                        createdAt: "desc",
+                    },
+                },
+                // Current season due
+                customerDues: {
+                    where: {
+                        seasonId,
+                    },
+                    select: {
+                        dueAmount: true,
+                        paidAmount: true,
+                        totalAmount: true,
+                    },
+                    orderBy: {
+                        createdAt: "desc",
+                    },
+                },
+            },
+            orderBy: {
+                id: "desc",
+            },
+        }),
+        // FIND CUSTOMER DUE
+        prisma_1.prisma.customerDue.findMany({
+            where: {
+                customerId: findCustomerid?.id,
+                seasonId: {
+                    not: seasonId,
+                },
+            },
+            select: {
+                customerId: true,
+                dueAmount: true,
+            },
+        }),
+        // FIND CUSTOMER DUE COLLECTIONS
+        prisma_1.prisma.due_Collection.findMany({
+            where: {
+                isDeleted: false,
+                customerId: findCustomerid?.id,
+                seasonId: {
+                    not: seasonId,
+                },
+            },
+            select: {
+                customerId: true,
+                collect: true,
+            },
+        }),
+    ]);
+    const result = (0, customer_utils_1.formatCustomerDataWithPrevDue)(customer, previousDues, previousCollections);
     return result[0];
 };
+// const getSingleCustomerInformationService = async (
+//   user: TAuthUser,
+//   seasonId: string,
+//   id: string
+// ) => {
+//   const customer = await prisma.customer.findMany({
+//     where: {
+//       isDeleted: false,
+//       vataId: user.vataId,
+//       customerCode: id,
+//     },
+//     include: {
+//       // =========================
+//       // CURRENT SEASON CHALLANS
+//       // =========================
+//       challans: {
+//         where: {
+//           isDeleted: false,
+//           seasonId,
+//         },
+//         include: {
+//           items: {
+//             where: {
+//               isDeleted: false,
+//             },
+//           },
+//           deliveries: {
+//             where: {
+//               isDeleted: false,
+//               invoice: {
+//                 seasonId,
+//               },
+//             },
+//           },
+//         },
+//       },
+//       // =========================
+//       // CURRENT SEASON DUE
+//       // =========================
+//       customerDues: {
+//         where: {
+//           seasonId,
+//         },
+//         select: {
+//           dueAmount: true,
+//           paidAmount: true,
+//           totalAmount: true,
+//         },
+//         orderBy: {
+//           createdAt: "desc",
+//         },
+//       },
+//       // =========================
+//       // CURRENT SEASON COLLECTION
+//       // =========================
+//       dueCollections: {
+//         where: {
+//           isDeleted: false,
+//           seasonId,
+//         },
+//         select: {
+//           collect: true,
+//         },
+//       },
+//     },
+//   });
+//   // ==========================================
+//   // PREVIOUS ALL SEASON CUSTOMER DUES
+//   // ==========================================
+//   const previousCustomerDues = await prisma.customerDue.findMany({
+//     where: {
+//       customer: {
+//         vataId: user.vataId,
+//         customerCode: id,
+//         isDeleted: false,
+//       },
+//       seasonId: {
+//         not: seasonId,
+//       },
+//     },
+//     select: {
+//       dueAmount: true,
+//       paidAmount: true,
+//       totalAmount: true,
+//       seasonId: true,
+//     },
+//   });
+//   // ==========================================
+//   // PREVIOUS ALL SEASON DUE COLLECTIONS
+//   // ==========================================
+//   const previousDueCollections = await prisma.due_Collection.findMany({
+//     where: {
+//       customer: {
+//         vataId: user.vataId,
+//         customerCode: id,
+//         isDeleted: false,
+//       },
+//       isDeleted: false,
+//       seasonId: {
+//         not: seasonId,
+//       },
+//     },
+//     select: {
+//       collect: true,
+//       seasonId: true,
+//     },
+//   });
+//   const result = formatCustomerData(
+//     customer,
+//     previousCustomerDues,
+//     previousDueCollections
+//   );
+//   return result[0];
+// };
 // GET CUSTOMER CHALLANS
-const getCustomerAllChallanService = async (user, id, query) => {
+const getCustomerAllChallanService = async (user, seasonId, id, query) => {
     const { limit, page, skip } = (0, paginationHelper_1.paginationHelper)(query.page, query.limit);
-    const where = { vataId: user.vataId, customerId: id, isDeleted: false };
+    console.log(seasonId);
+    const where = {
+        seasonId,
+        vataId: user.vataId,
+        customerId: id,
+        isDeleted: false
+    };
     // Create start and end of day boundaries
     if (query.date) {
         const dateRange = (0, getDateRangeDbSearch_1.getDateRangeDbSearch)(query.date);
@@ -236,13 +528,14 @@ const getCustomerAllChallanService = async (user, id, query) => {
         page: page,
         totalData: total,
     });
+    console.log(result);
     return {
         meta,
         data: result,
     };
 };
 // GET CUSTOMER DELIVERIE
-const getCustomerAllDeliveryService = async (user, id, query) => {
+const getCustomerAllDeliveryService = async (user, seasonId, id, query) => {
     const { limit, page, skip } = (0, paginationHelper_1.paginationHelper)(query.page, query.limit);
     const chalans = await prisma_1.prisma.challan.findMany({
         where: { customerId: id, vataId: user.vataId },
@@ -253,7 +546,8 @@ const getCustomerAllDeliveryService = async (user, id, query) => {
         invoiceId: { in: chalanIds },
         isDeleted: false,
         invoice: {
-            vataId: user.vataId
+            vataId: user.vataId,
+            seasonId
         }
     };
     if (query.date) {
@@ -295,10 +589,11 @@ const getCustomerAllDeliveryService = async (user, id, query) => {
     };
 };
 // GET CUSTOMER ALL DUES
-const getCustomerAllDuesService = async (user, id, query) => {
+const getCustomerAllDuesService = async (user, seasonId, id, query) => {
     const { limit, page, skip } = (0, paginationHelper_1.paginationHelper)(query.page, query.limit);
     const where = {
-        customerId: id, isDeleted: false, customer: { vataId: user.vataId }
+        customerId: id, isDeleted: false, customer: { vataId: user.vataId },
+        seasonId
     };
     // Create start and end of day boundaries
     if (query.date) {
@@ -310,11 +605,13 @@ const getCustomerAllDuesService = async (user, id, query) => {
     const [result, total] = await Promise.all([
         prisma_1.prisma.due_Collection.findMany({
             where,
-            include: { customer: {
+            include: {
+                customer: {
                     select: {
                         customerCode: true
                     }
-                } },
+                }
+            },
             skip,
             take: limit,
             orderBy: { createdAt: "asc" }

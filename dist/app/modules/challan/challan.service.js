@@ -17,7 +17,7 @@ const createInvoiceService = async (user, seasonId, customer, invoiceItems, invo
         },
     });
     if (isSerialExist) {
-        throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.CONFLICT, "এই সিরিয়াল নম্বর ইতিমধ্যেই বিদ্যমান।");
+        throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.CONFLICT, "চালান নম্বর পরিবর্তন করুন");
     }
     const result = await prisma_1.prisma.$transaction(async (tx) => {
         // CHECK CUSTOMER EXIST OR NOT
@@ -27,11 +27,7 @@ const createInvoiceService = async (user, seasonId, customer, invoiceItems, invo
                 phoneNumber: customer.phoneNumber,
             },
         });
-        //   IF CUSTOMER IS NOT EXIST THEN CREATE NEW
-        customer.totalPurchased = invoice.totalPrice;
-        customer.totalPaid = Number(invoice?.cash) || 0;
-        customer.nextPaymentDate = invoice.duePaymentDate;
-        customer.seasonId = seasonId;
+        // IF CUSTOMER IS NOT EXIST THEN CREATE NEW
         if (!existingCustomer) {
             const countCustomer = (await tx.customer.count({
                 where: {
@@ -42,23 +38,20 @@ const createInvoiceService = async (user, seasonId, customer, invoiceItems, invo
                 data: {
                     ...customer,
                     customerCode: (0, generateCode_1.generateCode)(countCustomer),
-                    vataId: user.vataId
+                    vataId: user.vataId,
+                    nextPaymentDate: invoice.duePaymentDate,
                 },
             });
         }
         else {
-            // UPDATE CUSTOMER
-            const updateData = {
-                totalPurchased: { increment: invoice.totalPrice },
-                totalPaid: { increment: Number(invoice.cash) || 0 },
-            };
-            // Only add nextPaymentDate if it exists
-            if (invoice.duePaymentDate) {
-                updateData.nextPaymentDate = invoice.duePaymentDate;
-            }
-            await tx.customer.update({
-                where: { id: existingCustomer.id, vataId: user.vataId },
-                data: updateData,
+            // IF CUSTOMER ALREADY EXISTS THEN UPDATE NEXT PAYMENT DATE
+            existingCustomer = await tx.customer.update({
+                where: {
+                    id: existingCustomer.id,
+                },
+                data: {
+                    nextPaymentDate: invoice.duePaymentDate,
+                },
             });
         }
         //  CREATE INVOICE
@@ -68,8 +61,19 @@ const createInvoiceService = async (user, seasonId, customer, invoiceItems, invo
             data: {
                 ...invoice,
                 vataId: user.vataId,
-                seasonId
+                seasonId,
             },
+        });
+        // CREATE CUSTOMER DUE INFO
+        await tx.customerDue.create({
+            data: {
+                dueAmount: Number(invoice.due ?? 0),
+                paidAmount: Number(invoice.cash ?? 0),
+                totalAmount: invoice.totalPrice,
+                challanId: newInvoice.id,
+                customerId: newInvoice.customerId,
+                seasonId: seasonId,
+            }
         });
         //  FORMAT INVOKE ITEMS AND ADD INVOICE ID
         const invokeInvoiceId = invoiceItems.map((it) => {
@@ -87,6 +91,87 @@ const createInvoiceService = async (user, seasonId, customer, invoiceItems, invo
             data: invokeInvoiceId,
         });
         return newInvoice;
+    });
+    return result;
+};
+// SEARCH CHALLANS FOR DELIVERY
+const searchChallanForDeliveryService = async (user, query) => {
+    const searchTerm = query.search?.trim();
+    if (!searchTerm) {
+        return {
+            success: true,
+            message: "চালান সার্চ সফল হয়েছে",
+            data: [],
+        };
+    }
+    const searchConditions = [
+        {
+            customer: {
+                name: {
+                    contains: searchTerm,
+                    mode: "insensitive",
+                },
+            },
+        },
+        {
+            customer: {
+                address: {
+                    contains: searchTerm,
+                    mode: "insensitive",
+                },
+            },
+        },
+        {
+            customer: {
+                customerCode: {
+                    contains: searchTerm,
+                    mode: "insensitive",
+                },
+            },
+        },
+    ];
+    const where = {
+        AND: [
+            {
+                vataId: user.vataId,
+                isDeleted: false,
+            },
+        ],
+        OR: searchConditions,
+    };
+    if (searchTerm && !isNaN(Number(searchTerm))) {
+        searchConditions.push({
+            serial: Number(searchTerm),
+        });
+    }
+    const result = await prisma_1.prisma.challan.findMany({
+        where,
+        select: {
+            serial: true,
+            customer: {
+                select: {
+                    name: true,
+                    address: true,
+                    customerCode: true,
+                    phoneNumber: true,
+                },
+            },
+            items: {
+                select: {
+                    id: true,
+                    class: true,
+                    quantity: true,
+                    delivered: true,
+                    deliveryDate: true,
+                },
+            },
+            note: true,
+            createdAt: true,
+        },
+        orderBy: {
+            createdAt: "desc",
+        },
+        take: 10,
     });
     return result;
 };
@@ -207,6 +292,11 @@ const getSingleInvoiceService = async (user, id) => {
             createdBy: {
                 select: {
                     name: true
+                }
+            }, season: {
+                select: {
+                    name: true,
+                    id: true
                 }
             }
         },
@@ -414,5 +504,6 @@ exports.InvoiceService = {
     getSingleInvoiceItemsService,
     updateItemsDateService,
     updateInvoiceDeliveryDateService,
-    getAllAdvanceInvoiceService
+    getAllAdvanceInvoiceService,
+    searchChallanForDeliveryService
 };

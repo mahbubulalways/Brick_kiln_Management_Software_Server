@@ -122,6 +122,16 @@ const createDeliveryService = async (user, payload) => {
     const mainInvoiceId = await prisma_1.prisma.challan.findFirst({
         where: { serial: Number(payload.invoiceId), vataId: user.vataId }, select: { id: true }
     });
+    const lastDelivered = await prisma_1.prisma.delivery.aggregate({
+        where: {
+            invoiceId: mainInvoiceId?.id,
+            class: payload.items.class,
+        },
+        _sum: {
+            deliveryReceived: true,
+        },
+    });
+    const totalDelivered = lastDelivered._sum.deliveryReceived || 0;
     const data = {
         deliveryDate: payload.deliveryDate,
         deliveryNo: Number(payload.deliveryNo),
@@ -130,12 +140,12 @@ const createDeliveryService = async (user, payload) => {
         deliveryReceived: Number(payload.items.todaysDelivery),
         class: payload.items.class,
         deliveryRemaining: Number(payload.items.remainingDelivery),
-        driverName: payload.driverName,
-        driverPhoneNumber: payload.driverMobileNumber,
         carNo: payload.carNumber,
         invoiceId: mainInvoiceId?.id,
         carRent: Number(payload.carRent),
-        deliveryById: user.userId
+        deliveryById: user.userId,
+        driverId: payload.driverId,
+        lastDelivered: totalDelivered
     };
     const result = await prisma_1.prisma.$transaction(async (tx) => {
         const createDelivery = await tx.delivery.create({
@@ -148,11 +158,11 @@ const createDeliveryService = async (user, payload) => {
                 nextDeliveryDate: data.nextDeliveryDate,
                 quantity: data.quantity,
                 carNo: data.carNo,
-                driverName: data.driverName,
-                driverPhoneNumber: data.driverPhoneNumber,
                 invoiceId: data.invoiceId,
                 carRent: data.carRent,
                 deliveryById: data.deliveryById,
+                driverId: data.driverId,
+                lastDelivered: totalDelivered
             },
         });
         if (data?.deliveryRemaining) {
@@ -204,6 +214,11 @@ const getTodaysDeliveryThatDone = async (user, query) => {
                         customer: true,
                     },
                 },
+                driver: {
+                    select: {
+                        name: true
+                    }
+                }
             }, skip, take: limit, orderBy: { createdAt: "desc" }
         }),
         prisma_1.prisma.delivery.count({ where })
@@ -278,7 +293,20 @@ const getAllDeliveryListService = async (user, query) => {
                 id: true,
                 serial: true,
                 note: true,
-                customer: true,
+                customer: {
+                    include: {
+                        customerDues: {
+                            select: {
+                                dueAmount: true,
+                            },
+                        },
+                        dueCollections: {
+                            select: {
+                                collect: true,
+                            },
+                        },
+                    },
+                },
                 items: {
                     where: dateRange
                         ? {
@@ -289,8 +317,9 @@ const getAllDeliveryListService = async (user, query) => {
             },
             orderBy: {
                 deliveryDate: "asc",
-            }, skip,
-            take: limit
+            },
+            skip,
+            take: limit,
         }),
         prisma_1.prisma.challan.findMany({
             where,
@@ -306,12 +335,21 @@ const getAllDeliveryListService = async (user, query) => {
         }),
     ]);
     const filteredResult = result
-        .map((challan) => ({
-        ...challan,
-        items: challan.items.filter((item) => item.quantity > item.delivered),
-    }))
+        .map((challan) => {
+        const totalDueAmount = challan.customer?.customerDues?.reduce((sum, due) => sum + Number(due.dueAmount || 0), 0) || 0;
+        const totalCollected = challan.customer?.dueCollections?.reduce((sum, collection) => sum + Number(collection.collect || 0), 0) || 0;
+        const totalDue = Math.max(totalDueAmount - totalCollected, 0);
+        return {
+            ...challan,
+            totalDueAmount,
+            totalCollected,
+            totalDue,
+            items: challan.items.filter((item) => item.quantity > item.delivered),
+        };
+    })
         .filter((challan) => challan.items.length > 0);
-    const totalCount = total.map((challan) => ({
+    const totalCount = total
+        .map((challan) => ({
         ...challan,
         items: challan.items.filter((item) => item.quantity > item.delivered),
     }))
@@ -342,6 +380,12 @@ const getSingleDeliveryService = async (id) => {
                             address: true
                         }
                     }
+                }
+            },
+            driver: {
+                select: {
+                    name: true,
+                    PhoneNumber: true
                 }
             },
             deliveryBy: {

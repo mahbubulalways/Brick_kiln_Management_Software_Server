@@ -11,6 +11,7 @@ const http_status_codes_1 = require("http-status-codes");
 const routes_1 = __importDefault(require("./routes"));
 const globalErrorHandler_1 = __importDefault(require("./app/middlewares/globalErrorHandler"));
 const notFound_1 = __importDefault(require("./app/middlewares/notFound"));
+const smsService_1 = require("./libs/smsService.");
 const app = (0, express_1.default)();
 app.use(express_1.default.json());
 app.set("trust proxy", true);
@@ -45,6 +46,11 @@ app.get("/", (req, res) => {
         success: true,
         message: "Server is under construction!",
     });
+});
+app.get("/sms", async (req, res) => {
+    const result = await (0, smsService_1.sendSms)("01407128177", "Test SMS from MRAM API");
+    res.send(result);
+    console.log("SMS Response:", result);
 });
 app.use(globalErrorHandler_1.default);
 app.use(notFound_1.default);

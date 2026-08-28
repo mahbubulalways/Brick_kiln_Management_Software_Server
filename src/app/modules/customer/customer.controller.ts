@@ -46,7 +46,8 @@ const updateCustomerInfoController = catchAsync(async (req, res) => {
 const getAllCustomertController = catchAsync(async (req, res) => {
     const { limit, page, search } = await parseListQuery(req.query);
     const user = req.user as TAuthUser
-    const result = await CustomerService.getAllCustomerService(user, { limit, page, search });
+    const seasonId= req.seasonId
+    const result = await CustomerService.getAllCustomerService(user,seasonId, { limit, page, search });
     if (!result || result.data.length === 0) {
         sendResponse(res, {
             statusCode: StatusCodes.OK,
@@ -72,7 +73,8 @@ const getAllCustomertController = catchAsync(async (req, res) => {
 const getSingleCustomertController = catchAsync(async (req, res) => {
     const id = req.params.id
     const user = req.user as TAuthUser
-    const result = await CustomerService.getSingleCustomerInformationService(user, id);
+    const seasonId= req.seasonId
+    const result = await CustomerService.getSingleCustomerInformationService(user,seasonId, id);
     if (!result) {
         sendResponse(res, {
             statusCode: StatusCodes.OK,
@@ -97,8 +99,9 @@ const getSingleCustomertController = catchAsync(async (req, res) => {
 const getCustomertAllChallanController = catchAsync(async (req, res) => {
     const id = req.params.id
     const user = req.user as TAuthUser
+    const seasonId = req.seasonId
     const { limit, page, date } = await parseListQuery(req.query);
-    const result = await CustomerService.getCustomerAllChallanService(user, id, { date, limit, page });
+    const result = await CustomerService.getCustomerAllChallanService(user,seasonId, id, { date, limit, page });
     if (!result.data.length) {
         sendResponse(res, {
             statusCode: StatusCodes.OK,
@@ -124,8 +127,9 @@ const getCustomertAllChallanController = catchAsync(async (req, res) => {
 const getCustomerAllDeliveryController = catchAsync(async (req, res) => {
     const id = req.params.id
     const { limit, page, date } = await parseListQuery(req.query);
+       const seasonId = req.seasonId
     const user = req.user as TAuthUser
-    const result = await CustomerService.getCustomerAllDeliveryService(user, id, { date, limit, page });
+    const result = await CustomerService.getCustomerAllDeliveryService(user,seasonId, id, { date, limit, page });
     if (!result.data.length) {
         sendResponse(res, {
             statusCode: StatusCodes.OK,
@@ -151,7 +155,8 @@ const getCustomerAllDuesController = catchAsync(async (req, res) => {
     const id = req.params.id
     const { limit, page, date } = await parseListQuery(req.query);
     const user = req.user as TAuthUser
-    const result = await CustomerService.getCustomerAllDuesService(user, id, { date, limit, page });
+       const seasonId = req.seasonId
+    const result = await CustomerService.getCustomerAllDuesService(user,seasonId, id, { date, limit, page });
     if (!result.data.length) {
         sendResponse(res, {
             statusCode: StatusCodes.OK,

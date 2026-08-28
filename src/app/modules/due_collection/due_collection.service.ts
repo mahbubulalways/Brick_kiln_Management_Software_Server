@@ -159,9 +159,7 @@ const searchCustomerForDeuService = async (
       address: true,
 
       customerDues: {
-        where: {
-          seasonId,
-        },
+       
         select: {
           season: {
             select: {
@@ -174,7 +172,6 @@ const searchCustomerForDeuService = async (
 
       dueCollections: {
         where: {
-          seasonId,
           isDeleted: false,
         },
         select: {
@@ -620,7 +617,7 @@ const updateDueCollectionService = async (
 const getSingleDueCollectionDateService = async (user: TAuthUser, id: string) => {
   return await prisma.customer.findFirst({
     where:
-      { customerCode: id, vataId: user.vataId }, select: { nextPaymentDate: true, id: true }
+      { customerCode: id, vataId: user.vataId ,}, select: { nextPaymentDate: true, id: true }
   })
 }
 

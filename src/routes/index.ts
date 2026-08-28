@@ -22,6 +22,7 @@ import contactRoute from "../app/modules/contact/contact.route";
 import weathertRoute from "../app/modules/weather/weather.route";
 import vataRoute from "../app/modules/vata/vata.route";
 import seasonRoute from "../app/modules/season/season.route";
+import driverRoute from "../app/modules/driver/driver.route";
 
 const router = Router();
 const applicationRoutes: IApplicationRoute[] = [
@@ -47,6 +48,7 @@ const applicationRoutes: IApplicationRoute[] = [
   { path: "/weather", route: weathertRoute },
   { path: "/vata", route: vataRoute },
   { path: "/season", route: seasonRoute },
+  { path: "/driver", route: driverRoute },
 ];
 
 applicationRoutes.forEach((route) => router.use(route.path, route.route));

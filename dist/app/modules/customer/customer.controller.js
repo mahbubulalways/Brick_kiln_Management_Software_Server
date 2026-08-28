@@ -45,8 +45,8 @@ const updateCustomerInfoController = (0, catchAsync_1.default)(async (req, res) 
 // GET ALL CUSTOMER INFO
 const getAllCustomertController = (0, catchAsync_1.default)(async (req, res) => {
     const { limit, page, search } = await (0, parseListQuery_1.parseListQuery)(req.query);
-    const seasonId = req.seasonId;
     const user = req.user;
+    const seasonId = req.seasonId;
     const result = await customer_service_1.CustomerService.getAllCustomerService(user, seasonId, { limit, page, search });
     if (!result || result.data.length === 0) {
         (0, sendResponse_1.sendResponse)(res, {
@@ -69,7 +69,8 @@ const getAllCustomertController = (0, catchAsync_1.default)(async (req, res) => 
 const getSingleCustomertController = (0, catchAsync_1.default)(async (req, res) => {
     const id = req.params.id;
     const user = req.user;
-    const result = await customer_service_1.CustomerService.getSingleCustomerInformationService(user, id);
+    const seasonId = req.seasonId;
+    const result = await customer_service_1.CustomerService.getSingleCustomerInformationService(user, seasonId, id);
     if (!result) {
         (0, sendResponse_1.sendResponse)(res, {
             statusCode: http_status_codes_1.StatusCodes.OK,
@@ -92,8 +93,9 @@ const getSingleCustomertController = (0, catchAsync_1.default)(async (req, res) 
 const getCustomertAllChallanController = (0, catchAsync_1.default)(async (req, res) => {
     const id = req.params.id;
     const user = req.user;
+    const seasonId = req.seasonId;
     const { limit, page, date } = await (0, parseListQuery_1.parseListQuery)(req.query);
-    const result = await customer_service_1.CustomerService.getCustomerAllChallanService(user, id, { date, limit, page });
+    const result = await customer_service_1.CustomerService.getCustomerAllChallanService(user, seasonId, id, { date, limit, page });
     if (!result.data.length) {
         (0, sendResponse_1.sendResponse)(res, {
             statusCode: http_status_codes_1.StatusCodes.OK,
@@ -116,8 +118,9 @@ const getCustomertAllChallanController = (0, catchAsync_1.default)(async (req, r
 const getCustomerAllDeliveryController = (0, catchAsync_1.default)(async (req, res) => {
     const id = req.params.id;
     const { limit, page, date } = await (0, parseListQuery_1.parseListQuery)(req.query);
+    const seasonId = req.seasonId;
     const user = req.user;
-    const result = await customer_service_1.CustomerService.getCustomerAllDeliveryService(user, id, { date, limit, page });
+    const result = await customer_service_1.CustomerService.getCustomerAllDeliveryService(user, seasonId, id, { date, limit, page });
     if (!result.data.length) {
         (0, sendResponse_1.sendResponse)(res, {
             statusCode: http_status_codes_1.StatusCodes.OK,
@@ -141,7 +144,8 @@ const getCustomerAllDuesController = (0, catchAsync_1.default)(async (req, res) 
     const id = req.params.id;
     const { limit, page, date } = await (0, parseListQuery_1.parseListQuery)(req.query);
     const user = req.user;
-    const result = await customer_service_1.CustomerService.getCustomerAllDuesService(user, id, { date, limit, page });
+    const seasonId = req.seasonId;
+    const result = await customer_service_1.CustomerService.getCustomerAllDuesService(user, seasonId, id, { date, limit, page });
     if (!result.data.length) {
         (0, sendResponse_1.sendResponse)(res, {
             statusCode: http_status_codes_1.StatusCodes.OK,

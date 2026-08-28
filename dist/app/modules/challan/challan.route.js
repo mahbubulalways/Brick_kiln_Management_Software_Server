@@ -14,6 +14,8 @@ const router = (0, express_1.Router)();
 router.post(api_endpoints_1.API_ENDPOINTS.INVOICE.CREATE_INVOICE, (0, AuthGuard_1.default)(enums_1.UserRole.OWNER, enums_1.UserRole.ADMIN, enums_1.UserRole.MANAGER), ActiveSeasonGuard_1.default, challan_controller_1.InvoiceController.createInvoiceController);
 // GET INVOICE SERIAL
 router.get(api_endpoints_1.API_ENDPOINTS.INVOICE.INVOICE_SERIAL, (0, AuthGuard_1.default)(enums_1.UserRole.OWNER, enums_1.UserRole.ADMIN, enums_1.UserRole.MANAGER), challan_controller_1.InvoiceController.getInvoiceSerial);
+// SEARCH
+router.get(api_endpoints_1.API_ENDPOINTS.INVOICE.SEARCH_CHALLAN, (0, AuthGuard_1.default)(enums_1.UserRole.OWNER, enums_1.UserRole.ADMIN, enums_1.UserRole.MANAGER), challan_controller_1.InvoiceController.searchChallanForDeliveryController);
 // GET ALL INVOICE
 router.get(api_endpoints_1.API_ENDPOINTS.INVOICE.GET_ALL_INVOICE, ActiveSeasonGuard_1.default, (0, AuthGuard_1.default)(enums_1.UserRole.OWNER, enums_1.UserRole.ADMIN, enums_1.UserRole.MANAGER), challan_controller_1.InvoiceController.getAllInvoiceController);
 // GET ALL ADVANCE INVOICE

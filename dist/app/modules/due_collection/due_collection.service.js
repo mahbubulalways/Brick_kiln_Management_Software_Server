@@ -7,43 +7,153 @@ const prisma_1 = require("../../../helpers/prisma");
 const createMetaConfig_1 = require("../../../utils/createMetaConfig");
 const getDateRangeDbSearch_1 = require("../../../utils/getDateRangeDbSearch");
 const ApplicationError_1 = require("../../errors/ApplicationError");
-const getDueOfCustomerService = async (user, customerCode) => {
+//  GET CUSTOMER CURRENT SEASON DUE (DONE)
+const getDueOfCustomerService = async (user, seasonId, customerCode) => {
     const result = await prisma_1.prisma.customer.findFirst({
-        where: { customerCode: customerCode, vataId: user.vataId },
-    });
-    return result;
-};
-// INSERT DUE
-const collectDueService = async (user, payload) => {
-    const findCustomerId = await prisma_1.prisma.customer.findFirst({
         where: {
-            customerCode: payload.customerId, vataId: user.vataId,
+            customerCode,
+            vataId: user.vataId,
+        },
+        include: {
+            customerDues: {
+                where: {
+                    seasonId,
+                },
+                select: {
+                    dueAmount: true,
+                    season: {
+                        select: {
+                            name: true,
+                        },
+                    },
+                },
+            },
+            dueCollections: {
+                where: {
+                    seasonId,
+                },
+                select: {
+                    collect: true,
+                },
+            },
         },
     });
-    const customer = await prisma_1.prisma.customer.findMany({ where: { vataId: user.vataId } });
-    const data = {
-        customerId: findCustomerId?.id,
-        due: Number(payload.due),
-        collect: Number(payload.collect),
-        newDue: Number(payload.newDue),
-        nextDate: payload.nextDate,
+    if (!result) {
+        throw new Error("Customer not found");
+    }
+    const totalDue = result.customerDues.reduce((sum, item) => sum + Number(item.dueAmount), 0);
+    const totalCollect = result.dueCollections.reduce((sum, item) => sum + Number(item.collect), 0);
+    const dueAmount = totalDue - totalCollect;
+    const season = result.customerDues[0]?.season?.name || null;
+    const { customerDues, dueCollections, ...customer } = result;
+    return {
+        ...customer,
+        season,
+        dueAmount,
     };
+};
+// INSERT DUE (DONE)
+const collectDueService = async (user, seasonId, payload) => {
     const result = await prisma_1.prisma.$transaction(async (tx) => {
+        const findCustomerId = await tx.customer.findFirst({
+            where: {
+                customerCode: payload.customerId,
+                vataId: user.vataId,
+            }, select: { id: true }
+        });
         const result = await tx.due_Collection.create({
-            data: data,
+            data: {
+                customerId: findCustomerId?.id,
+                due: Number(payload.due),
+                collect: Number(payload.collect),
+                newDue: Number(payload.newDue),
+                nextDate: payload.nextDate,
+                seasonId
+            },
         });
         await tx.customer.update({
-            data: {
-                totalPaid: { increment: data?.collect },
-                nextPaymentDate: data.nextDate,
-            },
+            data: { nextPaymentDate: payload.nextDate },
             where: {
-                id: data.customerId,
-            },
+                vataId_customerCode: {
+                    customerCode: payload.customerId,
+                    vataId: user.vataId,
+                }
+            }
         });
         return result;
     });
     return result;
+};
+// SEARCH CUSTOMER FOR DEU
+const searchCustomerForDeuService = async (user, seasonId, query) => {
+    const search = query.search?.trim();
+    const result = await prisma_1.prisma.customer.findMany({
+        where: {
+            vataId: user.vataId,
+            ...(search
+                ? {
+                    OR: [
+                        {
+                            customerCode: {
+                                contains: search,
+                                mode: "insensitive",
+                            },
+                        },
+                        {
+                            name: {
+                                contains: search,
+                                mode: "insensitive",
+                            },
+                        },
+                        {
+                            address: {
+                                contains: search,
+                                mode: "insensitive",
+                            },
+                        },
+                    ],
+                }
+                : {}),
+        },
+        select: {
+            id: true,
+            customerCode: true,
+            name: true,
+            address: true,
+            customerDues: {
+                select: {
+                    season: {
+                        select: {
+                            name: true,
+                        },
+                    },
+                    dueAmount: true,
+                },
+            },
+            dueCollections: {
+                where: {
+                    isDeleted: false,
+                },
+                select: {
+                    collect: true,
+                },
+            },
+        },
+    });
+    const formatData = result.map((customer) => {
+        const totalDue = customer.customerDues.reduce((sum, item) => sum + Number(item.dueAmount), 0);
+        const totalCollect = customer.dueCollections.reduce((sum, item) => sum + Number(item.collect), 0);
+        const totalDueAmount = totalDue - totalCollect;
+        return {
+            id: customer.id,
+            customerCode: customer.customerCode,
+            name: customer.name,
+            address: customer.address,
+            season: customer.customerDues[0]?.season?.name || "",
+            totalDue: totalDueAmount,
+        };
+    });
+    return formatData;
 };
 // TODAY HAVE PAY
 const todayPayDueService = async (user, query) => {
@@ -88,25 +198,72 @@ const todayPayDueService = async (user, query) => {
                 challans: {
                     select: {
                         note: true,
-                        items: { select: { quantity: true, delivered: true } },
+                        season: {
+                            select: {
+                                name: true,
+                            },
+                        },
+                        items: {
+                            select: {
+                                quantity: true,
+                                delivered: true,
+                            },
+                        },
+                    },
+                },
+                customerDues: {
+                    select: {
+                        dueAmount: true,
+                    },
+                    orderBy: {
+                        createdAt: "desc"
+                    }
+                },
+                dueCollections: {
+                    where: {
+                        isDeleted: false,
+                    },
+                    select: {
+                        collect: true,
+                        newDue: true,
+                        nextDate: true,
+                        createdAt: true,
+                    },
+                    orderBy: {
+                        nextDate: "desc",
                     },
                 },
             },
-            orderBy: { nextPaymentDate: "asc" },
-            skip, take: limit
+            skip,
+            take: limit,
         }),
-        prisma_1.prisma.customer.count({ where })
+        prisma_1.prisma.customer.count({ where }),
     ]);
+    const data = result.map((customer) => {
+        // সব due যোগ হবে
+        const totalDue = customer.customerDues.reduce((sum, item) => sum + Number(item.dueAmount || 0), 0);
+        // সব collection যোগ হবে
+        const totalCollect = customer.dueCollections.reduce((sum, item) => sum + Number(item.collect || 0), 0);
+        const remainingDue = Math.max(totalDue - totalCollect, 0);
+        const { customerDues, dueCollections, ...customerData } = customer;
+        return {
+            ...customerData,
+            totalDue,
+            totalCollect,
+            remainingDue,
+        };
+    });
     const meta = (0, createMetaConfig_1.createMetaConfig)({
-        limit: limit,
-        page: page,
+        limit,
+        page,
         totalData: total,
     });
     return {
         meta,
-        data: result,
+        data,
     };
 };
+// ALREADY PAID
 const getTodaysDuePaidService = async (user, query) => {
     const pagination = (0, paginationHelper_1.paginationHelper)(query.page, query.limit);
     const where = {
@@ -126,6 +283,9 @@ const getTodaysDuePaidService = async (user, query) => {
             where,
             include: {
                 customer: true,
+                season: {
+                    select: { name: true }
+                }
             },
             orderBy: {
                 createdAt: "desc",
@@ -147,12 +307,11 @@ const getTodaysDuePaidService = async (user, query) => {
         data: result,
     };
 };
-// GET ALL DUE
 const getAllDueListService = async (user, query) => {
     const { limit, page, skip } = (0, paginationHelper_1.paginationHelper)(query.page, query.limit);
     const where = {
         isDeleted: false,
-        vataId: user.vataId
+        vataId: user.vataId,
     };
     if (query.search?.trim()) {
         const search = query.search.trim();
@@ -161,7 +320,7 @@ const getAllDueListService = async (user, query) => {
                 customerCode: {
                     contains: search,
                     mode: "insensitive",
-                }
+                },
             },
             {
                 name: {
@@ -177,114 +336,124 @@ const getAllDueListService = async (user, query) => {
             },
         ];
     }
-    if (query.date) {
-        const dateRange = (0, getDateRangeDbSearch_1.getDateRangeDbSearch)(query.date);
-        if (dateRange) {
-            where.nextPaymentDate = dateRange;
-        }
-    }
     const [result, total] = await Promise.all([
         prisma_1.prisma.customer.findMany({
             where,
             include: {
                 challans: {
-                    include: { items: true }
-                }
+                    select: {
+                        note: true,
+                        season: {
+                            select: {
+                                name: true,
+                            },
+                        },
+                        items: {
+                            select: {
+                                quantity: true,
+                                delivered: true,
+                            },
+                        },
+                    },
+                },
+                customerDues: {
+                    select: {
+                        dueAmount: true,
+                    },
+                    orderBy: {
+                        createdAt: "desc"
+                    }
+                },
+                dueCollections: {
+                    where: {
+                        isDeleted: false,
+                    },
+                    select: {
+                        due: true,
+                        collect: true,
+                        newDue: true,
+                        nextDate: true,
+                        createdAt: true,
+                    },
+                    orderBy: {
+                        nextDate: "desc",
+                    },
+                },
             },
-            skip, take: limit
+            skip,
+            take: limit,
         }),
-        prisma_1.prisma.customer.findMany({
+        prisma_1.prisma.customer.count({
             where,
-            include: {
-                challans: {
-                    include: { items: true }
-                }
-            },
         }),
     ]);
-    const customersWithRemaining = result.map((customer) => {
-        const { challans, ...customerData } = customer;
-        let totalQuantity = 0;
-        let totalDelivered = 0;
-        challans.forEach((challan) => {
-            challan.items.forEach((item) => {
-                totalQuantity += item.quantity ?? 0;
-                totalDelivered += item.delivered ?? 0;
-            });
-        });
+    const formattedData = result.map((customer) => {
+        const totalQuantity = customer.challans.reduce((sum, challan) => sum +
+            challan.items.reduce((itemSum, item) => itemSum + Number(item.quantity || 0), 0), 0);
+        const totalDelivered = customer.challans.reduce((sum, challan) => sum +
+            challan.items.reduce((itemSum, item) => itemSum + Number(item.delivered || 0), 0), 0);
+        const totalDue = customer.customerDues.reduce((sum, item) => sum + Number(item.dueAmount || 0), 0);
+        const totalCollect = customer.dueCollections.reduce((sum, item) => sum + Number(item.collect || 0), 0);
+        const remainingDue = Math.max(totalDue - totalCollect, 0);
         return {
-            ...customerData,
+            id: customer.id,
+            customerCode: customer.customerCode,
+            name: customer.name,
+            address: customer.address,
+            phoneNumber: customer.phoneNumber,
+            totalDue,
+            totalCollect,
+            remainingDue,
+            nextDate: customer?.nextPaymentDate,
             remainingDelivery: totalQuantity - totalDelivered,
+            totalQuantity,
+            totalDelivered,
+            season: customer.challans[0]?.season.name,
+            note: customer?.note,
         };
     });
-    const totalLength = total.map((customer) => {
-        const { challans, ...customerData } = customer;
-        let totalQuantity = 0;
-        let totalDelivered = 0;
-        challans.forEach((challan) => {
-            challan.items.forEach((item) => {
-                totalQuantity += item.quantity ?? 0;
-                totalDelivered += item.delivered ?? 0;
-            });
-        });
-        return {
-            ...customerData,
-            remainingDelivery: totalQuantity - totalDelivered,
-        };
-    }).length;
     const meta = (0, createMetaConfig_1.createMetaConfig)({
-        limit: limit,
-        page: page,
-        totalData: totalLength,
+        limit,
+        page,
+        totalData: total,
     });
     return {
         meta,
-        data: customersWithRemaining,
+        data: formattedData,
     };
 };
 // GET SINGLE
 const getSingleDueCollectionService = async (user, id) => {
     const result = await prisma_1.prisma.due_Collection.findFirst({
         where: { id, isDeleted: false, customer: { vataId: user.vataId } },
-        include: { customer: true },
+        include: {
+            customer: true, season: {
+                select: { name: true }
+            }
+        },
     });
     return result;
 };
-const updateDueCollectionService = async (user, id, payload) => {
-    const findCustomerId = await prisma_1.prisma.customer.findFirst({
-        where: {
-            customerCode: payload.customerId, vataId: user.vataId,
-        }, select: { id: true }
-    });
+// UPDATE DUE (DONE)
+const updateDueCollectionService = async (id, payload) => {
     const data = {
-        customerId: findCustomerId?.id,
         due: Number(payload.due),
         collect: Number(payload.collect),
         newDue: Number(payload.newDue),
         nextDate: payload.nextDate,
     };
+    // UPDATE DUE COLLECTION INFORMATIONS AND CUSTOMER NEXT PAYMENT DATE
     const result = await prisma_1.prisma.$transaction(async (tx) => {
-        const getDueFirst = await tx.due_Collection.findFirst({
-            where: { id },
-            select: { collect: true },
-        });
-        const dueCalculate = payload.collect - getDueFirst?.collect;
         const update = await tx.due_Collection.update({
-            data: data,
-            where: { id },
-        });
-        await tx.customer.update({
-            where: { id: data.customerId },
-            data: { nextPaymentDate: payload.nextDate }
-        });
-        // NEED TO UPDATE CUSTOMER DUE
-        await tx.customer.update({
             data: {
-                totalPaid: { increment: dueCalculate },
+                ...data,
+                customer: {
+                    update: {
+                        nextPaymentDate: data.nextDate
+                    }
+                }
             },
-            where: {
-                id: data.customerId,
-            },
+            where: { id },
         });
         return update;
     });
@@ -292,11 +461,11 @@ const updateDueCollectionService = async (user, id, payload) => {
 };
 const getSingleDueCollectionDateService = async (user, id) => {
     return await prisma_1.prisma.customer.findFirst({
-        where: { customerCode: id, vataId: user.vataId }, select: { nextPaymentDate: true, id: true }
+        where: { customerCode: id, vataId: user.vataId, }, select: { nextPaymentDate: true, id: true }
     });
 };
 // UPDATE DUE COLLECTION DATE 
-const upDateDueCollectionDateService = async (user, id, info) => {
+const updateDueCollectionDateService = async (user, id, info) => {
     const due = await prisma_1.prisma.customer.findFirst({
         where: { customerCode: id, vataId: user.vataId },
         select: {
@@ -320,6 +489,7 @@ exports.DueCollectionService = {
     getAllDueListService,
     getSingleDueCollectionService,
     updateDueCollectionService,
-    upDateDueCollectionDateService,
-    getSingleDueCollectionDateService
+    updateDueCollectionDateService,
+    getSingleDueCollectionDateService,
+    searchCustomerForDeuService,
 };

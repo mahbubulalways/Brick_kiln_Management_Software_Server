@@ -16,9 +16,9 @@ export type TDelivery = {
   };
   itemId: string;
   carRent: number;
-  driverName: string;
-  driverMobileNumber: string;
+  driverId: string;
   carNumber: string;
   note: string;
   savingType: string;
+  lastDelivered:number
 };

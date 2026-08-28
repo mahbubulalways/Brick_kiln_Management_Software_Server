@@ -10,10 +10,12 @@ const ApplicationError_1 = require("../../errors/ApplicationError");
 const due_collection_service_1 = require("./due_collection.service");
 const sendResponse_1 = require("../../../utils/sendResponse");
 const parseListQuery_1 = require("../../../utils/parseListQuery");
+// GET CUSTOMER DEU
 const getDueOfCustomerController = (0, catchAsync_1.default)(async (req, res) => {
     const customerId = req.params.customerId;
+    const seasonId = req.seasonId;
     const user = req.user;
-    const result = await due_collection_service_1.DueCollectionService.getDueOfCustomerService(user, customerId);
+    const result = await due_collection_service_1.DueCollectionService.getDueOfCustomerService(user, seasonId, customerId);
     if (!result?.id) {
         (0, sendResponse_1.sendResponse)(res, {
             message: "সফলভাবে পাওয়া যায়নি।",
@@ -34,7 +36,8 @@ const getDueOfCustomerController = (0, catchAsync_1.default)(async (req, res) =>
 //INSERT NEW DUE
 const collectionNewDueController = (0, catchAsync_1.default)(async (req, res) => {
     const user = req.user;
-    const result = await due_collection_service_1.DueCollectionService.collectDueService(user, req.body);
+    const seasonId = req.seasonId;
+    const result = await due_collection_service_1.DueCollectionService.collectDueService(user, seasonId, req.body);
     if (!result?.id) {
         throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.BAD_REQUEST, "বাকি জমা করতে ব্যর্থ হয়েছে।");
     }
@@ -44,6 +47,29 @@ const collectionNewDueController = (0, catchAsync_1.default)(async (req, res) =>
         success: true,
         data: result,
     });
+});
+// SEARCH CUSTOMER
+const searchCustomerForDeuController = (0, catchAsync_1.default)(async (req, res) => {
+    const user = req.user;
+    const { search } = await (0, parseListQuery_1.parseListQuery)(req.query);
+    const seasonId = req.seasonId;
+    const result = await due_collection_service_1.DueCollectionService.searchCustomerForDeuService(user, seasonId, { search });
+    if (!result?.length) {
+        return (0, sendResponse_1.sendResponse)(res, {
+            message: "কোনো কাস্টমার পাওয়া যায়নি।",
+            statusCode: http_status_codes_1.StatusCodes.OK,
+            success: true,
+            data: [],
+        });
+    }
+    else {
+        return (0, sendResponse_1.sendResponse)(res, {
+            message: "কাস্টমার সফলভাবে পাওয়া গেছে।",
+            statusCode: http_status_codes_1.StatusCodes.OK,
+            success: true,
+            data: result,
+        });
+    }
 });
 // TODAY HAVE PAY
 const todayPayDueController = (0, catchAsync_1.default)(async (req, res) => {
@@ -55,7 +81,7 @@ const todayPayDueController = (0, catchAsync_1.default)(async (req, res) => {
             message: "আজকের  জন্য কোনো বাকি পাওয়া যায়নি।",
             statusCode: http_status_codes_1.StatusCodes.OK,
             success: true,
-            data: result,
+            data: [],
         });
     }
     else {
@@ -148,8 +174,7 @@ const getSingleDueCollectionDateController = (0, catchAsync_1.default)(async (re
 const updateDueCollectionController = (0, catchAsync_1.default)(async (req, res) => {
     const id = req.params.id;
     const body = req.body;
-    const user = req.user;
-    const result = await due_collection_service_1.DueCollectionService.updateDueCollectionService(user, id, body);
+    const result = await due_collection_service_1.DueCollectionService.updateDueCollectionService(id, body);
     if (!result?.id) {
         throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.BAD_REQUEST, "আপডেট করতে ব্যর্থ হয়েছে");
     }
@@ -167,7 +192,7 @@ const updateDueCollectionDateController = (0, catchAsync_1.default)(async (req, 
     const id = req.params.id;
     const body = req.body;
     const user = req.user;
-    const result = await due_collection_service_1.DueCollectionService.upDateDueCollectionDateService(user, id, body);
+    const result = await due_collection_service_1.DueCollectionService.updateDueCollectionDateService(user, id, body);
     if (!result?.id) {
         throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.BAD_REQUEST, "আপডেট করতে ব্যর্থ হয়েছে");
     }
@@ -189,5 +214,6 @@ exports.DueCollectionController = {
     getSingleDueCollectionController,
     updateDueCollectionController,
     updateDueCollectionDateController,
-    getSingleDueCollectionDateController
+    getSingleDueCollectionDateController,
+    searchCustomerForDeuController
 };

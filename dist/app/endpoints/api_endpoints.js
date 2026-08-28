@@ -10,6 +10,7 @@ exports.API_ENDPOINTS = {
         DELETE: "/delete/:id",
     },
     INVOICE: {
+        SEARCH_CHALLAN: "/search",
         INVOICE_SERIAL: "/serial",
         CREATE_INVOICE: "/create",
         GET_ALL_INVOICE: "/all-invoices",
@@ -34,6 +35,7 @@ exports.API_ENDPOINTS = {
         TODAY_PAID: "/today-paid",
         ALL_DUE: "/all-due",
         GET_SINGLE: "/get-single/:id",
+        SEARCH_CUSTOMER: "/search-customer",
         GET_SINGLE_DATE: "/get-single-date/:id",
         UPDATE_DUE_COLLECTION: "/update/:id",
         UPDATE_DUE_COLLECTION_DATE: "/update-date/:id",
