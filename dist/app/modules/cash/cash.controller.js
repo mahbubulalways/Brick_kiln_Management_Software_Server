@@ -13,7 +13,8 @@ const parseListQuery_1 = require("../../../utils/parseListQuery");
 // CREATE CASH
 const createCash = (0, catchAsync_1.default)(async (req, res) => {
     const user = req.user;
-    const result = await cash_service_1.CashService.createCashService(user, req.body);
+    const seasonId = req.seasonId;
+    const result = await cash_service_1.CashService.createCashService(user, seasonId, req.body);
     if (result) {
         (0, sendResponse_1.sendResponse)(res, {
             statusCode: http_status_codes_1.StatusCodes.OK,
@@ -29,8 +30,32 @@ const createCash = (0, catchAsync_1.default)(async (req, res) => {
 const getAllCash = (0, catchAsync_1.default)(async (req, res) => {
     const { limit, page, date, search } = await (0, parseListQuery_1.parseListQuery)(req.query);
     const user = req.user;
-    const result = await cash_service_1.CashService.getAllCashService(user, { date, limit, page, search });
+    const seasonId = req.seasonId;
+    const result = await cash_service_1.CashService.getAllCashService(user, seasonId, { date, limit, page, search });
     if (result.data.length > 0) {
+        (0, sendResponse_1.sendResponse)(res, {
+            statusCode: 200,
+            success: true,
+            message: "ক্যাশের তথ্য সফলভাবে পাওয়া গেছে",
+            data: result,
+        });
+    }
+    else {
+        (0, sendResponse_1.sendResponse)(res, {
+            statusCode: 200,
+            success: true,
+            message: "কোনো ক্যাশের তথ্য পাওয়া যায়নি",
+            data: [],
+        });
+    }
+});
+// CASH REPORT
+const getAllCashReport = (0, catchAsync_1.default)(async (req, res) => {
+    const { date } = await (0, parseListQuery_1.parseListQuery)(req.query);
+    const user = req.user;
+    const seasonId = req.seasonId;
+    const result = await cash_service_1.CashService.getCashReportService(user, seasonId, { date });
+    if (result.length > 0) {
         (0, sendResponse_1.sendResponse)(res, {
             statusCode: 200,
             success: true,
@@ -125,4 +150,5 @@ exports.CashController = {
     getSingleCash,
     updateCash,
     deleteCash,
+    getAllCashReport
 };

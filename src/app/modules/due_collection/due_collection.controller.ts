@@ -90,7 +90,8 @@ const searchCustomerForDeuController = catchAsync(async (req, res) => {
 const todayPayDueController = catchAsync(async (req, res) => {
   const user = req.user as TAuthUser
   const { limit, page, date, search } = await parseListQuery(req.query);
-  const result = await DueCollectionService.todayPayDueService(user, { date, limit, page, search });
+    const seasonId = req.seasonId
+  const result = await DueCollectionService.todayPayDueService(user,seasonId, { date, limit, page, search });
   if (!result?.data?.length) {
     sendResponse(res, {
       message: "আজকের  জন্য কোনো বাকি পাওয়া যায়নি।",
@@ -113,7 +114,8 @@ const todayPayDueController = catchAsync(async (req, res) => {
 const getTodaysDuePaidController = catchAsync(async (req, res) => {
   const user = req.user as TAuthUser
   const { limit, page, date } = await parseListQuery(req.query);
-  const result = await DueCollectionService.getTodaysDuePaidService(user, { date, limit, page });
+    const seasonId = req.seasonId
+  const result = await DueCollectionService.getTodaysDuePaidService(user,seasonId, { date, limit, page });
   if (!result.data.length) {
     sendResponse(res, {
       message: "আজকের  জন্য কোনো বাকি পাওয়া যায়নি।",
@@ -135,7 +137,8 @@ const getTodaysDuePaidController = catchAsync(async (req, res) => {
 const getAllDueListController = catchAsync(async (req, res) => {
   const { limit, page, search, date } = await parseListQuery(req.query);
   const user = req.user as TAuthUser
-  const result = await DueCollectionService.getAllDueListService(user, { date, limit, page, search });
+    const seasonId = req.seasonId
+  const result = await DueCollectionService.getAllDueListService(user,seasonId, { date, limit, page, search });
   if (!result?.data?.length) {
     sendResponse(res, {
       message: "বাকি পাওয়া যায়নি।",

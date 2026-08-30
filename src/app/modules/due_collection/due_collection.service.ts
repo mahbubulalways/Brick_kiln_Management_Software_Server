@@ -159,7 +159,7 @@ const searchCustomerForDeuService = async (
       address: true,
 
       customerDues: {
-       
+
         select: {
           season: {
             select: {
@@ -209,7 +209,7 @@ const searchCustomerForDeuService = async (
 
 
 // TODAY HAVE PAY
-const todayPayDueService = async (user: TAuthUser, query: TQuery) => {
+const todayPayDueService = async (user: TAuthUser, seasonId: string, query: TQuery) => {
   const { limit, page, skip } = paginationHelper(query.page, query.limit);
   const where: Prisma.CustomerWhereInput = {
     vataId: user.vataId,
@@ -271,6 +271,9 @@ const todayPayDueService = async (user: TAuthUser, query: TQuery) => {
         },
 
         customerDues: {
+          where: {
+            seasonId
+          },
           select: {
             dueAmount: true,
           },
@@ -282,6 +285,7 @@ const todayPayDueService = async (user: TAuthUser, query: TQuery) => {
         dueCollections: {
           where: {
             isDeleted: false,
+            seasonId
           },
           select: {
             collect: true,
@@ -348,11 +352,12 @@ const todayPayDueService = async (user: TAuthUser, query: TQuery) => {
 
 
 // ALREADY PAID
-const getTodaysDuePaidService = async (user: TAuthUser, query: TQuery) => {
+const getTodaysDuePaidService = async (user: TAuthUser, seasonId: string, query: TQuery) => {
   const pagination = paginationHelper(query.page, query.limit);
 
   const where: Prisma.Due_CollectionWhereInput = {
     isDeleted: false,
+    seasonId,
     customer: {
       vataId: user.vataId
     }
@@ -401,6 +406,7 @@ const getTodaysDuePaidService = async (user: TAuthUser, query: TQuery) => {
 
 const getAllDueListService = async (
   user: TAuthUser,
+  seasonId: string,
   query: TQuery
 ) => {
   const { limit, page, skip } = paginationHelper(
@@ -438,11 +444,26 @@ const getAllDueListService = async (
     ];
   }
 
+  if (query.date) {
+    const dateRange = getDateRangeDbSearch(query.date);
+
+    if (dateRange) {
+      where.dueCollections = {
+        some: {
+          createdAt: dateRange,
+        },
+      };
+    }
+  }
+
   const [result, total] = await Promise.all([
     prisma.customer.findMany({
       where,
       include: {
         challans: {
+          where: {
+            isDeleted: false
+          },
           select: {
             note: true,
             season: {
@@ -459,6 +480,9 @@ const getAllDueListService = async (
           },
         },
         customerDues: {
+          where: {
+            seasonId
+          },
           select: {
             dueAmount: true,
           },
@@ -469,6 +493,7 @@ const getAllDueListService = async (
         dueCollections: {
           where: {
             isDeleted: false,
+            seasonId
           },
           select: {
             due: true,
@@ -531,7 +556,7 @@ const getAllDueListService = async (
       0
     );
 
-  
+
 
     return {
       id: customer.id,
@@ -542,14 +567,14 @@ const getAllDueListService = async (
       totalDue,
       totalCollect,
       remainingDue,
-      nextDate:customer?.nextPaymentDate,
+      nextDate: customer?.nextPaymentDate,
       remainingDelivery: totalQuantity - totalDelivered,
       totalQuantity,
       totalDelivered,
       season: customer.challans[0]?.season.name,
       note: customer?.note,
     };
-  });
+  }).filter((customer) => customer.remainingDue > 0);;
 
 
   const meta = createMetaConfig({
@@ -617,7 +642,7 @@ const updateDueCollectionService = async (
 const getSingleDueCollectionDateService = async (user: TAuthUser, id: string) => {
   return await prisma.customer.findFirst({
     where:
-      { customerCode: id, vataId: user.vataId ,}, select: { nextPaymentDate: true, id: true }
+      { customerCode: id, vataId: user.vataId, }, select: { nextPaymentDate: true, id: true }
   })
 }
 

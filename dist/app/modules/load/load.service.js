@@ -6,12 +6,12 @@ const prisma_1 = require("../../../helpers/prisma");
 const createMetaConfig_1 = require("../../../utils/createMetaConfig");
 const getDateRangeDbSearch_1 = require("../../../utils/getDateRangeDbSearch");
 // CREATE LOAD INFO
-const createLoadInfoService = async (user, payload) => {
+const createLoadInfoService = async (user, seasonId, payload) => {
     const round = payload.round;
     const result = await prisma_1.prisma.$transaction(async (tx) => {
         let roundExist = await tx.round.findFirst({ where: { name: round, vataId: user.vataId } });
         if (!roundExist) {
-            roundExist = await tx.round.create({ data: { name: round, vataId: user.vataId } });
+            roundExist = await tx.round.create({ data: { name: round, vataId: user.vataId, seasonId } });
         }
         const loadData = {
             roundId: roundExist.id,
@@ -28,11 +28,11 @@ const createLoadInfoService = async (user, payload) => {
     return result;
 };
 // GET ALL LOAD INFO
-const getAllLoadInfoService = async (user, query) => {
+const getAllLoadInfoService = async (user, seasonId, query) => {
     const { limit, page, skip } = (0, paginationHelper_1.paginationHelper)(query.page, query.limit);
     const where = {
         isDeleted: false,
-        round: { vataId: user.vataId }
+        round: { vataId: user.vataId, seasonId }
     };
     // DATE FILTER
     if (query.date) {
@@ -103,7 +103,7 @@ const getSingleLoadInfoService = async (user, id) => {
     });
 };
 // UPDATE LOAD INFO
-const updateLoadInfoService = async (user, id, payload) => {
+const updateLoadInfoService = async (user, seasonId, id, payload) => {
     const result = await prisma_1.prisma.$transaction(async (tx) => {
         // Round name
         const roundName = `${payload.round}`;
@@ -120,6 +120,7 @@ const updateLoadInfoService = async (user, id, payload) => {
                 data: {
                     vataId: user.vataId,
                     name: roundName,
+                    seasonId
                 },
             });
         }

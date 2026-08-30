@@ -2,6 +2,7 @@ import { Router } from "express";
 import { CashController } from "./cash.controller";
 import AuthGuard from "../../middlewares/AuthGuard";
 import { UserRole } from "../../../generated/prisma/enums";
+import ActiveSeasonGuard from "../../middlewares/ActiveSeasonGuard";
 
 const router = Router();
 
@@ -9,6 +10,7 @@ const router = Router();
 router.post(
   "/create",
   AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+  ActiveSeasonGuard,
   CashController.createCash
 );
 
@@ -16,7 +18,16 @@ router.post(
 router.get(
   "/all",
   AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+  ActiveSeasonGuard,
   CashController.getAllCash
+);
+
+// GET CASH REPORT
+router.get(
+  "/report",
+  AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+  ActiveSeasonGuard,
+  CashController.getAllCashReport
 );
 
 // GET SINGLE CASH

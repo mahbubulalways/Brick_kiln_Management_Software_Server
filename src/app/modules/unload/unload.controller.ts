@@ -9,8 +9,9 @@ import { TAuthUser } from "../../../interface/token";
 const createUnloadInfoController = catchAsync(
     async (req, res) => {
         const user = req.user as TAuthUser
+         const seasonId = req.seasonId
         const result =
-            await UnloadService.createNewUnloadService(user, req.body);
+            await UnloadService.createNewUnloadService(user,seasonId, req.body);
 
         if (result) {
             sendResponse(res, {
@@ -33,8 +34,9 @@ const getAllUnloadInfoController = catchAsync(
     async (req, res) => {
         const user = req.user as TAuthUser
         const { limit, page, search, date } = await parseListQuery(req.query);
+         const seasonId = req.seasonId
         const result =
-            await UnloadService.getAllUnloadService(user, { date, limit, page, search });
+            await UnloadService.getAllUnloadService(user,seasonId, { date, limit, page, search });
 
         if (result.data.length) {
             sendResponse(res, {

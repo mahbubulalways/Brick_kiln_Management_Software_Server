@@ -244,7 +244,7 @@ const getAllInvoiceService = async (user: TAuthUser, seasonId: string, query: TQ
   if (query.date) {
     const dateRange = getDateRangeDbSearch(query.date);
     if (dateRange) {
-      where.createdAt = dateRange;
+      where.challanDate = dateRange;
     }
   }
 
@@ -486,8 +486,7 @@ const deleteInvoiceService = async (user: TAuthUser, invoiceId: string) => {
 const getItemsWithInvoiceService = async (
   user: TAuthUser,
   seasonId: string,
-  startDate?: string,
-  endDate?: string,
+  query: TQuery
 ) => {
   const whereCondition: Prisma.ChallanItemWhereInput = {
     isDeleted: false,
@@ -497,30 +496,21 @@ const getItemsWithInvoiceService = async (
     }
   };
 
-  // Only startDate provided → filter only that date
-  if (startDate && !endDate) {
-    const parsedDate = new Date(startDate);
-    // Create start and end of day boundaries
-    const startOfDay = new Date(parsedDate.setHours(0, 0, 0, 0));
-    const endOfDay = new Date(parsedDate.setHours(23, 59, 59, 999));
 
-    whereCondition.createdAt = {
-      gte: startOfDay,
-      lte: endOfDay,
-    };
+  if (query.date) {
+    const dateRange = getDateRangeDbSearch(query.date);
+    if (dateRange) {
+      whereCondition.challan = {
+        challanDate: dateRange,
+      };
+    }
   }
 
-  // Both start and end dates provided → filter range
-  if (startDate && endDate) {
-    // Date Range filter
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    end.setHours(23, 59, 59, 999);
 
-    whereCondition.createdAt = {
-      gte: start,
-      lte: end,
-    };
+  if (query.search === "ADVANCED") {
+    whereCondition.challan = {
+      chalanType: "অগ্রিম চালান"
+    }
   }
 
   const result = await prisma.challanItem.findMany({

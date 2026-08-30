@@ -14,12 +14,13 @@ const getLedgerCountService = async (user: TAuthUser) => {
 };
 
 // CREATE A LEDGER
-const createLedgerService = async (user: TAuthUser, data: Ledger) => {
+const createLedgerService = async (user: TAuthUser, seasonId: string, data: Ledger) => {
   const isExist = await prisma.ledger.findFirst({
     where: {
       name: data.name,
       vataId: user.vataId,
-      isDeleted: false
+      isDeleted: false,
+      seasonId
     },
   });
 
@@ -33,9 +34,11 @@ const createLedgerService = async (user: TAuthUser, data: Ledger) => {
   const result = await prisma.ledger.create({
     data: {
       ...data,
+      serial:Number(data.serial),
       quantity: Number(data.quantity),
       rate: Number(data.rate),
-      vataId: user.vataId
+      vataId: user.vataId,
+      seasonId
 
     }
   });
@@ -44,12 +47,13 @@ const createLedgerService = async (user: TAuthUser, data: Ledger) => {
 };
 
 // GET GROUP OPTION
-const getLedgerOptionService = async (user: TAuthUser) => {
+const getLedgerOptionService = async (user: TAuthUser, seasonId: string) => {
   const res = await prisma.ledger.findMany({
     where: {
       parentId: null,
       isDeleted: false,
-      vataId: user.vataId
+      vataId: user.vataId,
+      seasonId
     },
     select: {
       id: true,
@@ -66,12 +70,13 @@ const getLedgerOptionService = async (user: TAuthUser) => {
 };
 
 // GET ALL LEDGER WITH CHILDREN
-const getAllLedgerWithChildrenService = async (user: TAuthUser) => {
+const getAllLedgerWithChildrenService = async (user: TAuthUser, seasonId: string) => {
   const res = await prisma.ledger.findMany({
     where: {
       parentId: null,
       isDeleted: false,
-      vataId: user.vataId
+      vataId: user.vataId,
+      seasonId
     },
     select: {
       id: true,
@@ -88,11 +93,12 @@ const getAllLedgerWithChildrenService = async (user: TAuthUser) => {
 
 
 // GET ALL LEDGERS WITH PAGINATION
-const getAllLedgerWithChildrenPaginationService = async (user: TAuthUser, query: TQuery) => {
+const getAllLedgerWithChildrenPaginationService = async (user: TAuthUser, seasonId: string, query: TQuery) => {
   const { limit, page, skip, } = paginationHelper(query.page, query.limit);
   const where: Prisma.LedgerWhereInput = {
     vataId: user.vataId,
     isDeleted: false,
+    seasonId
     // parentId: null, 
   };
   if (query.search?.trim()) {
@@ -157,13 +163,18 @@ const getAllLedgerWithChildrenPaginationService = async (user: TAuthUser, query:
 
 
 // GET ALL LEDGER WITH TK
-const getAllLedgerWithAmountService = async (user: TAuthUser) => {
+const getAllLedgerWithAmountService = async (user: TAuthUser, seasonId: string,) => {
   const result = await prisma.ledger.findMany({
+    where: {
+      isDeleted: false,
+      seasonId,
+      vataId: user.vataId
+    },
     include: {
       payments: {
         where: {
           isDeleted: false,
-          vataId: user.vataId
+          vataId: user.vataId,
         },
         select: {
           payment: true,
@@ -248,7 +259,7 @@ const getAllLedgerWithAmountService = async (user: TAuthUser) => {
 
 // GET DETAILS
 
-const getDetailsLedgerService = async (user: TAuthUser, id: string, query: TQuery) => {
+const getDetailsLedgerService = async (user: TAuthUser, seasonId: string, id: string, query: TQuery) => {
   const { limit, page, skip } = paginationHelper(query.page, query.limit);
   const where: Prisma.PaymentWhereInput = { vataId: user.vataId, isDeleted: false };
   // Create start and end of day boundaries
@@ -258,7 +269,7 @@ const getDetailsLedgerService = async (user: TAuthUser, id: string, query: TQuer
       where.paymentDate = dateRange;
     }
   }
-  const ledger = await prisma.ledger.findUnique({ where: { id, vataId: user.vataId }, select: { name: true, id: true, parentId: true } })
+  const ledger = await prisma.ledger.findUnique({ where: { id, vataId: user.vataId, seasonId }, select: { name: true, id: true, parentId: true } })
   if (ledger?.name) {
     where.ledger = {
       name: ledger.name,

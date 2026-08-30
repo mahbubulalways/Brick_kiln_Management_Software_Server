@@ -8,7 +8,9 @@ const port = Config.PORT;
 
 const checkDatabaseConnection = async () => {
   try {
-    await prisma.$connect();
+    await prisma.$queryRaw`
+  SELECT * FROM "users"
+`;
     console.log("✅ Database connected successfully");
   } catch (error) {
     console.error("❌ Database connection failed:", error);
@@ -17,7 +19,7 @@ const checkDatabaseConnection = async () => {
 
 async function main() {
   try {
-    server = app.listen(port,async () => {
+    server = app.listen(port, async () => {
       await checkDatabaseConnection()
       console.log("Application is running on port 5000");
     });

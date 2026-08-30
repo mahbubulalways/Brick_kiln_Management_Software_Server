@@ -4,31 +4,41 @@ import { AppError } from "../../errors/ApplicationError";
 import { ClassAndRateService } from "./classAndRateRoute.service";
 import { sendResponse } from "../../../utils/sendResponse";
 import { TAuthUser } from "../../../interface/token";
+import { parseListQuery } from "../../../utils/parseListQuery";
 
-const createClassAndRateController = catchAsync(async (req, res) => {
-  const body = req.body;
-  const user = req.user as TAuthUser
-  const result = await ClassAndRateService.createClassAndRateService(user, body);
-  if (!result.id) {
-    throw new AppError(
-      StatusCodes.BAD_REQUEST,
-      "Failed to create Class & Rate"
-    );
-  } else {
+const createClassAndRateController = catchAsync(
+  async (req, res) => {
+    const body = req.body;
+    const user = req.user as TAuthUser;
+
+    const result =
+      await ClassAndRateService.createClassAndRateService(
+        user,
+        body,
+      );
+
+    if (!result?.id) {
+      throw new AppError(
+        StatusCodes.BAD_REQUEST,
+        "শ্রেণী ও রেট যোগ করা যায়নি",
+      );
+    }
+
     sendResponse(res, {
-      message: "শ্রেণী সফলভাবে এড হয়েছে",
-      statusCode: StatusCodes.OK,
+      message: "শ্রেণী ও রেট সফলভাবে যোগ করা হয়েছে",
+      statusCode: StatusCodes.CREATED,
       success: true,
       data: result,
     });
-  }
-});
+  },
+);
 
 // GET ALL CLASS AND RATE
 const getClassAndRateController = catchAsync(async (req, res) => {
   const user = req.user as TAuthUser
-  const result = await ClassAndRateService.getClassAndRateService(user);
-  if (!result.length) {
+  const { limit, page, } = await parseListQuery(req.query);
+  const result = await ClassAndRateService.getClassAndRateService(user, { limit, page });
+  if (!result.data.length) {
     throw new AppError(
       StatusCodes.BAD_REQUEST,
       "শ্রেণী ও রেট নিয়ে তথ্য আনতে ব্যর্থ হয়েছে"

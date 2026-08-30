@@ -201,7 +201,7 @@ const getAllInvoiceService = async (user, seasonId, query) => {
     if (query.date) {
         const dateRange = (0, getDateRangeDbSearch_1.getDateRangeDbSearch)(query.date);
         if (dateRange) {
-            where.createdAt = dateRange;
+            where.challanDate = dateRange;
         }
     }
     const [result, total] = await prisma_1.prisma.$transaction([
@@ -403,7 +403,7 @@ const deleteInvoiceService = async (user, invoiceId) => {
 };
 //*
 // GET ITEMS WITH INVOICE
-const getItemsWithInvoiceService = async (user, seasonId, startDate, endDate) => {
+const getItemsWithInvoiceService = async (user, seasonId, query) => {
     const whereCondition = {
         isDeleted: false,
         challan: {
@@ -411,26 +411,17 @@ const getItemsWithInvoiceService = async (user, seasonId, startDate, endDate) =>
             seasonId,
         }
     };
-    // Only startDate provided → filter only that date
-    if (startDate && !endDate) {
-        const parsedDate = new Date(startDate);
-        // Create start and end of day boundaries
-        const startOfDay = new Date(parsedDate.setHours(0, 0, 0, 0));
-        const endOfDay = new Date(parsedDate.setHours(23, 59, 59, 999));
-        whereCondition.createdAt = {
-            gte: startOfDay,
-            lte: endOfDay,
-        };
+    if (query.date) {
+        const dateRange = (0, getDateRangeDbSearch_1.getDateRangeDbSearch)(query.date);
+        if (dateRange) {
+            whereCondition.challan = {
+                challanDate: dateRange,
+            };
+        }
     }
-    // Both start and end dates provided → filter range
-    if (startDate && endDate) {
-        // Date Range filter
-        const start = new Date(startDate);
-        const end = new Date(endDate);
-        end.setHours(23, 59, 59, 999);
-        whereCondition.createdAt = {
-            gte: start,
-            lte: end,
+    if (query.search === "ADVANCED") {
+        whereCondition.challan = {
+            chalanType: "অগ্রিম চালান"
         };
     }
     const result = await prisma_1.prisma.challanItem.findMany({

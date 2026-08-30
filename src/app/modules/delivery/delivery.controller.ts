@@ -23,12 +23,30 @@ const getNextDeliveryNoController = catchAsync(async (req, res) => {
 
 });
 
+
+// CREATE NEW DELIVERY
+const createDeliveryController = catchAsync(async (req, res) => {
+  const body = req.body;
+  const user = req.user as TAuthUser
+  const result = await DeliveryService.createDeliveryService(user, body);
+  if (!result) {
+    throw new AppError(StatusCodes.BAD_REQUEST, "ডেলিভারি তৈরি করা সম্ভব হয়নি।")
+  } else {
+    sendResponse(res, {
+      message: "ডেলিভারি সফলভাবে তৈরি করা হয়েছে।",
+      statusCode: StatusCodes.OK,
+      success: !!result?.id,
+    });
+  }
+
+});
+
 // GET DELIVERY THAT GO TODAY
 const getDeliveryThatGoTodayController = catchAsync(async (req, res) => {
   const user = req.user as TAuthUser
   const { limit, page, date, search } = await parseListQuery(req.query);
-  console.log(req.query)
-  const result = await DeliveryService.getDeliveryThatGoTodayService(user, { date, limit, page, search });
+  const seasonId = req.seasonId
+  const result = await DeliveryService.getDeliveryThatGoTodayService(user,seasonId, { date, limit, page, search });
   if (!result?.data?.length) {
     sendResponse(res, {
       message: "আজকের জন্য কোনো ডেলিভারি পাওয়া যায়নি।",
@@ -47,10 +65,13 @@ const getDeliveryThatGoTodayController = catchAsync(async (req, res) => {
   }
 });
 
+// GET ALL DELIVERY 
 const getAllDeliveryListController = catchAsync(async (req, res) => {
-    const user = req.user as TAuthUser
+  const user = req.user as TAuthUser
   const { limit, page, date, search } = await parseListQuery(req.query);
+    const seasonId = req.seasonId
   const result = await DeliveryService.getAllDeliveryListService(user,
+    seasonId,
     { date, limit, page, search }
   );
 
@@ -73,26 +94,13 @@ const getAllDeliveryListController = catchAsync(async (req, res) => {
 
 });
 
-const createDeliveryController = catchAsync(async (req, res) => {
-  const body = req.body;
-  const user = req.user as TAuthUser
-  const result = await DeliveryService.createDeliveryService(user,body);
-  if (!result) {
-    throw new AppError(StatusCodes.BAD_REQUEST, "ডেলিভারি তৈরি করা সম্ভব হয়নি।")
-  } else {
-    sendResponse(res, {
-      message: "ডেলিভারি সফলভাবে তৈরি করা হয়েছে।",
-      statusCode: StatusCodes.OK,
-      success: !!result?.id,
-    });
-  }
 
-});
-
+// GET DELIVERY THAT DONE
 const getTodaysDeliveryThatDoneController = catchAsync(async (req, res) => {
   const { limit, page, date } = await parseListQuery(req.query);
-    const user = req.user as TAuthUser
-  const result = await DeliveryService.getTodaysDeliveryThatDone(user,{ date, limit, page });
+  const user = req.user as TAuthUser
+    const seasonId = req.seasonId
+  const result = await DeliveryService.getTodaysDeliveryThatDone(user,seasonId, { date, limit, page });
   if (!result?.data?.length) {
     sendResponse(res, {
       message: "আজকের জন্য কোনো ডেলিভারি পাওয়া যায়নি।",

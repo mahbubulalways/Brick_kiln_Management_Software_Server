@@ -251,14 +251,13 @@ const deleteInvoiceController = catchAsync(async (req, res) => {
 
 // GET ITEMS WITH INVOICE
 const getItemsWithInvoiceController = catchAsync(async (req, res) => {
-  const { startDate, endDate } = req.query;
+  const { search, date } = await parseListQuery(req.query);
   const user = req.user as TAuthUser
   const seasonId = req.seasonId
   const result = await InvoiceService.getItemsWithInvoiceService(
     user,
     seasonId,
-    startDate as string,
-    endDate as string
+    { date, search }
   );
   if (!result?.length) {
     throw new AppError(StatusCodes.BAD_REQUEST, "চ্যালান পাওয়া যায়নি।");

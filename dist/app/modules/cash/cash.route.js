@@ -7,11 +7,14 @@ const express_1 = require("express");
 const cash_controller_1 = require("./cash.controller");
 const AuthGuard_1 = __importDefault(require("../../middlewares/AuthGuard"));
 const enums_1 = require("../../../generated/prisma/enums");
+const ActiveSeasonGuard_1 = __importDefault(require("../../middlewares/ActiveSeasonGuard"));
 const router = (0, express_1.Router)();
 // CREATE CASH
-router.post("/create", (0, AuthGuard_1.default)(enums_1.UserRole.OWNER, enums_1.UserRole.ADMIN, enums_1.UserRole.MANAGER), cash_controller_1.CashController.createCash);
+router.post("/create", (0, AuthGuard_1.default)(enums_1.UserRole.OWNER, enums_1.UserRole.ADMIN, enums_1.UserRole.MANAGER), ActiveSeasonGuard_1.default, cash_controller_1.CashController.createCash);
 // GET ALL CASH
-router.get("/all", (0, AuthGuard_1.default)(enums_1.UserRole.OWNER, enums_1.UserRole.ADMIN, enums_1.UserRole.MANAGER), cash_controller_1.CashController.getAllCash);
+router.get("/all", (0, AuthGuard_1.default)(enums_1.UserRole.OWNER, enums_1.UserRole.ADMIN, enums_1.UserRole.MANAGER), ActiveSeasonGuard_1.default, cash_controller_1.CashController.getAllCash);
+// GET CASH REPORT
+router.get("/report", (0, AuthGuard_1.default)(enums_1.UserRole.OWNER, enums_1.UserRole.ADMIN, enums_1.UserRole.MANAGER), ActiveSeasonGuard_1.default, cash_controller_1.CashController.getAllCashReport);
 // GET SINGLE CASH
 router.get("/single/:id", (0, AuthGuard_1.default)(enums_1.UserRole.OWNER, enums_1.UserRole.ADMIN, enums_1.UserRole.MANAGER), cash_controller_1.CashController.getSingleCash);
 // UPDATE CASH

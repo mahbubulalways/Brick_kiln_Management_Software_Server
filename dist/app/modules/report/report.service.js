@@ -72,7 +72,7 @@ const getTopSellingAreasService = async (user) => {
     return result;
 };
 // GET ALL REPORT FOR DASHBOARD
-const dashboardAllReportService = async (user) => {
+const dashboardAllReportService = async (user, seasonId) => {
     const challans = await prisma_1.prisma.challan.findMany({
         where: { isDeleted: false, vataId: user.vataId },
         select: {
@@ -118,14 +118,25 @@ const dashboardAllReportService = async (user) => {
         },
     });
     // CASH==================================================
-    const cash = await prisma_1.prisma.cash.aggregate({
+    const cashExpense = await prisma_1.prisma.cash.aggregate({
         where: {
-        // vataId: vataId,
+            // vataId: vataId,
+            type: "EXPENSE"
         },
         _sum: {
             amount: true,
         },
     });
+    const cashIncome = await prisma_1.prisma.cash.aggregate({
+        where: {
+            // vataId: vataId,
+            type: "INCOME"
+        },
+        _sum: {
+            amount: true,
+        },
+    });
+    const totalCash = Number(cashIncome._sum.amount) - Number(cashExpense._sum.amount);
     const Informations = {
         challan: {
             summary: challanReport,
@@ -136,7 +147,7 @@ const dashboardAllReportService = async (user) => {
             payments: paymentReport
         },
         due: due?._sum?.collect ?? 0,
-        cash: cash?._sum?.amount ?? 0
+        cash: totalCash ?? 0
     };
     return Informations;
 };

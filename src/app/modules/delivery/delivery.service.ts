@@ -27,98 +27,6 @@ const getNextDeliveryNo = async (user: TAuthUser) => {
   return result ? result.deliveryNo + 1 : 1;
 };
 
-const getDeliveryThatGoTodayService = async (user: TAuthUser, query: TQuery) => {
-  const { limit, page, skip } = paginationHelper(query.page, query.limit);
-  const where: Prisma.ChallanWhereInput = { vataId: user.vataId, isDeleted: false };
-
-  // Create start and end of day boundaries
-
-  if (query.search?.trim()) {
-    const search = query.search.trim();
-    const isNumber = !isNaN(Number(search));
-    where.OR = [
-      ...(isNumber
-        ? [
-          {
-            serial: Number(search),
-          },
-        ]
-        : []),
-      {
-        customer: {
-          is: {
-            name: {
-              contains: search,
-              mode: "insensitive",
-            },
-          },
-        },
-      },
-      {
-        customer: {
-          is: {
-            address: {
-              contains: search,
-              mode: "insensitive",
-            },
-          },
-        },
-      },
-    ];
-  }
-
-  const dateRange = query.date
-    ? getDateRangeDbSearch(query.date)
-    : undefined;
-  if (query.date) {
-    if (dateRange) {
-      where.items = {
-        some: {
-          deliveryDate: dateRange,
-        },
-      };
-    }
-  }
-  // Create start and end of day boundaries
-
-  // Fetch deliveries within the day
-  const [result, total] = await prisma.$transaction([
-    prisma.challan.findMany({
-      where,
-      select: {
-        id: true,
-        customer: true,
-        serial: true,
-        items: {
-          where: dateRange
-            ? {
-              deliveryDate: dateRange,
-            }
-            : undefined,
-        },
-      },
-      orderBy: {
-        deliveryDate: "asc",
-      }, skip,
-      take: limit
-    }),
-    prisma.challan.count({ where })
-  ]);
-
-  // Filter out challans with no items
-  const filteredResult = result.filter((challan) => challan.items.length > 0);
-  const meta = createMetaConfig({
-    limit: limit,
-    page: page,
-    totalData: total,
-  });
-
-  return {
-    meta,
-    data: filteredResult.length > 0 ? filteredResult : [],
-  };
-};
-
 // CREATE DELIVERY
 const createDeliveryService = async (user: TAuthUser, payload: TDelivery) => {
   const isDeliveryNoExist = await prisma.delivery.findFirst({
@@ -215,13 +123,107 @@ const createDeliveryService = async (user: TAuthUser, payload: TDelivery) => {
   return result;
 };
 
-//
+// GET DELIVERIES THAT GO TODAT
+const getDeliveryThatGoTodayService = async (user: TAuthUser, seasonId: string, query: TQuery) => {
+  const { limit, page, skip } = paginationHelper(query.page, query.limit);
+  const where: Prisma.ChallanWhereInput = { vataId: user.vataId, isDeleted: false, seasonId };
 
-const getTodaysDeliveryThatDone = async (user: TAuthUser, query: TQuery) => {
+  // Create start and end of day boundaries
+
+  if (query.search?.trim()) {
+    const search = query.search.trim();
+    const isNumber = !isNaN(Number(search));
+    where.OR = [
+      ...(isNumber
+        ? [
+          {
+            serial: Number(search),
+          },
+        ]
+        : []),
+      {
+        customer: {
+          is: {
+            name: {
+              contains: search,
+              mode: "insensitive",
+            },
+          },
+        },
+      },
+      {
+        customer: {
+          is: {
+            address: {
+              contains: search,
+              mode: "insensitive",
+            },
+          },
+        },
+      },
+    ];
+  }
+
+  const dateRange = query.date
+    ? getDateRangeDbSearch(query.date)
+    : undefined;
+  if (query.date) {
+    if (dateRange) {
+      where.items = {
+        some: {
+          deliveryDate: dateRange,
+        },
+      };
+    }
+  }
+  // Create start and end of day boundaries
+
+  // Fetch deliveries within the day
+  const [result, total] = await prisma.$transaction([
+    prisma.challan.findMany({
+      where,
+      select: {
+        id: true,
+        customer: true,
+        serial: true,
+        items: {
+          where: dateRange
+            ? {
+              deliveryDate: dateRange,
+            }
+            : undefined,
+        },
+      },
+      orderBy: {
+        deliveryDate: "asc",
+      }, skip,
+      take: limit
+    }),
+    prisma.challan.count({ where })
+  ]);
+
+  // Filter out challans with no items
+  const filteredResult = result.filter((challan) => challan.items.length > 0);
+  const meta = createMetaConfig({
+    limit: limit,
+    page: page,
+    totalData: total,
+  });
+
+  return {
+    meta,
+    data: filteredResult.length > 0 ? filteredResult : [],
+  };
+};
+
+// GET DELIVERIES THAT DONE TODAY
+const getTodaysDeliveryThatDone = async (user: TAuthUser, seasonId: string, query: TQuery) => {
   const { limit, page, skip } = paginationHelper(query.page, query.limit);
   const where: Prisma.DeliveryWhereInput = {
-    isDeleted: false, invoice: {
-      vataId: user.vataId
+    isDeleted: false,
+    invoice: {
+      vataId: user.vataId,
+      seasonId
     }
   };
 
@@ -266,8 +268,7 @@ const getTodaysDeliveryThatDone = async (user: TAuthUser, query: TQuery) => {
 };
 
 // GET ALL DELIVERY
-
-const getAllDeliveryListService = async (user: TAuthUser, query: TQuery) => {
+const getAllDeliveryListService = async (user: TAuthUser, seasonId: string, query: TQuery) => {
   const { limit, page, skip } = paginationHelper(
     query.page,
     query.limit,
@@ -276,6 +277,7 @@ const getAllDeliveryListService = async (user: TAuthUser, query: TQuery) => {
   const where: Prisma.ChallanWhereInput = {
     isDeleted: false,
     vataId: user.vataId,
+    seasonId
   };
 
   // Date range

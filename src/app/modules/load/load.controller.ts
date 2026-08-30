@@ -13,8 +13,9 @@ import { TAuthUser } from "../../../interface/token";
 const createLoadInfoController = catchAsync(
     async (req: Request, res: Response) => {
         const user = req.user as TAuthUser
+         const seasonId = req.seasonId
         const result =
-            await LoadInfoService.createLoadInfoService(user, req.body);
+            await LoadInfoService.createLoadInfoService(user,seasonId, req.body);
 
         if (result) {
             sendResponse(res, {
@@ -39,8 +40,9 @@ const getAllLoadInfoController = catchAsync(
     async (req: Request, res: Response) => {
         const user = req.user as TAuthUser
         const { limit, page, search, date } = await parseListQuery(req.query);
+          const seasonId = req.seasonId
         const result =
-            await LoadInfoService.getAllLoadInfoService(user, { date, limit, page, search });
+            await LoadInfoService.getAllLoadInfoService(user,seasonId,{ date, limit, page, search });
 
         if (result.data.length) {
             sendResponse(res, {
@@ -101,6 +103,7 @@ const updateLoadInfoController = catchAsync(
     async (req: Request, res: Response) => {
         const id = req.params.id;
         const user = req.user as TAuthUser
+         const seasonId = req.seasonId
         if (!id) {
             throw new AppError(
                 StatusCodes.BAD_REQUEST,
@@ -121,6 +124,7 @@ const updateLoadInfoController = catchAsync(
         const result =
             await LoadInfoService.updateLoadInfoService(
                 user,
+                seasonId,
                 id,
                 req.body
             );

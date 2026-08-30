@@ -211,12 +211,14 @@ model Ledger {
   quantity  Float?    @default(0)
   isDeleted Boolean   @default(false)
   vataId    String
+  seasonId  String
+  season    Season    @relation(fields: [seasonId], references: [id])
   parent    Ledger?   @relation("LedgerHierarchy", fields: [parentId], references: [id])
   children  Ledger[]  @relation("LedgerHierarchy")
   vata      Vata      @relation(fields: [vataId], references: [id])
   payments  Payment[]
 
-  @@unique([vataId, serial])
+  @@unique([vataId, serial, name, seasonId])
 }
 
 model Payment {
@@ -250,6 +252,8 @@ model Cash {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   vataId      String
+  seasonId    String
+  season      Season   @relation(fields: [seasonId], references: [id])
   vata        Vata     @relation(fields: [vataId], references: [id])
 
   @@index([type])
@@ -263,6 +267,8 @@ model Round {
   name      String
   vataId    String
   loadInfos LoadInfo[]
+  seasonId  String
+  season    Season     @relation(fields: [seasonId], references: [id])
   vata      Vata       @relation(fields: [vataId], references: [id])
   unloads   Unload[]
 
@@ -502,6 +508,9 @@ model Season {
   challans       Challan[]
   customerDues   CustomerDue[]
   dueCollections Due_Collection[]
+  cash           Cash[]
+  ledgers        Ledger[]
+  rounds         Round[]
 }
 
 // DRIVER

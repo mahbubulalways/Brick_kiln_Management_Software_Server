@@ -5,7 +5,7 @@ import { ReportService } from "./report.service";
 import { TAuthUser } from "../../../interface/token";
 
 const getAllCustomertController = catchAsync(async (req, res) => {
-      const user = req.user as TAuthUser
+    const user = req.user as TAuthUser
     const result = await ReportService.getTopSellingAreasService(user);
     if (!result.length) {
         sendResponse(res, {
@@ -28,8 +28,9 @@ const getAllCustomertController = catchAsync(async (req, res) => {
 
 
 const dashboardAllReportController = catchAsync(async (req, res) => {
-      const user = req.user as TAuthUser
-    const result = await ReportService.dashboardAllReportService(user);
+    const user = req.user as TAuthUser
+    const seasonId = req.seasonId
+    const result = await ReportService.dashboardAllReportService(user, seasonId);
 
     if (!result) {
         sendResponse(res, {
@@ -51,7 +52,7 @@ const dashboardAllReportController = catchAsync(async (req, res) => {
 });
 
 
-export const ReportController ={
+export const ReportController = {
     getAllCustomertController,
     dashboardAllReportController
 }

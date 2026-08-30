@@ -30,7 +30,8 @@ const createPaymentController = catchAsync(async (req, res) => {
 const getAllPaymentController = catchAsync(async (req, res) => {
   const { limit, page, search, date } = await parseListQuery(req.query);
   const user = req.user as TAuthUser
-  const result = await PaymentService.getAllPaymentService(user, {
+    const seasonId = req.seasonId
+  const result = await PaymentService.getAllPaymentService(user,seasonId, {
     limit,
     page,
     search,
@@ -61,7 +62,8 @@ const getAllPaymentController = catchAsync(async (req, res) => {
 // GET ALL PAYMENT PAGINATE AND SEARCH
 const paymentReportViaGroupController = catchAsync(async (req, res) => {
   const user = req.user as TAuthUser
-  const result = await PaymentService.paymentReportViaGroupService(user);
+      const seasonId = req.seasonId
+  const result = await PaymentService.paymentReportViaGroupService(user,seasonId);
   if (!result.length) {
     sendResponse(res, {
       statusCode: StatusCodes.OK,

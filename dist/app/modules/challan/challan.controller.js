@@ -201,10 +201,10 @@ const deleteInvoiceController = (0, catchAsync_1.default)(async (req, res) => {
 });
 // GET ITEMS WITH INVOICE
 const getItemsWithInvoiceController = (0, catchAsync_1.default)(async (req, res) => {
-    const { startDate, endDate } = req.query;
+    const { search, date } = await (0, parseListQuery_1.parseListQuery)(req.query);
     const user = req.user;
     const seasonId = req.seasonId;
-    const result = await challan_service_1.InvoiceService.getItemsWithInvoiceService(user, seasonId, startDate, endDate);
+    const result = await challan_service_1.InvoiceService.getItemsWithInvoiceService(user, seasonId, { date, search });
     if (!result?.length) {
         throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.BAD_REQUEST, "চ্যালান পাওয়া যায়নি।");
     }

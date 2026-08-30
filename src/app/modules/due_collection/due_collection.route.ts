@@ -10,18 +10,21 @@ const router = Router();
 router.get(
   API_ENDPOINTS.DUE_COLLECTION.TODAYS_HAVE_DUE,
   AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+  ActiveSeasonGuard,
   DueCollectionController.todayPayDueController
 );
 
 router.get(
   API_ENDPOINTS.DUE_COLLECTION.TODAY_PAID,
   AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+  ActiveSeasonGuard,
   DueCollectionController.getTodaysDuePaidController
 );
 
 router.get(
   API_ENDPOINTS.DUE_COLLECTION.ALL_DUE,
   AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+  ActiveSeasonGuard,
   DueCollectionController.getAllDueListController
 );
 
@@ -35,7 +38,7 @@ router.post(
 router.get(
   API_ENDPOINTS.DUE_COLLECTION.GET_CUSTOMER_DUE,
   AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
-   ActiveSeasonGuard,
+  ActiveSeasonGuard,
   DueCollectionController.getDueOfCustomerController
 );
 

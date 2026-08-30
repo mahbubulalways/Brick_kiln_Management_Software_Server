@@ -270,7 +270,7 @@ const getAllCustomerService = async (
         take: limit,
 
         orderBy: {
-          id: "desc",
+          customerCode: "desc",
         },
       }),
 
@@ -419,12 +419,7 @@ const getSingleCustomerInformationService = async (user: TAuthUser, seasonId: st
             createdAt: "desc",
           },
         },
-      },
-
-
-      orderBy: {
-        id: "desc",
-      },
+      }
     }),
 
     // FIND CUSTOMER DUE

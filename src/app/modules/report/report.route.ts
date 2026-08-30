@@ -2,6 +2,7 @@ import { Router } from "express";
 import { ReportController } from "./report.controller";
 import AuthGuard from "../../middlewares/AuthGuard";
 import { UserRole } from "../../../generated/prisma/enums";
+import ActiveSeasonGuard from "../../middlewares/ActiveSeasonGuard";
 
 const router = Router()
 
@@ -11,6 +12,7 @@ router.get("/area",
     
 router.get("/dashboard",
     AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+    ActiveSeasonGuard,
     ReportController.dashboardAllReportController)
 
 

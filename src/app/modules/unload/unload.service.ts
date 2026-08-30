@@ -9,7 +9,7 @@ import { getDateRangeDbSearch } from "../../../utils/getDateRangeDbSearch";
 import { createMetaConfig } from "../../../utils/createMetaConfig";
 import { TAuthUser } from "../../../interface/token";
 
-const createNewUnloadService = async (user: TAuthUser, payload: TLoadPayload) => {
+const createNewUnloadService = async (user: TAuthUser, seasonId: string, payload: TLoadPayload) => {
     const startOfDay = new Date(payload.date);
     startOfDay.setHours(0, 0, 0, 0);
     const endOfDay = new Date(payload.date);
@@ -30,6 +30,7 @@ const createNewUnloadService = async (user: TAuthUser, payload: TLoadPayload) =>
                 roundId: roundId.id,
                 round: {
                     vataId: user.vataId,
+                    seasonId
                 },
                 date: {
                     gte: startOfDay,
@@ -78,7 +79,7 @@ const createNewUnloadService = async (user: TAuthUser, payload: TLoadPayload) =>
                 data: {
                     classId: classId?.id,
                     quantity: Number(payload.quantity),
-                    unloadId: unload.id
+                    unloadId: unload.id,
                 }
             })
         }
@@ -93,7 +94,7 @@ const createNewUnloadService = async (user: TAuthUser, payload: TLoadPayload) =>
 // gert
 
 // GET ALL UNLOAD
-const getAllUnloadService = async (user: TAuthUser, query: TQuery) => {
+const getAllUnloadService = async (user: TAuthUser, seasonId: string, query: TQuery) => {
     const { limit, page, skip } = paginationHelper(
         query.page,
         query.limit,
@@ -103,6 +104,7 @@ const getAllUnloadService = async (user: TAuthUser, query: TQuery) => {
         isDeleted: false,
         round: {
             vataId: user.vataId,
+            seasonId
         }
     };
 
@@ -138,8 +140,8 @@ const getAllUnloadService = async (user: TAuthUser, query: TQuery) => {
                     include: {
                         classType: {
                             select: {
-                                className: true
-                                , id: true
+                                className: true,
+                                id: true
                             }
                         }
                     }

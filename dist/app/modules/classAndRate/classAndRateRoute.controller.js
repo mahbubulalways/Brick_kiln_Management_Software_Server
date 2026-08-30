@@ -9,27 +9,27 @@ const catchAsync_1 = __importDefault(require("../../../utils/catchAsync"));
 const ApplicationError_1 = require("../../errors/ApplicationError");
 const classAndRateRoute_service_1 = require("./classAndRateRoute.service");
 const sendResponse_1 = require("../../../utils/sendResponse");
+const parseListQuery_1 = require("../../../utils/parseListQuery");
 const createClassAndRateController = (0, catchAsync_1.default)(async (req, res) => {
     const body = req.body;
     const user = req.user;
     const result = await classAndRateRoute_service_1.ClassAndRateService.createClassAndRateService(user, body);
-    if (!result.id) {
-        throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.BAD_REQUEST, "Failed to create Class & Rate");
+    if (!result?.id) {
+        throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.BAD_REQUEST, "শ্রেণী ও রেট যোগ করা যায়নি");
     }
-    else {
-        (0, sendResponse_1.sendResponse)(res, {
-            message: "শ্রেণী সফলভাবে এড হয়েছে",
-            statusCode: http_status_codes_1.StatusCodes.OK,
-            success: true,
-            data: result,
-        });
-    }
+    (0, sendResponse_1.sendResponse)(res, {
+        message: "শ্রেণী ও রেট সফলভাবে যোগ করা হয়েছে",
+        statusCode: http_status_codes_1.StatusCodes.CREATED,
+        success: true,
+        data: result,
+    });
 });
 // GET ALL CLASS AND RATE
 const getClassAndRateController = (0, catchAsync_1.default)(async (req, res) => {
     const user = req.user;
-    const result = await classAndRateRoute_service_1.ClassAndRateService.getClassAndRateService(user);
-    if (!result.length) {
+    const { limit, page, } = await (0, parseListQuery_1.parseListQuery)(req.query);
+    const result = await classAndRateRoute_service_1.ClassAndRateService.getClassAndRateService(user, { limit, page });
+    if (!result.data.length) {
         throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.BAD_REQUEST, "শ্রেণী ও রেট নিয়ে তথ্য আনতে ব্যর্থ হয়েছে");
     }
     else {

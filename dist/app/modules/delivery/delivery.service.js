@@ -23,9 +23,91 @@ const getNextDeliveryNo = async (user) => {
     });
     return result ? result.deliveryNo + 1 : 1;
 };
-const getDeliveryThatGoTodayService = async (user, query) => {
+// CREATE DELIVERY
+const createDeliveryService = async (user, payload) => {
+    const isDeliveryNoExist = await prisma_1.prisma.delivery.findFirst({
+        where: {
+            deliveryNo: Number(payload?.deliveryNo),
+        },
+    });
+    if (isDeliveryNoExist?.id) {
+        throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.CONFLICT, "এই ডেলিভারি নম্বর ইতিমধ্যে আছে");
+    }
+    // HERE COME SERIAL ID AS INVOICE ID 
+    const mainInvoiceId = await prisma_1.prisma.challan.findFirst({
+        where: { serial: Number(payload.invoiceId), vataId: user.vataId }, select: { id: true }
+    });
+    const lastDelivered = await prisma_1.prisma.delivery.aggregate({
+        where: {
+            invoiceId: mainInvoiceId?.id,
+            class: payload.items.class,
+        },
+        _sum: {
+            deliveryReceived: true,
+        },
+    });
+    const totalDelivered = lastDelivered._sum.deliveryReceived || 0;
+    const data = {
+        deliveryDate: payload.deliveryDate,
+        deliveryNo: Number(payload.deliveryNo),
+        nextDeliveryDate: payload.nextDeliveryDate,
+        quantity: Number(payload.items.quantity),
+        deliveryReceived: Number(payload.items.todaysDelivery),
+        class: payload.items.class,
+        deliveryRemaining: Number(payload.items.remainingDelivery),
+        carNo: payload.carNumber,
+        invoiceId: mainInvoiceId?.id,
+        carRent: Number(payload.carRent),
+        deliveryById: user.userId,
+        driverId: payload.driverId,
+        lastDelivered: totalDelivered
+    };
+    const result = await prisma_1.prisma.$transaction(async (tx) => {
+        const createDelivery = await tx.delivery.create({
+            data: {
+                deliveryDate: data.deliveryDate,
+                class: data.class,
+                deliveryNo: data.deliveryNo,
+                deliveryReceived: data.deliveryReceived,
+                deliveryRemaining: data.deliveryRemaining,
+                nextDeliveryDate: data.nextDeliveryDate,
+                quantity: data.quantity,
+                carNo: data.carNo,
+                invoiceId: data.invoiceId,
+                carRent: data.carRent,
+                deliveryById: data.deliveryById,
+                driverId: data.driverId,
+                lastDelivered: totalDelivered
+            },
+        });
+        if (data?.deliveryRemaining) {
+            const update = await tx.challanItem.update({
+                data: {
+                    deliveryDate: data.nextDeliveryDate,
+                },
+                where: {
+                    id: payload.itemId,
+                },
+            });
+        }
+        const updateItem = await tx.challanItem.update({
+            data: {
+                delivered: {
+                    increment: data?.deliveryReceived,
+                },
+            },
+            where: {
+                id: payload?.itemId,
+            },
+        });
+        return createDelivery;
+    });
+    return result;
+};
+// GET DELIVERIES THAT GO TODAT
+const getDeliveryThatGoTodayService = async (user, seasonId, query) => {
     const { limit, page, skip } = (0, paginationHelper_1.paginationHelper)(query.page, query.limit);
-    const where = { vataId: user.vataId, isDeleted: false };
+    const where = { vataId: user.vataId, isDeleted: false, seasonId };
     // Create start and end of day boundaries
     if (query.search?.trim()) {
         const search = query.search.trim();
@@ -108,93 +190,14 @@ const getDeliveryThatGoTodayService = async (user, query) => {
         data: filteredResult.length > 0 ? filteredResult : [],
     };
 };
-// CREATE DELIVERY
-const createDeliveryService = async (user, payload) => {
-    const isDeliveryNoExist = await prisma_1.prisma.delivery.findFirst({
-        where: {
-            deliveryNo: Number(payload?.deliveryNo),
-        },
-    });
-    if (isDeliveryNoExist?.id) {
-        throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.CONFLICT, "এই ডেলিভারি নম্বর ইতিমধ্যে আছে");
-    }
-    // HERE COME SERIAL ID AS INVOICE ID 
-    const mainInvoiceId = await prisma_1.prisma.challan.findFirst({
-        where: { serial: Number(payload.invoiceId), vataId: user.vataId }, select: { id: true }
-    });
-    const lastDelivered = await prisma_1.prisma.delivery.aggregate({
-        where: {
-            invoiceId: mainInvoiceId?.id,
-            class: payload.items.class,
-        },
-        _sum: {
-            deliveryReceived: true,
-        },
-    });
-    const totalDelivered = lastDelivered._sum.deliveryReceived || 0;
-    const data = {
-        deliveryDate: payload.deliveryDate,
-        deliveryNo: Number(payload.deliveryNo),
-        nextDeliveryDate: payload.nextDeliveryDate,
-        quantity: Number(payload.items.quantity),
-        deliveryReceived: Number(payload.items.todaysDelivery),
-        class: payload.items.class,
-        deliveryRemaining: Number(payload.items.remainingDelivery),
-        carNo: payload.carNumber,
-        invoiceId: mainInvoiceId?.id,
-        carRent: Number(payload.carRent),
-        deliveryById: user.userId,
-        driverId: payload.driverId,
-        lastDelivered: totalDelivered
-    };
-    const result = await prisma_1.prisma.$transaction(async (tx) => {
-        const createDelivery = await tx.delivery.create({
-            data: {
-                deliveryDate: data.deliveryDate,
-                class: data.class,
-                deliveryNo: data.deliveryNo,
-                deliveryReceived: data.deliveryReceived,
-                deliveryRemaining: data.deliveryRemaining,
-                nextDeliveryDate: data.nextDeliveryDate,
-                quantity: data.quantity,
-                carNo: data.carNo,
-                invoiceId: data.invoiceId,
-                carRent: data.carRent,
-                deliveryById: data.deliveryById,
-                driverId: data.driverId,
-                lastDelivered: totalDelivered
-            },
-        });
-        if (data?.deliveryRemaining) {
-            const update = await tx.challanItem.update({
-                data: {
-                    deliveryDate: data.nextDeliveryDate,
-                },
-                where: {
-                    id: payload.itemId,
-                },
-            });
-        }
-        const updateItem = await tx.challanItem.update({
-            data: {
-                delivered: {
-                    increment: data?.deliveryReceived,
-                },
-            },
-            where: {
-                id: payload?.itemId,
-            },
-        });
-        return createDelivery;
-    });
-    return result;
-};
-//
-const getTodaysDeliveryThatDone = async (user, query) => {
+// GET DELIVERIES THAT DONE TODAY
+const getTodaysDeliveryThatDone = async (user, seasonId, query) => {
     const { limit, page, skip } = (0, paginationHelper_1.paginationHelper)(query.page, query.limit);
     const where = {
-        isDeleted: false, invoice: {
-            vataId: user.vataId
+        isDeleted: false,
+        invoice: {
+            vataId: user.vataId,
+            seasonId
         }
     };
     // Create start and end of day boundaries
@@ -234,11 +237,12 @@ const getTodaysDeliveryThatDone = async (user, query) => {
     };
 };
 // GET ALL DELIVERY
-const getAllDeliveryListService = async (user, query) => {
+const getAllDeliveryListService = async (user, seasonId, query) => {
     const { limit, page, skip } = (0, paginationHelper_1.paginationHelper)(query.page, query.limit);
     const where = {
         isDeleted: false,
         vataId: user.vataId,
+        seasonId
     };
     // Date range
     const dateRange = query.date

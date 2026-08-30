@@ -6,19 +6,20 @@ const prisma_1 = require("../../../helpers/prisma");
 const createMetaConfig_1 = require("../../../utils/createMetaConfig");
 const getDateRangeDbSearch_1 = require("../../../utils/getDateRangeDbSearch");
 // CREATE CASH
-const createCashService = async (user, payload) => {
+const createCashService = async (user, seasonId, payload) => {
     const result = prisma_1.prisma.cash.create({
         data: {
             ...payload,
-            vataId: user.vataId
+            vataId: user.vataId,
+            seasonId
         }
     });
     return result;
 };
 // GET ALL CASH 
-const getAllCashService = async (user, query) => {
+const getAllCashService = async (user, seasonId, query) => {
     const { limit, page, skip } = (0, paginationHelper_1.paginationHelper)(query.page, query.limit);
-    const where = { isDeleted: false, vataId: user.vataId };
+    const where = { isDeleted: false, vataId: user.vataId, seasonId };
     if (query.date) {
         const dateRange = (0, getDateRangeDbSearch_1.getDateRangeDbSearch)(query.date);
         if (dateRange) {
@@ -51,6 +52,21 @@ const getAllCashService = async (user, query) => {
         data: result,
     };
 };
+const getCashReportService = async (user, seasonId, query) => {
+    const where = { isDeleted: false, vataId: user.vataId, seasonId };
+    if (query.date) {
+        const dateRange = (0, getDateRangeDbSearch_1.getDateRangeDbSearch)(query.date);
+        if (dateRange) {
+            where.createdAt = dateRange;
+        }
+    }
+    const result = await prisma_1.prisma.cash.findMany({
+        where, select: {
+            amount: true, type: true, id: true, source: true
+        }
+    });
+    return result;
+};
 // GET SINGLE CASH
 const getSingleCashService = async (user, id) => {
     return await prisma_1.prisma.cash.findFirst({ where: { id, vataId: user.vataId } });
@@ -68,5 +84,6 @@ exports.CashService = {
     getAllCashService,
     getSingleCashService,
     updateCashService,
-    deleteCashService
+    deleteCashService,
+    getCashReportService
 };

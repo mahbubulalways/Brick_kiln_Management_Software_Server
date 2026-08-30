@@ -8,20 +8,21 @@ import { getDateRangeDbSearch } from "../../../utils/getDateRangeDbSearch"
 
 
 // CREATE CASH
-const createCashService = async (user: TAuthUser, payload: Cash) => {
+const createCashService = async (user: TAuthUser, seasonId: string, payload: Cash) => {
     const result = prisma.cash.create({
         data: {
             ...payload,
-            vataId: user.vataId
+            vataId: user.vataId,
+            seasonId
         }
     })
     return result
 }
 
 // GET ALL CASH 
-const getAllCashService = async (user: TAuthUser, query: TQuery) => {
+const getAllCashService = async (user: TAuthUser, seasonId: string, query: TQuery) => {
     const { limit, page, skip } = paginationHelper(query.page, query.limit);
-    const where: Prisma.CashWhereInput = { isDeleted: false, vataId: user.vataId };
+    const where: Prisma.CashWhereInput = { isDeleted: false, vataId: user.vataId, seasonId };
     if (query.date) {
         const dateRange = getDateRangeDbSearch(query.date);
         if (dateRange) {
@@ -60,6 +61,23 @@ const getAllCashService = async (user: TAuthUser, query: TQuery) => {
 }
 
 
+const getCashReportService = async (user: TAuthUser, seasonId: string, query: TQuery) => {
+    const where: Prisma.CashWhereInput = { isDeleted: false, vataId: user.vataId, seasonId };
+    if (query.date) {
+        const dateRange = getDateRangeDbSearch(query.date);
+        if (dateRange) {
+            where.createdAt = dateRange;
+        }
+    }
+    const result = await prisma.cash.findMany({
+        where, select: {
+            amount: true, type: true, id: true, source: true
+        }
+    })
+    return result
+}
+
+
 // GET SINGLE CASH
 const getSingleCashService = async (user: TAuthUser, id: string) => {
     return await prisma.cash.findFirst({ where: { id, vataId: user.vataId } })
@@ -80,5 +98,6 @@ export const CashService = {
     getAllCashService,
     getSingleCashService,
     updateCashService,
-    deleteCashService
+    deleteCashService,
+    getCashReportService
 }

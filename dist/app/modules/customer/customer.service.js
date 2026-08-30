@@ -227,7 +227,7 @@ const getAllCustomerService = async (user, seasonId, query) => {
             skip,
             take: limit,
             orderBy: {
-                id: "desc",
+                customerCode: "desc",
             },
         }),
         // ==========================================
@@ -347,10 +347,7 @@ const getSingleCustomerInformationService = async (user, seasonId, id) => {
                         createdAt: "desc",
                     },
                 },
-            },
-            orderBy: {
-                id: "desc",
-            },
+            }
         }),
         // FIND CUSTOMER DUE
         prisma_1.prisma.customerDue.findMany({

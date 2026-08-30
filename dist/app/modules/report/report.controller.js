@@ -29,7 +29,8 @@ const getAllCustomertController = (0, catchAsync_1.default)(async (req, res) => 
 });
 const dashboardAllReportController = (0, catchAsync_1.default)(async (req, res) => {
     const user = req.user;
-    const result = await report_service_1.ReportService.dashboardAllReportService(user);
+    const seasonId = req.seasonId;
+    const result = await report_service_1.ReportService.dashboardAllReportService(user, seasonId);
     if (!result) {
         (0, sendResponse_1.sendResponse)(res, {
             statusCode: http_status_codes_1.StatusCodes.OK,

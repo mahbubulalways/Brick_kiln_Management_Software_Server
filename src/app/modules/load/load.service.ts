@@ -8,12 +8,12 @@ import { getDateRangeDbSearch } from "../../../utils/getDateRangeDbSearch";
 import { TLoadInfo } from "./load.interface";
 
 // CREATE LOAD INFO
-const createLoadInfoService = async (user: TAuthUser, payload: TLoadInfo) => {
+const createLoadInfoService = async (user: TAuthUser, seasonId: string, payload: TLoadInfo) => {
     const round = payload.round
     const result = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
         let roundExist = await tx.round.findFirst({ where: { name: round, vataId: user.vataId } })
         if (!roundExist) {
-            roundExist = await tx.round.create({ data: { name: round, vataId: user.vataId } })
+            roundExist = await tx.round.create({ data: { name: round, vataId: user.vataId, seasonId } })
         }
         const loadData = {
             roundId: roundExist.id,
@@ -31,7 +31,7 @@ const createLoadInfoService = async (user: TAuthUser, payload: TLoadInfo) => {
 };
 
 // GET ALL LOAD INFO
-const getAllLoadInfoService = async (user: TAuthUser, query: TQuery) => {
+const getAllLoadInfoService = async (user: TAuthUser, seasonId: string, query: TQuery) => {
     const { limit, page, skip } = paginationHelper(
         query.page,
         query.limit,
@@ -39,7 +39,7 @@ const getAllLoadInfoService = async (user: TAuthUser, query: TQuery) => {
 
     const where: Prisma.LoadInfoWhereInput = {
         isDeleted: false,
-        round: { vataId: user.vataId }
+        round: { vataId: user.vataId, seasonId }
     };
 
     // DATE FILTER
@@ -124,6 +124,7 @@ const getSingleLoadInfoService = async (user: TAuthUser, id: string) => {
 // UPDATE LOAD INFO
 const updateLoadInfoService = async (
     user: TAuthUser,
+    seasonId:string,
     id: string,
     payload: TLoadInfo
 ) => {
@@ -145,6 +146,7 @@ const updateLoadInfoService = async (
                 data: {
                     vataId: user.vataId,
                     name: roundName,
+                    seasonId
                 },
             });
         }

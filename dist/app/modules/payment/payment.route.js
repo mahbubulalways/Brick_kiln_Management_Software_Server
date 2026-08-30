@@ -8,13 +8,14 @@ const uploader_1 = require("../../../utils/uploader");
 const payment_controller_1 = require("./payment.controller");
 const AuthGuard_1 = __importDefault(require("../../middlewares/AuthGuard"));
 const enums_1 = require("../../../generated/prisma/enums");
+const ActiveSeasonGuard_1 = __importDefault(require("../../middlewares/ActiveSeasonGuard"));
 const router = (0, express_1.Router)();
 // CREATE PAYMENT
-router.post("/create", (0, AuthGuard_1.default)(enums_1.UserRole.OWNER, enums_1.UserRole.ADMIN, enums_1.UserRole.MANAGER), uploader_1.fileUploader.upload.single("file"), payment_controller_1.PaymentController.createPaymentController);
+router.post("/create", (0, AuthGuard_1.default)(enums_1.UserRole.OWNER, enums_1.UserRole.ADMIN, enums_1.UserRole.MANAGER), ActiveSeasonGuard_1.default, uploader_1.fileUploader.upload.single("file"), payment_controller_1.PaymentController.createPaymentController);
 // GET ALL PAYMENT
-router.get("/all", (0, AuthGuard_1.default)(enums_1.UserRole.OWNER, enums_1.UserRole.ADMIN, enums_1.UserRole.MANAGER), payment_controller_1.PaymentController.getAllPaymentController);
+router.get("/all", (0, AuthGuard_1.default)(enums_1.UserRole.OWNER, enums_1.UserRole.ADMIN, enums_1.UserRole.MANAGER), ActiveSeasonGuard_1.default, payment_controller_1.PaymentController.getAllPaymentController);
 // GET PAYMENT REPORT
-router.get("/report/:date", (0, AuthGuard_1.default)(enums_1.UserRole.OWNER, enums_1.UserRole.ADMIN, enums_1.UserRole.MANAGER), payment_controller_1.PaymentController.paymentReportViaGroupController);
+router.get("/report/:date", (0, AuthGuard_1.default)(enums_1.UserRole.OWNER, enums_1.UserRole.ADMIN, enums_1.UserRole.MANAGER), ActiveSeasonGuard_1.default, payment_controller_1.PaymentController.paymentReportViaGroupController);
 // GET SINGLE PAYMENT
 router.get("/single/:id", (0, AuthGuard_1.default)(enums_1.UserRole.OWNER, enums_1.UserRole.ADMIN, enums_1.UserRole.MANAGER), payment_controller_1.PaymentController.getSinglePaymentController);
 router.patch("/update/:id", (0, AuthGuard_1.default)(enums_1.UserRole.OWNER, enums_1.UserRole.ADMIN, enums_1.UserRole.MANAGER), uploader_1.fileUploader.upload.single("file"), payment_controller_1.PaymentController.updatePaymentController);

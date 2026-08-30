@@ -75,7 +75,8 @@ const searchCustomerForDeuController = (0, catchAsync_1.default)(async (req, res
 const todayPayDueController = (0, catchAsync_1.default)(async (req, res) => {
     const user = req.user;
     const { limit, page, date, search } = await (0, parseListQuery_1.parseListQuery)(req.query);
-    const result = await due_collection_service_1.DueCollectionService.todayPayDueService(user, { date, limit, page, search });
+    const seasonId = req.seasonId;
+    const result = await due_collection_service_1.DueCollectionService.todayPayDueService(user, seasonId, { date, limit, page, search });
     if (!result?.data?.length) {
         (0, sendResponse_1.sendResponse)(res, {
             message: "আজকের  জন্য কোনো বাকি পাওয়া যায়নি।",
@@ -97,7 +98,8 @@ const todayPayDueController = (0, catchAsync_1.default)(async (req, res) => {
 const getTodaysDuePaidController = (0, catchAsync_1.default)(async (req, res) => {
     const user = req.user;
     const { limit, page, date } = await (0, parseListQuery_1.parseListQuery)(req.query);
-    const result = await due_collection_service_1.DueCollectionService.getTodaysDuePaidService(user, { date, limit, page });
+    const seasonId = req.seasonId;
+    const result = await due_collection_service_1.DueCollectionService.getTodaysDuePaidService(user, seasonId, { date, limit, page });
     if (!result.data.length) {
         (0, sendResponse_1.sendResponse)(res, {
             message: "আজকের  জন্য কোনো বাকি পাওয়া যায়নি।",
@@ -118,7 +120,8 @@ const getTodaysDuePaidController = (0, catchAsync_1.default)(async (req, res) =>
 const getAllDueListController = (0, catchAsync_1.default)(async (req, res) => {
     const { limit, page, search, date } = await (0, parseListQuery_1.parseListQuery)(req.query);
     const user = req.user;
-    const result = await due_collection_service_1.DueCollectionService.getAllDueListService(user, { date, limit, page, search });
+    const seasonId = req.seasonId;
+    const result = await due_collection_service_1.DueCollectionService.getAllDueListService(user, seasonId, { date, limit, page, search });
     if (!result?.data?.length) {
         (0, sendResponse_1.sendResponse)(res, {
             message: "বাকি পাওয়া যায়নি।",

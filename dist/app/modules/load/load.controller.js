@@ -15,7 +15,8 @@ const parseListQuery_1 = require("../../../utils/parseListQuery");
 // ===============================
 const createLoadInfoController = (0, catchAsync_1.default)(async (req, res) => {
     const user = req.user;
-    const result = await load_service_1.LoadInfoService.createLoadInfoService(user, req.body);
+    const seasonId = req.seasonId;
+    const result = await load_service_1.LoadInfoService.createLoadInfoService(user, seasonId, req.body);
     if (result) {
         (0, sendResponse_1.sendResponse)(res, {
             statusCode: http_status_codes_1.StatusCodes.CREATED,
@@ -34,7 +35,8 @@ const createLoadInfoController = (0, catchAsync_1.default)(async (req, res) => {
 const getAllLoadInfoController = (0, catchAsync_1.default)(async (req, res) => {
     const user = req.user;
     const { limit, page, search, date } = await (0, parseListQuery_1.parseListQuery)(req.query);
-    const result = await load_service_1.LoadInfoService.getAllLoadInfoService(user, { date, limit, page, search });
+    const seasonId = req.seasonId;
+    const result = await load_service_1.LoadInfoService.getAllLoadInfoService(user, seasonId, { date, limit, page, search });
     if (result.data.length) {
         (0, sendResponse_1.sendResponse)(res, {
             statusCode: http_status_codes_1.StatusCodes.OK,
@@ -80,6 +82,7 @@ const getSingleLoadInfoController = (0, catchAsync_1.default)(async (req, res) =
 const updateLoadInfoController = (0, catchAsync_1.default)(async (req, res) => {
     const id = req.params.id;
     const user = req.user;
+    const seasonId = req.seasonId;
     if (!id) {
         throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.BAD_REQUEST, "লোডের তথ্যের আইডি সঠিক নয়");
     }
@@ -87,7 +90,7 @@ const updateLoadInfoController = (0, catchAsync_1.default)(async (req, res) => {
     if (!existing) {
         throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.NOT_FOUND, "লোডের তথ্য পাওয়া যায়নি");
     }
-    const result = await load_service_1.LoadInfoService.updateLoadInfoService(user, id, req.body);
+    const result = await load_service_1.LoadInfoService.updateLoadInfoService(user, seasonId, id, req.body);
     if (result) {
         (0, sendResponse_1.sendResponse)(res, {
             statusCode: http_status_codes_1.StatusCodes.OK,

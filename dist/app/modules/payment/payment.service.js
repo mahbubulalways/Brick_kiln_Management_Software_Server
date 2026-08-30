@@ -7,7 +7,7 @@ const http_status_codes_1 = require("http-status-codes");
 const paginationHelper_1 = require("../../../helpers/paginationHelper");
 const createMetaConfig_1 = require("../../../utils/createMetaConfig");
 const createPaymentService = async (req, user) => {
-    const file = req.file;
+    const file = req?.file;
     const body = JSON.parse(req.body.data);
     const ledgerId = await prisma_1.prisma.ledger.findFirst({
         where: { name: body.ledger, vataId: user.vataId },
@@ -26,15 +26,21 @@ const createPaymentService = async (req, user) => {
         cutting: Number(body.cutting),
         payment: Number(body.payment),
         paymentDifference: Number(body.paymentDifference),
-        document: file.filename || null,
+        document: file?.filename || null,
     };
     const result = await prisma_1.prisma.payment.create({ data: { ...data, vataId: user.vataId } });
     return result;
 };
 // GET ALL PAYMENTS
-const getAllPaymentService = async (user, query) => {
+const getAllPaymentService = async (user, seasonId, query) => {
     const pagination = (0, paginationHelper_1.paginationHelper)(query.page, query.limit);
-    const where = { vataId: user.vataId, isDeleted: false };
+    const where = {
+        vataId: user.vataId,
+        isDeleted: false,
+        ledger: {
+            seasonId
+        }
+    };
     // Search by ledger name
     if (query.search?.trim()) {
         where.ledger = {
@@ -92,9 +98,11 @@ const getAllPaymentService = async (user, query) => {
     };
 };
 // GET PAYMENT REPORT GROUP VIA DATE
-const paymentReportViaGroupService = async (user) => {
+const paymentReportViaGroupService = async (user, seasonId) => {
     const result = await prisma_1.prisma.payment.findMany({
-        where: { isDeleted: false, vataId: user.vataId },
+        where: { isDeleted: false, vataId: user.vataId, ledger: {
+                seasonId
+            } },
         include: { ledger: { include: { parent: true } } },
     });
     const groupedPayments = Object.values(result.reduce((acc, item) => {

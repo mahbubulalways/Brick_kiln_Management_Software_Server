@@ -274,7 +274,8 @@ exports.LedgerScalarFieldEnum = {
     rate: 'rate',
     quantity: 'quantity',
     isDeleted: 'isDeleted',
-    vataId: 'vataId'
+    vataId: 'vataId',
+    seasonId: 'seasonId'
 };
 exports.PaymentScalarFieldEnum = {
     id: 'id',
@@ -303,12 +304,14 @@ exports.CashScalarFieldEnum = {
     isDeleted: 'isDeleted',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt',
-    vataId: 'vataId'
+    vataId: 'vataId',
+    seasonId: 'seasonId'
 };
 exports.RoundScalarFieldEnum = {
     id: 'id',
     name: 'name',
-    vataId: 'vataId'
+    vataId: 'vataId',
+    seasonId: 'seasonId'
 };
 exports.LoadInfoScalarFieldEnum = {
     id: 'id',

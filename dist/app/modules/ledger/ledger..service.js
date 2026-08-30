@@ -13,12 +13,13 @@ const getLedgerCountService = async (user) => {
     return res + 1;
 };
 // CREATE A LEDGER
-const createLedgerService = async (user, data) => {
+const createLedgerService = async (user, seasonId, data) => {
     const isExist = await prisma_1.prisma.ledger.findFirst({
         where: {
             name: data.name,
             vataId: user.vataId,
-            isDeleted: false
+            isDeleted: false,
+            seasonId
         },
     });
     if (isExist) {
@@ -27,20 +28,23 @@ const createLedgerService = async (user, data) => {
     const result = await prisma_1.prisma.ledger.create({
         data: {
             ...data,
+            serial: Number(data.serial),
             quantity: Number(data.quantity),
             rate: Number(data.rate),
-            vataId: user.vataId
+            vataId: user.vataId,
+            seasonId
         }
     });
     return result;
 };
 // GET GROUP OPTION
-const getLedgerOptionService = async (user) => {
+const getLedgerOptionService = async (user, seasonId) => {
     const res = await prisma_1.prisma.ledger.findMany({
         where: {
             parentId: null,
             isDeleted: false,
-            vataId: user.vataId
+            vataId: user.vataId,
+            seasonId
         },
         select: {
             id: true,
@@ -53,12 +57,13 @@ const getLedgerOptionService = async (user) => {
     return res;
 };
 // GET ALL LEDGER WITH CHILDREN
-const getAllLedgerWithChildrenService = async (user) => {
+const getAllLedgerWithChildrenService = async (user, seasonId) => {
     const res = await prisma_1.prisma.ledger.findMany({
         where: {
             parentId: null,
             isDeleted: false,
-            vataId: user.vataId
+            vataId: user.vataId,
+            seasonId
         },
         select: {
             id: true,
@@ -72,11 +77,12 @@ const getAllLedgerWithChildrenService = async (user) => {
     return res;
 };
 // GET ALL LEDGERS WITH PAGINATION
-const getAllLedgerWithChildrenPaginationService = async (user, query) => {
+const getAllLedgerWithChildrenPaginationService = async (user, seasonId, query) => {
     const { limit, page, skip, } = (0, paginationHelper_1.paginationHelper)(query.page, query.limit);
     const where = {
         vataId: user.vataId,
         isDeleted: false,
+        seasonId
         // parentId: null, 
     };
     if (query.search?.trim()) {
@@ -134,13 +140,18 @@ const getAllLedgerWithChildrenPaginationService = async (user, query) => {
     };
 };
 // GET ALL LEDGER WITH TK
-const getAllLedgerWithAmountService = async (user) => {
+const getAllLedgerWithAmountService = async (user, seasonId) => {
     const result = await prisma_1.prisma.ledger.findMany({
+        where: {
+            isDeleted: false,
+            seasonId,
+            vataId: user.vataId
+        },
         include: {
             payments: {
                 where: {
                     isDeleted: false,
-                    vataId: user.vataId
+                    vataId: user.vataId,
                 },
                 select: {
                     payment: true,
@@ -207,7 +218,7 @@ const getAllLedgerWithAmountService = async (user) => {
     return finalResult;
 };
 // GET DETAILS
-const getDetailsLedgerService = async (user, id, query) => {
+const getDetailsLedgerService = async (user, seasonId, id, query) => {
     const { limit, page, skip } = (0, paginationHelper_1.paginationHelper)(query.page, query.limit);
     const where = { vataId: user.vataId, isDeleted: false };
     // Create start and end of day boundaries
@@ -217,7 +228,7 @@ const getDetailsLedgerService = async (user, id, query) => {
             where.paymentDate = dateRange;
         }
     }
-    const ledger = await prisma_1.prisma.ledger.findUnique({ where: { id, vataId: user.vataId }, select: { name: true, id: true, parentId: true } });
+    const ledger = await prisma_1.prisma.ledger.findUnique({ where: { id, vataId: user.vataId, seasonId }, select: { name: true, id: true, parentId: true } });
     if (ledger?.name) {
         where.ledger = {
             name: ledger.name,

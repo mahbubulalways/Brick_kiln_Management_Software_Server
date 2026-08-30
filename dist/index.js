@@ -10,7 +10,9 @@ let server;
 const port = config_1.Config.PORT;
 const checkDatabaseConnection = async () => {
     try {
-        await prisma_1.prisma.$connect();
+        await prisma_1.prisma.$queryRaw `
+  SELECT * FROM "users"
+`;
         console.log("✅ Database connected successfully");
     }
     catch (error) {

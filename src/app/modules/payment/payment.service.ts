@@ -10,8 +10,8 @@ import { TQuery } from "../../../interface/query";
 import { createMetaConfig } from "../../../utils/createMetaConfig";
 import { TAuthUser } from "../../../interface/token";
 
-const createPaymentService = async (req: Request, user: TAuthUser) => {
-  const file = req.file as IUploadFile;
+const createPaymentService = async (req: Request,  user: TAuthUser) => {
+  const file = req?.file as IUploadFile;
   const body = JSON.parse(req.body.data) as IPayment;
   const ledgerId = await prisma.ledger.findFirst({
     where: { name: body.ledger, vataId: user.vataId },
@@ -30,17 +30,23 @@ const createPaymentService = async (req: Request, user: TAuthUser) => {
     cutting: Number(body.cutting),
     payment: Number(body.payment),
     paymentDifference: Number(body.paymentDifference),
-    document: file.filename || null,
+    document: file?.filename || null,
   };
   const result = await prisma.payment.create({ data: { ...data, vataId: user.vataId } });
   return result;
 };
 
 // GET ALL PAYMENTS
-const getAllPaymentService = async (user: TAuthUser, query: TQuery) => {
+const getAllPaymentService = async (user: TAuthUser, seasonId: string, query: TQuery) => {
   const pagination = paginationHelper(query.page, query.limit);
 
-  const where: Prisma.PaymentWhereInput = { vataId: user.vataId, isDeleted: false };
+  const where: Prisma.PaymentWhereInput = {
+    vataId: user.vataId,
+    isDeleted: false,
+    ledger: {
+      seasonId
+    }
+  };
 
   // Search by ledger name
   if (query.search?.trim()) {
@@ -57,11 +63,9 @@ const getAllPaymentService = async (user: TAuthUser, query: TQuery) => {
   // Filter by date
   if (query.date) {
     const date = new Date(query.date);
-
     if (!isNaN(date.getTime())) {
       const startOfDay = new Date(date);
       startOfDay.setHours(0, 0, 0, 0);
-
       const endOfDay = new Date(date);
       endOfDay.setHours(23, 59, 59, 999);
 
@@ -108,9 +112,11 @@ const getAllPaymentService = async (user: TAuthUser, query: TQuery) => {
 };
 
 // GET PAYMENT REPORT GROUP VIA DATE
-const paymentReportViaGroupService = async (user: TAuthUser) => {
+const paymentReportViaGroupService = async (user: TAuthUser,seasonId:string) => {
   const result = await prisma.payment.findMany({
-    where: { isDeleted: false, vataId: user.vataId },
+    where: { isDeleted: false, vataId: user.vataId, ledger: {
+      seasonId
+    } },
     include: { ledger: { include: { parent: true } } },
   });
 
@@ -256,8 +262,8 @@ const updatePaymentService = async (user: TAuthUser, req: Request) => {
 
 
 // DELETE PAYMENT 
-const deletePaymentServie = async (user:TAuthUser,id: string) => {
-  return await prisma.payment.update({ where: { id,vataId:user.vataId }, data: { isDeleted: true } })
+const deletePaymentServie = async (user: TAuthUser, id: string) => {
+  return await prisma.payment.update({ where: { id, vataId: user.vataId }, data: { isDeleted: true } })
 
 }
 

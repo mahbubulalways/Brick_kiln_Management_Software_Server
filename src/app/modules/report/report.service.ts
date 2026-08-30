@@ -100,7 +100,7 @@ const getTopSellingAreasService = async (user: TAuthUser) => {
 
 
 // GET ALL REPORT FOR DASHBOARD
-const dashboardAllReportService = async (user: TAuthUser) => {
+const dashboardAllReportService = async (user: TAuthUser, seasonId: string) => {
     const challans = await prisma.challan.findMany({
         where: { isDeleted: false, vataId: user.vataId },
         select: {
@@ -158,16 +158,26 @@ const dashboardAllReportService = async (user: TAuthUser) => {
 
     // CASH==================================================
 
-    const cash = await prisma.cash.aggregate({
+    const cashExpense = await prisma.cash.aggregate({
         where: {
             // vataId: vataId,
+            type: "EXPENSE"
+        },
+        _sum: {
+            amount: true,
+        },
+    });
+    const cashIncome = await prisma.cash.aggregate({
+        where: {
+            // vataId: vataId,
+            type: "INCOME"
         },
         _sum: {
             amount: true,
         },
     });
 
-
+    const totalCash = Number(cashIncome._sum.amount) - Number(cashExpense._sum.amount)
 
     const Informations = {
         challan: {
@@ -180,7 +190,7 @@ const dashboardAllReportService = async (user: TAuthUser) => {
         },
 
         due: due?._sum?.collect ?? 0,
-        cash: cash?._sum?.amount ?? 0
+        cash: totalCash ?? 0
     }
 
     return Informations

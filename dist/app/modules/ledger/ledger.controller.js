@@ -28,7 +28,8 @@ const getLedgerCountController = (0, catchAsync_1.default)(async (req, res) => {
 const createLedgerController = (0, catchAsync_1.default)(async (req, res) => {
     const body = req.body;
     const user = req.user;
-    const result = await ledger__service_1.LedgerService.createLedgerService(user, body);
+    const seasonId = req.seasonId;
+    const result = await ledger__service_1.LedgerService.createLedgerService(user, seasonId, body);
     if (!result) {
         throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.BAD_REQUEST, "খতিয়ান তৈরি করা যায়নি। অনুগ্রহ করে আবার চেষ্টা করুন।");
     }
@@ -42,7 +43,8 @@ const createLedgerController = (0, catchAsync_1.default)(async (req, res) => {
 // GET KHOTIYAN GROUP OPTION
 const getLedgerOptionController = (0, catchAsync_1.default)(async (req, res) => {
     const user = req.user;
-    const result = await ledger__service_1.LedgerService.getLedgerOptionService(user);
+    const seasonId = req.seasonId;
+    const result = await ledger__service_1.LedgerService.getLedgerOptionService(user, seasonId);
     if (!result) {
         (0, sendResponse_1.sendResponse)(res, {
             statusCode: http_status_codes_1.StatusCodes.OK,
@@ -60,7 +62,8 @@ const getLedgerOptionController = (0, catchAsync_1.default)(async (req, res) => 
 // GET ALL KHOTIYAN WITH CHILDREN
 const getAllLedgerWithController = (0, catchAsync_1.default)(async (req, res) => {
     const user = req.user;
-    const result = await ledger__service_1.LedgerService.getAllLedgerWithChildrenService(user);
+    const seasonId = req.seasonId;
+    const result = await ledger__service_1.LedgerService.getAllLedgerWithChildrenService(user, seasonId);
     if (!result) {
         (0, sendResponse_1.sendResponse)(res, {
             statusCode: http_status_codes_1.StatusCodes.OK,
@@ -79,7 +82,8 @@ const getAllLedgerWithController = (0, catchAsync_1.default)(async (req, res) =>
 const getAllLedgerWithChildrenPaginationController = (0, catchAsync_1.default)(async (req, res) => {
     const { limit, page, search } = await (0, parseListQuery_1.parseListQuery)(req.query);
     const user = req.user;
-    const result = await ledger__service_1.LedgerService.getAllLedgerWithChildrenPaginationService(user, {
+    const seasonId = req.seasonId;
+    const result = await ledger__service_1.LedgerService.getAllLedgerWithChildrenPaginationService(user, seasonId, {
         limit,
         page,
         search,
@@ -101,7 +105,8 @@ const getAllLedgerWithChildrenPaginationController = (0, catchAsync_1.default)(a
 // GET ALL KHOTIYAN WITH AMOUNT
 const getLedgerWithAmountController = (0, catchAsync_1.default)(async (req, res) => {
     const user = req.user;
-    const result = await ledger__service_1.LedgerService.getAllLedgerWithAmountService(user);
+    const seasonId = req.seasonId;
+    const result = await ledger__service_1.LedgerService.getAllLedgerWithAmountService(user, seasonId);
     if (!result) {
         (0, sendResponse_1.sendResponse)(res, {
             statusCode: http_status_codes_1.StatusCodes.OK,
@@ -121,7 +126,8 @@ const getLedgerDetailsController = (0, catchAsync_1.default)(async (req, res) =>
     const id = req.params.id;
     const { limit, page, date } = await (0, parseListQuery_1.parseListQuery)(req.query);
     const user = req.user;
-    const result = await ledger__service_1.LedgerService.getDetailsLedgerService(user, id, {
+    const seasonId = req.seasonId;
+    const result = await ledger__service_1.LedgerService.getDetailsLedgerService(user, seasonId, id, {
         limit,
         page,
         date,

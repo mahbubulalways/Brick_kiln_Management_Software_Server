@@ -7,7 +7,7 @@ const ApplicationError_1 = require("../../errors/ApplicationError");
 const paginationHelper_1 = require("../../../helpers/paginationHelper");
 const getDateRangeDbSearch_1 = require("../../../utils/getDateRangeDbSearch");
 const createMetaConfig_1 = require("../../../utils/createMetaConfig");
-const createNewUnloadService = async (user, payload) => {
+const createNewUnloadService = async (user, seasonId, payload) => {
     const startOfDay = new Date(payload.date);
     startOfDay.setHours(0, 0, 0, 0);
     const endOfDay = new Date(payload.date);
@@ -25,6 +25,7 @@ const createNewUnloadService = async (user, payload) => {
                 roundId: roundId.id,
                 round: {
                     vataId: user.vataId,
+                    seasonId
                 },
                 date: {
                     gte: startOfDay,
@@ -68,7 +69,7 @@ const createNewUnloadService = async (user, payload) => {
                 data: {
                     classId: classId?.id,
                     quantity: Number(payload.quantity),
-                    unloadId: unload.id
+                    unloadId: unload.id,
                 }
             });
         }
@@ -78,12 +79,13 @@ const createNewUnloadService = async (user, payload) => {
 };
 // gert
 // GET ALL UNLOAD
-const getAllUnloadService = async (user, query) => {
+const getAllUnloadService = async (user, seasonId, query) => {
     const { limit, page, skip } = (0, paginationHelper_1.paginationHelper)(query.page, query.limit);
     const where = {
         isDeleted: false,
         round: {
             vataId: user.vataId,
+            seasonId
         }
     };
     // DATE FILTER

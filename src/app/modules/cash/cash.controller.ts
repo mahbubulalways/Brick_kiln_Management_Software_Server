@@ -10,7 +10,8 @@ import { TAuthUser } from "../../../interface/token";
 // CREATE CASH
 const createCash = catchAsync(async (req: Request, res: Response) => {
     const user = req.user as TAuthUser
-    const result = await CashService.createCashService(user, req.body);
+    const seasonId = req.seasonId
+    const result = await CashService.createCashService(user, seasonId, req.body);
 
     if (result) {
         sendResponse(res, {
@@ -27,8 +28,32 @@ const createCash = catchAsync(async (req: Request, res: Response) => {
 const getAllCash = catchAsync(async (req: Request, res: Response) => {
     const { limit, page, date, search } = await parseListQuery(req.query);
     const user = req.user as TAuthUser
-    const result = await CashService.getAllCashService(user, { date, limit, page, search });
+    const seasonId = req.seasonId
+    const result = await CashService.getAllCashService(user, seasonId, { date, limit, page, search });
     if (result.data.length > 0) {
+        sendResponse(res, {
+            statusCode: 200,
+            success: true,
+            message: "ক্যাশের তথ্য সফলভাবে পাওয়া গেছে",
+            data: result,
+        });
+    } else {
+        sendResponse(res, {
+            statusCode: 200,
+            success: true,
+            message: "কোনো ক্যাশের তথ্য পাওয়া যায়নি",
+            data: [],
+        });
+    }
+});
+
+// CASH REPORT
+const getAllCashReport = catchAsync(async (req: Request, res: Response) => {
+    const { date } = await parseListQuery(req.query);
+    const user = req.user as TAuthUser
+    const seasonId = req.seasonId
+    const result = await CashService.getCashReportService(user, seasonId, { date });
+    if (result.length > 0) {
         sendResponse(res, {
             statusCode: 200,
             success: true,
@@ -127,4 +152,5 @@ export const CashController = {
     getSingleCash,
     updateCash,
     deleteCash,
+    getAllCashReport
 };

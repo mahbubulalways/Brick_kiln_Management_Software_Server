@@ -25,12 +25,28 @@ const getNextDeliveryNoController = (0, catchAsync_1.default)(async (req, res) =
         });
     }
 });
+// CREATE NEW DELIVERY
+const createDeliveryController = (0, catchAsync_1.default)(async (req, res) => {
+    const body = req.body;
+    const user = req.user;
+    const result = await delivery_service_1.DeliveryService.createDeliveryService(user, body);
+    if (!result) {
+        throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.BAD_REQUEST, "ডেলিভারি তৈরি করা সম্ভব হয়নি।");
+    }
+    else {
+        (0, sendResponse_1.sendResponse)(res, {
+            message: "ডেলিভারি সফলভাবে তৈরি করা হয়েছে।",
+            statusCode: http_status_codes_1.StatusCodes.OK,
+            success: !!result?.id,
+        });
+    }
+});
 // GET DELIVERY THAT GO TODAY
 const getDeliveryThatGoTodayController = (0, catchAsync_1.default)(async (req, res) => {
     const user = req.user;
     const { limit, page, date, search } = await (0, parseListQuery_1.parseListQuery)(req.query);
-    console.log(req.query);
-    const result = await delivery_service_1.DeliveryService.getDeliveryThatGoTodayService(user, { date, limit, page, search });
+    const seasonId = req.seasonId;
+    const result = await delivery_service_1.DeliveryService.getDeliveryThatGoTodayService(user, seasonId, { date, limit, page, search });
     if (!result?.data?.length) {
         (0, sendResponse_1.sendResponse)(res, {
             message: "আজকের জন্য কোনো ডেলিভারি পাওয়া যায়নি।",
@@ -48,10 +64,12 @@ const getDeliveryThatGoTodayController = (0, catchAsync_1.default)(async (req, r
         });
     }
 });
+// GET ALL DELIVERY 
 const getAllDeliveryListController = (0, catchAsync_1.default)(async (req, res) => {
     const user = req.user;
     const { limit, page, date, search } = await (0, parseListQuery_1.parseListQuery)(req.query);
-    const result = await delivery_service_1.DeliveryService.getAllDeliveryListService(user, { date, limit, page, search });
+    const seasonId = req.seasonId;
+    const result = await delivery_service_1.DeliveryService.getAllDeliveryListService(user, seasonId, { date, limit, page, search });
     if (!result?.data?.length) {
         (0, sendResponse_1.sendResponse)(res, {
             message: "কোনো ডেলিভারি পাওয়া যায়নি।",
@@ -69,25 +87,12 @@ const getAllDeliveryListController = (0, catchAsync_1.default)(async (req, res) 
         });
     }
 });
-const createDeliveryController = (0, catchAsync_1.default)(async (req, res) => {
-    const body = req.body;
-    const user = req.user;
-    const result = await delivery_service_1.DeliveryService.createDeliveryService(user, body);
-    if (!result) {
-        throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.BAD_REQUEST, "ডেলিভারি তৈরি করা সম্ভব হয়নি।");
-    }
-    else {
-        (0, sendResponse_1.sendResponse)(res, {
-            message: "ডেলিভারি সফলভাবে তৈরি করা হয়েছে।",
-            statusCode: http_status_codes_1.StatusCodes.OK,
-            success: !!result?.id,
-        });
-    }
-});
+// GET DELIVERY THAT DONE
 const getTodaysDeliveryThatDoneController = (0, catchAsync_1.default)(async (req, res) => {
     const { limit, page, date } = await (0, parseListQuery_1.parseListQuery)(req.query);
     const user = req.user;
-    const result = await delivery_service_1.DeliveryService.getTodaysDeliveryThatDone(user, { date, limit, page });
+    const seasonId = req.seasonId;
+    const result = await delivery_service_1.DeliveryService.getTodaysDeliveryThatDone(user, seasonId, { date, limit, page });
     if (!result?.data?.length) {
         (0, sendResponse_1.sendResponse)(res, {
             message: "আজকের জন্য কোনো ডেলিভারি পাওয়া যায়নি।",

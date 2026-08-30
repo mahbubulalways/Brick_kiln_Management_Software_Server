@@ -29,7 +29,8 @@ const getLedgerCountController = catchAsync(async (req, res) => {
 const createLedgerController = catchAsync(async (req, res) => {
   const body = req.body;
   const user = req.user as TAuthUser;
-  const result = await LedgerService.createLedgerService(user, body);
+  const seasonId = req.seasonId
+  const result = await LedgerService.createLedgerService(user, seasonId, body);
 
   if (!result) {
     throw new AppError(
@@ -49,7 +50,8 @@ const createLedgerController = catchAsync(async (req, res) => {
 // GET KHOTIYAN GROUP OPTION
 const getLedgerOptionController = catchAsync(async (req, res) => {
   const user = req.user as TAuthUser;
-  const result = await LedgerService.getLedgerOptionService(user);
+  const seasonId = req.seasonId
+  const result = await LedgerService.getLedgerOptionService(user, seasonId);
   if (!result) {
     sendResponse(res, {
       statusCode: StatusCodes.OK,
@@ -69,7 +71,8 @@ const getLedgerOptionController = catchAsync(async (req, res) => {
 // GET ALL KHOTIYAN WITH CHILDREN
 const getAllLedgerWithController = catchAsync(async (req, res) => {
   const user = req.user as TAuthUser;
-  const result = await LedgerService.getAllLedgerWithChildrenService(user);
+  const seasonId = req.seasonId
+  const result = await LedgerService.getAllLedgerWithChildrenService(user, seasonId);
 
   if (!result) {
     sendResponse(res, {
@@ -92,8 +95,9 @@ const getAllLedgerWithChildrenPaginationController = catchAsync(
   async (req, res) => {
     const { limit, page, search } = await parseListQuery(req.query);
     const user = req.user as TAuthUser;
+    const seasonId = req.seasonId
     const result =
-      await LedgerService.getAllLedgerWithChildrenPaginationService(user, {
+      await LedgerService.getAllLedgerWithChildrenPaginationService(user, seasonId, {
         limit,
         page,
         search,
@@ -119,7 +123,8 @@ const getAllLedgerWithChildrenPaginationController = catchAsync(
 // GET ALL KHOTIYAN WITH AMOUNT
 const getLedgerWithAmountController = catchAsync(async (req, res) => {
   const user = req.user as TAuthUser;
-  const result = await LedgerService.getAllLedgerWithAmountService(user);
+  const seasonId = req.seasonId
+  const result = await LedgerService.getAllLedgerWithAmountService(user, seasonId);
 
   if (!result) {
     sendResponse(res, {
@@ -142,7 +147,8 @@ const getLedgerDetailsController = catchAsync(async (req, res) => {
   const id = req.params.id;
   const { limit, page, date } = await parseListQuery(req.query);
   const user = req.user as TAuthUser;
-  const result = await LedgerService.getDetailsLedgerService(user, id, {
+  const seasonId = req.seasonId
+  const result = await LedgerService.getDetailsLedgerService(user, seasonId, id, {
     limit,
     page,
     date,

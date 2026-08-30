@@ -156,7 +156,7 @@ const searchCustomerForDeuService = async (user, seasonId, query) => {
     return formatData;
 };
 // TODAY HAVE PAY
-const todayPayDueService = async (user, query) => {
+const todayPayDueService = async (user, seasonId, query) => {
     const { limit, page, skip } = (0, paginationHelper_1.paginationHelper)(query.page, query.limit);
     const where = {
         vataId: user.vataId,
@@ -212,6 +212,9 @@ const todayPayDueService = async (user, query) => {
                     },
                 },
                 customerDues: {
+                    where: {
+                        seasonId
+                    },
                     select: {
                         dueAmount: true,
                     },
@@ -222,6 +225,7 @@ const todayPayDueService = async (user, query) => {
                 dueCollections: {
                     where: {
                         isDeleted: false,
+                        seasonId
                     },
                     select: {
                         collect: true,
@@ -264,10 +268,11 @@ const todayPayDueService = async (user, query) => {
     };
 };
 // ALREADY PAID
-const getTodaysDuePaidService = async (user, query) => {
+const getTodaysDuePaidService = async (user, seasonId, query) => {
     const pagination = (0, paginationHelper_1.paginationHelper)(query.page, query.limit);
     const where = {
         isDeleted: false,
+        seasonId,
         customer: {
             vataId: user.vataId
         }
@@ -307,7 +312,7 @@ const getTodaysDuePaidService = async (user, query) => {
         data: result,
     };
 };
-const getAllDueListService = async (user, query) => {
+const getAllDueListService = async (user, seasonId, query) => {
     const { limit, page, skip } = (0, paginationHelper_1.paginationHelper)(query.page, query.limit);
     const where = {
         isDeleted: false,
@@ -336,11 +341,24 @@ const getAllDueListService = async (user, query) => {
             },
         ];
     }
+    if (query.date) {
+        const dateRange = (0, getDateRangeDbSearch_1.getDateRangeDbSearch)(query.date);
+        if (dateRange) {
+            where.dueCollections = {
+                some: {
+                    createdAt: dateRange,
+                },
+            };
+        }
+    }
     const [result, total] = await Promise.all([
         prisma_1.prisma.customer.findMany({
             where,
             include: {
                 challans: {
+                    where: {
+                        isDeleted: false
+                    },
                     select: {
                         note: true,
                         season: {
@@ -357,6 +375,9 @@ const getAllDueListService = async (user, query) => {
                     },
                 },
                 customerDues: {
+                    where: {
+                        seasonId
+                    },
                     select: {
                         dueAmount: true,
                     },
@@ -367,6 +388,7 @@ const getAllDueListService = async (user, query) => {
                 dueCollections: {
                     where: {
                         isDeleted: false,
+                        seasonId
                     },
                     select: {
                         due: true,
@@ -411,7 +433,8 @@ const getAllDueListService = async (user, query) => {
             season: customer.challans[0]?.season.name,
             note: customer?.note,
         };
-    });
+    }).filter((customer) => customer.remainingDue > 0);
+    ;
     const meta = (0, createMetaConfig_1.createMetaConfig)({
         limit,
         page,
