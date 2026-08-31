@@ -27,6 +27,9 @@ const weather_route_1 = __importDefault(require("../app/modules/weather/weather.
 const vata_route_1 = __importDefault(require("../app/modules/vata/vata.route"));
 const season_route_1 = __importDefault(require("../app/modules/season/season.route"));
 const driver_route_1 = __importDefault(require("../app/modules/driver/driver.route"));
+// ADMIN MODULES
+const admin_route_1 = __importDefault(require("../app/modules/system_modules/admin/admin.route"));
+const vata_route_2 = __importDefault(require("../app/modules/system_modules/vata/vata.route"));
 const router = (0, express_1.Router)();
 const applicationRoutes = [
     { path: "/class", route: classAndRate_route_1.default },
@@ -52,6 +55,15 @@ const applicationRoutes = [
     { path: "/vata", route: vata_route_1.default },
     { path: "/season", route: season_route_1.default },
     { path: "/driver", route: driver_route_1.default },
+    // ADMIN MODULES
+    {
+        path: "/system/admin",
+        route: admin_route_1.default,
+    },
+    {
+        path: "/system/vata",
+        route: vata_route_2.default,
+    }
 ];
 applicationRoutes.forEach((route) => router.use(route.path, route.route));
 exports.default = router;

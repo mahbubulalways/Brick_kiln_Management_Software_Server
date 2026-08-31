@@ -48,7 +48,7 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.NullsOrder = exports.QueryMode = exports.SortOrder = exports.DriverScalarFieldEnum = exports.SeasonScalarFieldEnum = exports.SoftwareFeeScalarFieldEnum = exports.VataScalarFieldEnum = exports.WeatherScalarFieldEnum = exports.ContactScalarFieldEnum = exports.ReceivablePayableTransactionScalarFieldEnum = exports.ReceivablePayableScalarFieldEnum = exports.TaskManagerScalarFieldEnum = exports.ProductScalarFieldEnum = exports.CarRentScalarFieldEnum = exports.DocumentScalarFieldEnum = exports.UnloadItemScalarFieldEnum = exports.UnloadScalarFieldEnum = exports.LoadInfoScalarFieldEnum = exports.RoundScalarFieldEnum = exports.CashScalarFieldEnum = exports.PaymentScalarFieldEnum = exports.LedgerScalarFieldEnum = exports.Due_CollectionScalarFieldEnum = exports.DeliveryScalarFieldEnum = exports.CustomerDueScalarFieldEnum = exports.CustomerScalarFieldEnum = exports.ChallanItemScalarFieldEnum = exports.ChallanScalarFieldEnum = exports.ClassAndRateScalarFieldEnum = exports.LoginHistoryScalarFieldEnum = exports.UserScalarFieldEnum = exports.TransactionIsolationLevel = exports.ModelName = exports.AnyNull = exports.JsonNull = exports.DbNull = exports.NullTypes = exports.prismaVersion = exports.getExtensionContext = exports.Decimal = exports.Sql = exports.raw = exports.join = exports.empty = exports.sql = exports.PrismaClientValidationError = exports.PrismaClientInitializationError = exports.PrismaClientRustPanicError = exports.PrismaClientUnknownRequestError = exports.PrismaClientKnownRequestError = void 0;
+exports.NullsOrder = exports.QueryMode = exports.SortOrder = exports.DriverScalarFieldEnum = exports.SeasonScalarFieldEnum = exports.SubscriptionScalarFieldEnum = exports.VataScalarFieldEnum = exports.WeatherScalarFieldEnum = exports.ContactScalarFieldEnum = exports.ReceivablePayableTransactionScalarFieldEnum = exports.ReceivablePayableScalarFieldEnum = exports.TaskManagerScalarFieldEnum = exports.ProductScalarFieldEnum = exports.CarRentScalarFieldEnum = exports.DocumentScalarFieldEnum = exports.UnloadItemScalarFieldEnum = exports.UnloadScalarFieldEnum = exports.LoadInfoScalarFieldEnum = exports.RoundScalarFieldEnum = exports.CashScalarFieldEnum = exports.PaymentScalarFieldEnum = exports.LedgerScalarFieldEnum = exports.Due_CollectionScalarFieldEnum = exports.DeliveryScalarFieldEnum = exports.CustomerDueScalarFieldEnum = exports.CustomerScalarFieldEnum = exports.ChallanItemScalarFieldEnum = exports.ChallanScalarFieldEnum = exports.ClassAndRateScalarFieldEnum = exports.LoginHistoryScalarFieldEnum = exports.UserScalarFieldEnum = exports.TransactionIsolationLevel = exports.ModelName = exports.AnyNull = exports.JsonNull = exports.DbNull = exports.NullTypes = exports.prismaVersion = exports.getExtensionContext = exports.Decimal = exports.Sql = exports.raw = exports.join = exports.empty = exports.sql = exports.PrismaClientValidationError = exports.PrismaClientInitializationError = exports.PrismaClientRustPanicError = exports.PrismaClientUnknownRequestError = exports.PrismaClientKnownRequestError = void 0;
 exports.defineExtension = void 0;
 const runtime = __importStar(require("@prisma/client/runtime/client"));
 /**
@@ -129,7 +129,7 @@ exports.ModelName = {
     Contact: 'Contact',
     Weather: 'Weather',
     Vata: 'Vata',
-    SoftwareFee: 'SoftwareFee',
+    Subscription: 'Subscription',
     Season: 'Season',
     Driver: 'Driver'
 };
@@ -451,15 +451,22 @@ exports.VataScalarFieldEnum = {
     nextPaymentDate: 'nextPaymentDate',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt',
-    subdomain: 'subdomain'
-};
-exports.SoftwareFeeScalarFieldEnum = {
-    id: 'id',
-    fee: 'fee',
-    transactionId: 'transactionId',
-    sender: 'sender',
+    subdomain: 'subdomain',
     status: 'status',
+    subscriptionStart: 'subscriptionStart',
+    subscriptionEnd: 'subscriptionEnd'
+};
+exports.SubscriptionScalarFieldEnum = {
+    id: 'id',
     vataId: 'vataId',
+    startDate: 'startDate',
+    endDate: 'endDate',
+    amount: 'amount',
+    status: 'status',
+    paidAt: 'paidAt',
+    paymentMethod: 'paymentMethod',
+    transactionId: 'transactionId',
+    phoneNumber: 'phoneNumber',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
 };

@@ -463,6 +463,9 @@ model Vata {
   createdAt                     DateTime                       @default(now())
   updatedAt                     DateTime                       @updatedAt
   subdomain                     String                         @unique
+  status                        VataStatus                     @default(ACTIVE)
+  subscriptionStart             DateTime?
+  subscriptionEnd               DateTime?
   contacts                      Contact[]
   documents                     Document[]
   ledgers                       Ledger[]
@@ -470,7 +473,6 @@ model Vata {
   receivablePayables            ReceivablePayable[]
   receivablePayableTransactions ReceivablePayableTransaction[]
   rounds                        Round[]
-  softwareFees                  SoftwareFee[]
   taskManagers                  TaskManager[]
   weather                       Weather[]
   carRents                      CarRent[]
@@ -481,20 +483,32 @@ model Vata {
   products                      Product[]
   users                         User[]
   drivers                       Driver[]
+  subscriptions                 Subscription[]
 
   @@map("vatainformation")
 }
 
-model SoftwareFee {
-  id            String            @id @default(uuid())
-  fee           Float
-  transactionId String
-  sender        String
-  status        SoftwareFeeStatus @default(PENDING)
+model Subscription {
+  id            String             @id @default(uuid())
   vataId        String
-  createdAt     DateTime          @default(now())
-  updatedAt     DateTime          @updatedAt
-  vata          Vata              @relation(fields: [vataId], references: [vataId])
+  vata          Vata               @relation(fields: [vataId], references: [id])
+  startDate     DateTime?
+  endDate       DateTime?
+  amount        Decimal            @db.Decimal(12, 2)
+  status        SubscriptionStatus @default(PENDING)
+  paidAt        DateTime           @default(now())
+  paymentMethod String
+  transactionId String
+  phoneNumber   String
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+}
+
+enum SubscriptionStatus {
+  PENDING
+  PAID
+  EXPIRED
+  CANCELLED
 }
 
 model Season {
@@ -526,11 +540,30 @@ model Driver {
   deliveries  Delivery[]
 }
 
+// PLATFORM
+// model SystemAdmin {
+//   id          String   @id @default(uuid())
+//   name        String
+//   phoneNumber String
+//   email       String
+//   createdAt   DateTime @default(now())
+//   updatedAt   DateTime @updatedAt
+//   userId      String
+//   user        User     @relation(fields: [userId], references: [id])
+// }
+
 enum UserRole {
   OWNER
   ADMIN
   MANAGER
   SYSTEM_ADMIN
+  SUPER_ADMIN
+}
+
+enum VataStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
 }
 
 enum CashType {
@@ -552,10 +585,4 @@ enum TransactionType {
   GIVEN
   TAKEN
   PAYMENT
-}
-
-enum SoftwareFeeStatus {
-  PENDING
-  REJECTED
-  APPROVED
 }

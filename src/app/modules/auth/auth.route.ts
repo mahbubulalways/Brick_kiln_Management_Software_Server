@@ -19,7 +19,9 @@ router.post(
   AuthGuard(
     UserRole.ADMIN,
     UserRole.MANAGER,
-    UserRole.OWNER
+    UserRole.OWNER,
+    UserRole.SYSTEM_ADMIN,
+    UserRole.SUPER_ADMIN,
   ),
   AuthController.logoutController,
 );

@@ -11,6 +11,6 @@ const router = (0, express_1.Router)();
 router.post("/login", 
 // VALIDATE_REQUEST(AUTH_LOGIN_VALIDATION),
 auth_controller_1.AuthController.loginUserToSystemController);
-router.post("/logout", (0, AuthGuard_1.default)(enums_1.UserRole.ADMIN, enums_1.UserRole.MANAGER, enums_1.UserRole.OWNER), auth_controller_1.AuthController.logoutController);
+router.post("/logout", (0, AuthGuard_1.default)(enums_1.UserRole.ADMIN, enums_1.UserRole.MANAGER, enums_1.UserRole.OWNER, enums_1.UserRole.SYSTEM_ADMIN, enums_1.UserRole.SUPER_ADMIN), auth_controller_1.AuthController.logoutController);
 router.post("/change-password", (0, AuthGuard_1.default)(enums_1.UserRole.ADMIN, enums_1.UserRole.MANAGER, enums_1.UserRole.OWNER), auth_controller_1.AuthController.changePasswordController);
 exports.default = router;

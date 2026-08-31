@@ -9,21 +9,6 @@ const catchAsync_1 = __importDefault(require("../../../utils/catchAsync"));
 const sendResponse_1 = require("../../../utils/sendResponse");
 const vata_service_1 = require("./vata.service");
 const ApplicationError_1 = require("../../errors/ApplicationError");
-// CREATE NEW VATA CONTROLLER
-const createNewVataController = (0, catchAsync_1.default)(async (req, res) => {
-    const result = await vata_service_1.VataService.createNewVataService(req.body);
-    if (result) {
-        (0, sendResponse_1.sendResponse)(res, {
-            statusCode: http_status_codes_1.StatusCodes.CREATED,
-            success: true,
-            message: "ভাটা সফলভাবে তৈরি হয়েছে",
-            data: result,
-        });
-    }
-    else {
-        throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.BAD_REQUEST, "ভাটা তৈরি করা যায়নি");
-    }
-});
 // GET SUBDOMAIN EXITS OR NOT
 const checkSubdomainExistController = (0, catchAsync_1.default)(async (req, res) => {
     const result = await vata_service_1.VataService.checkSubdomainExistService(req.params.id);
@@ -71,7 +56,6 @@ const getMyVataInformationController = (0, catchAsync_1.default)(async (req, res
     }
 });
 exports.VataController = {
-    createNewVataController,
     checkSubdomainExistController,
     getVataInformationController,
     getMyVataInformationController

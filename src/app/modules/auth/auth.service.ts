@@ -106,6 +106,12 @@ const logoutUserService = async (userAuth: TAuthUser, username: string, ip: stri
     );
   }
 
+  if (user.role === "SUPER_ADMIN" || user.role === "SYSTEM_ADMIN") {
+    return {
+      id: true
+    }
+  }
+
   const result = await prisma.loginHistory.create({
     data: {
       type: "Logout",

@@ -6,24 +6,6 @@ import { VataService } from "./vata.service";
 import { AppError } from "../../errors/ApplicationError";
 import { TAuthUser } from "../../../interface/token";
 
-// CREATE NEW VATA CONTROLLER
-const createNewVataController = catchAsync(async (req, res) => {
-    const result = await VataService.createNewVataService(req.body);
-
-    if (result) {
-        sendResponse(res, {
-            statusCode: StatusCodes.CREATED,
-            success: true,
-            message: "ভাটা সফলভাবে তৈরি হয়েছে",
-            data: result,
-        });
-    } else {
-        throw new AppError(
-            StatusCodes.BAD_REQUEST,
-            "ভাটা তৈরি করা যায়নি"
-        );
-    }
-});
 
 // GET SUBDOMAIN EXITS OR NOT
 const checkSubdomainExistController = catchAsync(async (req, res) => {
@@ -86,7 +68,6 @@ const getMyVataInformationController = catchAsync(async (req, res) => {
 
 
 export const VataController = {
-    createNewVataController,
     checkSubdomainExistController,
     getVataInformationController,
     getMyVataInformationController

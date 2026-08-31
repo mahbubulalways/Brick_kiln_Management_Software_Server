@@ -24,6 +24,10 @@ import vataRoute from "../app/modules/vata/vata.route";
 import seasonRoute from "../app/modules/season/season.route";
 import driverRoute from "../app/modules/driver/driver.route";
 
+// ADMIN MODULES
+import adminRoutes from "../app/modules/system_modules/admin/admin.route";
+import adminVataRoutes from "../app/modules/system_modules/vata/vata.route";
+
 const router = Router();
 const applicationRoutes: IApplicationRoute[] = [
   { path: "/class", route: classAndRateRoute },
@@ -49,6 +53,16 @@ const applicationRoutes: IApplicationRoute[] = [
   { path: "/vata", route: vataRoute },
   { path: "/season", route: seasonRoute },
   { path: "/driver", route: driverRoute },
+
+  // ADMIN MODULES
+  {
+    path: "/system/admin",
+    route: adminRoutes,
+  },
+  {
+    path: "/system/vata",
+    route: adminVataRoutes,
+  }
 ];
 
 applicationRoutes.forEach((route) => router.use(route.path, route.route));

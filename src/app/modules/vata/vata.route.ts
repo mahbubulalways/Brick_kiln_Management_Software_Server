@@ -5,8 +5,6 @@ import { UserRole } from "../../../generated/prisma/enums";
 
 const router = Router()
 
-// CREATE VATA
-router.post('/create', VataController.createNewVataController)
 
 router.get(
     '/info',
