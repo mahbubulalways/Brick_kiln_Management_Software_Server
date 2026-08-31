@@ -260,6 +260,7 @@ const todayPayDueService = async (user: TAuthUser, seasonId: string, query: TQue
 
   if (query.date) {
     const dateRange = getDateRangeDbSearch(query.date);
+    console.log(dateRange)
     if (dateRange) {
       where.nextPaymentDate = dateRange
     }

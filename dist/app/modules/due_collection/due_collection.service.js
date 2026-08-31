@@ -203,6 +203,7 @@ const todayPayDueService = async (user, seasonId, query) => {
     }
     if (query.date) {
         const dateRange = (0, getDateRangeDbSearch_1.getDateRangeDbSearch)(query.date);
+        console.log(dateRange);
         if (dateRange) {
             where.nextPaymentDate = dateRange;
         }

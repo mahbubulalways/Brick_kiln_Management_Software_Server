@@ -2,33 +2,47 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getDateRangeDbSearch = void 0;
 const getDateRangeDbSearch = (dateValue) => {
-    if (!dateValue)
+    if (!dateValue) {
         return undefined;
+    }
     const [startDateString, endDateString] = dateValue.split("_");
-    const startDate = startDateString
-        ? new Date(startDateString)
-        : undefined;
-    const endDate = endDateString
-        ? new Date(endDateString)
-        : undefined;
     const dateRange = {};
-    // Start date
-    if (startDate && !isNaN(startDate.getTime())) {
-        startDate.setHours(0, 0, 0, 0);
-        dateRange.gte = startDate;
+    // ==========================================
+    // START DATE
+    // ==========================================
+    if (startDateString) {
+        const [year, month, day] = startDateString
+            .split("-")
+            .map(Number);
+        if (year && month && day) {
+            // Bangladesh 00:00
+            // = Previous day 18:00 UTC
+            dateRange.gte = new Date(Date.UTC(year, month - 1, day, 0, 0, 0, 0) - 6 * 60 * 60 * 1000);
+        }
     }
-    // End date
-    if (endDate && !isNaN(endDate.getTime())) {
-        endDate.setHours(23, 59, 59, 999);
-        dateRange.lte = endDate;
+    // ==========================================
+    // END DATE
+    // ==========================================
+    if (endDateString) {
+        const [year, month, day] = endDateString
+            .split("-")
+            .map(Number);
+        if (year && month && day) {
+            // Bangladesh 23:59:59.999
+            // = Same day 17:59:59.999 UTC
+            dateRange.lte = new Date(Date.UTC(year, month - 1, day, 23, 59, 59, 999) - 6 * 60 * 60 * 1000);
+        }
     }
-    // শুধু একটি date দিলে পুরো দিনটা ধরবে
-    if (startDate &&
-        !isNaN(startDate.getTime()) &&
-        !endDateString) {
-        const fullDayEnd = new Date(startDate);
-        fullDayEnd.setHours(23, 59, 59, 999);
-        dateRange.lte = fullDayEnd;
+    // ==========================================
+    // SINGLE DATE
+    // ==========================================
+    if (startDateString && !endDateString) {
+        const [year, month, day] = startDateString
+            .split("-")
+            .map(Number);
+        if (year && month && day) {
+            dateRange.lte = new Date(Date.UTC(year, month - 1, day, 23, 59, 59, 999) - 6 * 60 * 60 * 1000);
+        }
     }
     return Object.keys(dateRange).length > 0
         ? dateRange
