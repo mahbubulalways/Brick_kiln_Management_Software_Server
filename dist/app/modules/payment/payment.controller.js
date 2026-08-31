@@ -58,7 +58,8 @@ const getAllPaymentController = (0, catchAsync_1.default)(async (req, res) => {
 const paymentReportViaGroupController = (0, catchAsync_1.default)(async (req, res) => {
     const user = req.user;
     const seasonId = req.seasonId;
-    const result = await payment_service_1.PaymentService.paymentReportViaGroupService(user, seasonId);
+    const date = req.params.date;
+    const result = await payment_service_1.PaymentService.paymentReportViaGroupService(user, seasonId, date);
     if (!result.length) {
         (0, sendResponse_1.sendResponse)(res, {
             statusCode: http_status_codes_1.StatusCodes.OK,

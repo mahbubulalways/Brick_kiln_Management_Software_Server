@@ -63,7 +63,8 @@ const getAllPaymentController = catchAsync(async (req, res) => {
 const paymentReportViaGroupController = catchAsync(async (req, res) => {
   const user = req.user as TAuthUser
       const seasonId = req.seasonId
-  const result = await PaymentService.paymentReportViaGroupService(user,seasonId);
+      const date = req.params.date
+  const result = await PaymentService.paymentReportViaGroupService(user,seasonId,date);
   if (!result.length) {
     sendResponse(res, {
       statusCode: StatusCodes.OK,

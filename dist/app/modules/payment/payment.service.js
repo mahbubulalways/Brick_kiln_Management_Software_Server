@@ -6,6 +6,7 @@ const ApplicationError_1 = require("../../errors/ApplicationError");
 const http_status_codes_1 = require("http-status-codes");
 const paginationHelper_1 = require("../../../helpers/paginationHelper");
 const createMetaConfig_1 = require("../../../utils/createMetaConfig");
+const getDateRangeDbSearch_1 = require("../../../utils/getDateRangeDbSearch");
 const createPaymentService = async (req, user) => {
     const file = req?.file;
     const body = JSON.parse(req.body.data);
@@ -98,11 +99,22 @@ const getAllPaymentService = async (user, seasonId, query) => {
     };
 };
 // GET PAYMENT REPORT GROUP VIA DATE
-const paymentReportViaGroupService = async (user, seasonId) => {
+const paymentReportViaGroupService = async (user, seasonId, date) => {
+    const where = {
+        isDeleted: false,
+        vataId: user.vataId,
+        ledger: {
+            seasonId
+        }
+    };
+    if (date) {
+        const dateRange = (0, getDateRangeDbSearch_1.getDateRangeDbSearch)(date);
+        if (dateRange) {
+            where.paymentDate = dateRange;
+        }
+    }
     const result = await prisma_1.prisma.payment.findMany({
-        where: { isDeleted: false, vataId: user.vataId, ledger: {
-                seasonId
-            } },
+        where,
         include: { ledger: { include: { parent: true } } },
     });
     const groupedPayments = Object.values(result.reduce((acc, item) => {

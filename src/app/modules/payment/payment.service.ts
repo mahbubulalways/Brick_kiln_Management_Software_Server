@@ -9,8 +9,9 @@ import { paginationHelper } from "../../../helpers/paginationHelper";
 import { TQuery } from "../../../interface/query";
 import { createMetaConfig } from "../../../utils/createMetaConfig";
 import { TAuthUser } from "../../../interface/token";
+import { getDateRangeDbSearch } from "../../../utils/getDateRangeDbSearch";
 
-const createPaymentService = async (req: Request,  user: TAuthUser) => {
+const createPaymentService = async (req: Request, user: TAuthUser) => {
   const file = req?.file as IUploadFile;
   const body = JSON.parse(req.body.data) as IPayment;
   const ledgerId = await prisma.ledger.findFirst({
@@ -112,11 +113,24 @@ const getAllPaymentService = async (user: TAuthUser, seasonId: string, query: TQ
 };
 
 // GET PAYMENT REPORT GROUP VIA DATE
-const paymentReportViaGroupService = async (user: TAuthUser,seasonId:string) => {
-  const result = await prisma.payment.findMany({
-    where: { isDeleted: false, vataId: user.vataId, ledger: {
+const paymentReportViaGroupService = async (user: TAuthUser, seasonId: string, date: string) => {
+
+  const where: Prisma.PaymentWhereInput = {
+    isDeleted: false,
+    vataId: user.vataId,
+    ledger: {
       seasonId
-    } },
+    }
+  }
+
+  if (date) {
+    const dateRange = getDateRangeDbSearch(date)
+    if (dateRange) {
+      where.paymentDate = dateRange
+    }
+  }
+  const result = await prisma.payment.findMany({
+    where,
     include: { ledger: { include: { parent: true } } },
   });
 
