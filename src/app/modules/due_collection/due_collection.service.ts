@@ -214,6 +214,22 @@ const todayPayDueService = async (user: TAuthUser, seasonId: string, query: TQue
   const where: Prisma.CustomerWhereInput = {
     vataId: user.vataId,
     isDeleted: false,
+    challans: {
+      every: {
+        seasonId
+      }
+    },
+    dueCollections: {
+      every: {
+        seasonId,
+        isDeleted: false
+      }
+    },
+    customerDues: {
+      every: {
+        seasonId
+      }
+    }
   };
 
   if (query.search?.trim()) {
@@ -249,6 +265,8 @@ const todayPayDueService = async (user: TAuthUser, seasonId: string, query: TQue
     }
   }
 
+
+
   const [result, total] = await Promise.all([
     prisma.customer.findMany({
       where,
@@ -271,9 +289,6 @@ const todayPayDueService = async (user: TAuthUser, seasonId: string, query: TQue
         },
 
         customerDues: {
-          where: {
-            seasonId
-          },
           select: {
             dueAmount: true,
           },
@@ -283,10 +298,6 @@ const todayPayDueService = async (user: TAuthUser, seasonId: string, query: TQue
         },
 
         dueCollections: {
-          where: {
-            isDeleted: false,
-            seasonId
-          },
           select: {
             collect: true,
             newDue: true,
@@ -336,8 +347,8 @@ const todayPayDueService = async (user: TAuthUser, seasonId: string, query: TQue
       totalCollect,
       remainingDue,
     };
-  });
-
+  })
+  // .filter((customer) => customer.remainingDue > 0);
   const meta = createMetaConfig({
     limit,
     page,
@@ -404,6 +415,7 @@ const getTodaysDuePaidService = async (user: TAuthUser, seasonId: string, query:
   };
 };
 
+// GET ALL
 const getAllDueListService = async (
   user: TAuthUser,
   seasonId: string,

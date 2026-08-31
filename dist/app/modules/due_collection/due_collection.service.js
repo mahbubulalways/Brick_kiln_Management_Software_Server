@@ -161,6 +161,22 @@ const todayPayDueService = async (user, seasonId, query) => {
     const where = {
         vataId: user.vataId,
         isDeleted: false,
+        challans: {
+            every: {
+                seasonId
+            }
+        },
+        dueCollections: {
+            every: {
+                seasonId,
+                isDeleted: false
+            }
+        },
+        customerDues: {
+            every: {
+                seasonId
+            }
+        }
     };
     if (query.search?.trim()) {
         const search = query.search.trim();
@@ -212,9 +228,6 @@ const todayPayDueService = async (user, seasonId, query) => {
                     },
                 },
                 customerDues: {
-                    where: {
-                        seasonId
-                    },
                     select: {
                         dueAmount: true,
                     },
@@ -223,10 +236,6 @@ const todayPayDueService = async (user, seasonId, query) => {
                     }
                 },
                 dueCollections: {
-                    where: {
-                        isDeleted: false,
-                        seasonId
-                    },
                     select: {
                         collect: true,
                         newDue: true,
@@ -257,6 +266,7 @@ const todayPayDueService = async (user, seasonId, query) => {
             remainingDue,
         };
     });
+    // .filter((customer) => customer.remainingDue > 0);
     const meta = (0, createMetaConfig_1.createMetaConfig)({
         limit,
         page,
@@ -312,6 +322,7 @@ const getTodaysDuePaidService = async (user, seasonId, query) => {
         data: result,
     };
 };
+// GET ALL
 const getAllDueListService = async (user, seasonId, query) => {
     const { limit, page, skip } = (0, paginationHelper_1.paginationHelper)(query.page, query.limit);
     const where = {
