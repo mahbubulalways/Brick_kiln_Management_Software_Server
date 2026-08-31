@@ -2,11 +2,9 @@ export const getDateRangeDbSearch = (dateValue?: string) => {
   if (!dateValue) return undefined;
 
   const [startDateString, endDateString] = dateValue.split("_");
-
   const startDate = startDateString
     ? new Date(startDateString)
     : undefined;
-
   const endDate = endDateString
     ? new Date(endDateString)
     : undefined;
