@@ -9,8 +9,18 @@
 * 🟢 You can import this file directly.
 */
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.TransactionType = exports.TaskStatus = exports.DocumentType = exports.CashType = exports.VataStatus = exports.UserRole = exports.SubscriptionStatus = void 0;
-exports.SubscriptionStatus = {
+exports.TransactionType = exports.TaskStatus = exports.DocumentType = exports.CashType = exports.VataStatus = exports.UserRole = exports.SubscriptionPaymentStatus = exports.BillingCycle = exports.SubscriptionPlanType = void 0;
+exports.SubscriptionPlanType = {
+    FREE: 'FREE',
+    BASIC: 'BASIC',
+    PROFESSIONAL: 'PROFESSIONAL',
+    ENTERPRISE: 'ENTERPRISE'
+};
+exports.BillingCycle = {
+    MONTHLY: 'MONTHLY',
+    YEARLY: 'YEARLY'
+};
+exports.SubscriptionPaymentStatus = {
     PENDING: 'PENDING',
     PAID: 'PAID',
     EXPIRED: 'EXPIRED',

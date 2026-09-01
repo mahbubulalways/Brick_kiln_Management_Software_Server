@@ -23,6 +23,7 @@ model User {
   deliveries   Delivery[]
   loginHistory LoginHistory[]
   vata         Vata?          @relation(fields: [vataId], references: [id])
+  stockBooks   StockBook[]
 
   @@map("users")
 }
@@ -52,6 +53,7 @@ model ClassAndRate {
   vataId      String
   unloadItems UnloadItem[]
   vata        Vata         @relation(fields: [vataId], references: [id])
+  loadInfos   LoadInfo[]
 
   @@unique([vataId, classType, className])
   @@map("classAndRates")
@@ -276,17 +278,32 @@ model Round {
   @@index([vataId])
 }
 
+// LOAD INFO
+// model LoadType {
+//   id        String     @id @default(uuid())
+//   name      String
+//   vataId    String
+//   createdAt DateTime   @default(now())
+//   updatedAt DateTime   @updatedAt
+//   vata      Vata       @relation(fields: [vataId], references: [id])
+//   loadInfos LoadInfo[]
+
+//   @@unique([vataId, name])
+// }
+
 model LoadInfo {
-  id        String   @id @default(uuid())
+  id        String        @id @default(uuid())
   date      DateTime
   roundId   String
   quantity  Int
-  loadType  String
-  classType String?
-  isDeleted Boolean  @default(false)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  round     Round    @relation(fields: [roundId], references: [id])
+  // loadTypeId String
+  // loadType   LoadType      @relation(fields: [loadTypeId], references: [id])
+  classId   String?
+  class     ClassAndRate? @relation(fields: [classId], references: [id])
+  isDeleted Boolean       @default(false)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  round     Round         @relation(fields: [roundId], references: [id])
 }
 
 model Unload {
@@ -312,6 +329,24 @@ model UnloadItem {
   unload    Unload       @relation(fields: [unloadId], references: [id])
 
   @@unique([unloadId, classId])
+}
+
+// STOCK MANAGEMENT
+model StockBook {
+  id          String   @id @default(uuid())
+  class       String
+  stockIn     Int      @default(0)
+  stockOut    Int      @default(0)
+  description String
+  isDeleted   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  createdById String
+  createdBy   User     @relation(fields: [createdById], references: [id])
+  seasonId    String
+  season      Season   @relation(fields: [seasonId], references: [id])
+  vataId      String
+  vata        Vata     @relation(fields: [vataId], references: [id])
 }
 
 model Document {
@@ -464,6 +499,8 @@ model Vata {
   updatedAt                     DateTime                       @updatedAt
   subdomain                     String                         @unique
   status                        VataStatus                     @default(ACTIVE)
+  susbscriptionPlanId           String?
+  subscriptionPlan              SubscriptionPlan?              @relation(fields: [susbscriptionPlanId], references: [id])
   subscriptionStart             DateTime?
   subscriptionEnd               DateTime?
   contacts                      Contact[]
@@ -483,28 +520,65 @@ model Vata {
   products                      Product[]
   users                         User[]
   drivers                       Driver[]
-  subscriptions                 Subscription[]
+  subscriptionPayments          SubscriptionPayment[]
+  // loadTypes                     LoadType[]
+  stocks                        StockBook[]
 
   @@map("vatainformation")
 }
 
-model Subscription {
-  id            String             @id @default(uuid())
-  vataId        String
-  vata          Vata               @relation(fields: [vataId], references: [id])
-  startDate     DateTime?
-  endDate       DateTime?
-  amount        Decimal            @db.Decimal(12, 2)
-  status        SubscriptionStatus @default(PENDING)
-  paidAt        DateTime           @default(now())
-  paymentMethod String
-  transactionId String
-  phoneNumber   String
-  createdAt     DateTime           @default(now())
-  updatedAt     DateTime           @updatedAt
+// SUBSCRIPTION PLAN
+enum SubscriptionPlanType {
+  FREE
+  BASIC
+  PROFESSIONAL
+  ENTERPRISE
 }
 
-enum SubscriptionStatus {
+enum BillingCycle {
+  MONTHLY
+  YEARLY
+}
+
+model SubscriptionPlan {
+  id                   String                @id @default(uuid())
+  name                 String                @unique
+  type                 SubscriptionPlanType  @unique
+  description          String?
+  price                Decimal               @db.Decimal(12, 2)
+  billingCycle         BillingCycle
+  features             String[]
+  maxUsers             Int?
+  maxStorage           Int? // GB
+  maxTasks             Int?
+  maxInvoices          Int?
+  maxSms               Int?
+  isActive             Boolean               @default(true)
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime              @updatedAt
+  vatas                Vata[]
+  subscriptionPayments SubscriptionPayment[]
+}
+
+model SubscriptionPayment {
+  id                 String                    @id @default(uuid())
+  vataId             String
+  vata               Vata                      @relation(fields: [vataId], references: [id])
+  subscriptionPlanId String
+  subscriptionPlan   SubscriptionPlan          @relation(fields: [subscriptionPlanId], references: [id])
+  startDate          DateTime?
+  endDate            DateTime?
+  amount             Decimal                   @db.Decimal(12, 2)
+  status             SubscriptionPaymentStatus @default(PENDING)
+  paidAt             DateTime                  @default(now())
+  paymentMethod      String
+  transactionId      String
+  phoneNumber        String
+  createdAt          DateTime                  @default(now())
+  updatedAt          DateTime                  @updatedAt
+}
+
+enum SubscriptionPaymentStatus {
   PENDING
   PAID
   EXPIRED
@@ -525,6 +599,7 @@ model Season {
   cash           Cash[]
   ledgers        Ledger[]
   rounds         Round[]
+  stockBooks     StockBook[]
 }
 
 // DRIVER

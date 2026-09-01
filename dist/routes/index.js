@@ -27,6 +27,7 @@ const weather_route_1 = __importDefault(require("../app/modules/weather/weather.
 const vata_route_1 = __importDefault(require("../app/modules/vata/vata.route"));
 const season_route_1 = __importDefault(require("../app/modules/season/season.route"));
 const driver_route_1 = __importDefault(require("../app/modules/driver/driver.route"));
+const stock_book_route_1 = __importDefault(require("../app/modules/stock_book/stock_book.route"));
 // ADMIN MODULES
 const admin_route_1 = __importDefault(require("../app/modules/system_modules/admin/admin.route"));
 const vata_route_2 = __importDefault(require("../app/modules/system_modules/vata/vata.route"));
@@ -55,6 +56,7 @@ const applicationRoutes = [
     { path: "/vata", route: vata_route_1.default },
     { path: "/season", route: season_route_1.default },
     { path: "/driver", route: driver_route_1.default },
+    { path: "/stock-book", route: stock_book_route_1.default },
     // ADMIN MODULES
     {
         path: "/system/admin",

@@ -1,0 +1,32 @@
+import { Router } from "express";
+import AuthGuard from "../../middlewares/AuthGuard";
+import ActiveSeasonGuard from "../../middlewares/ActiveSeasonGuard";
+import { StockBookController } from "./stock_book.controller";
+import { UserRole } from "../../../generated/prisma/enums";
+
+const router = Router();
+
+// CREATE NEW STOCK
+router.post(
+    "/create",
+    AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+    ActiveSeasonGuard,
+    StockBookController.createStockBookController
+)
+
+// GET ALL
+router.get(
+    "/all",
+    AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+    ActiveSeasonGuard,
+    StockBookController.getAllStockController
+)
+
+// DELETE
+router.delete(
+    "/delete/:id",
+    AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+    StockBookController.deleteStockBookController
+)
+
+export default router;

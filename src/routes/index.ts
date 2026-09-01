@@ -23,6 +23,7 @@ import weathertRoute from "../app/modules/weather/weather.route";
 import vataRoute from "../app/modules/vata/vata.route";
 import seasonRoute from "../app/modules/season/season.route";
 import driverRoute from "../app/modules/driver/driver.route";
+import stockBookRoute from "../app/modules/stock_book/stock_book.route";
 
 // ADMIN MODULES
 import adminRoutes from "../app/modules/system_modules/admin/admin.route";
@@ -53,7 +54,8 @@ const applicationRoutes: IApplicationRoute[] = [
   { path: "/vata", route: vataRoute },
   { path: "/season", route: seasonRoute },
   { path: "/driver", route: driverRoute },
-
+  { path: "/stock-book", route: stockBookRoute },
+  
   // ADMIN MODULES
   {
     path: "/system/admin",

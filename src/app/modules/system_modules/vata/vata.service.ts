@@ -74,19 +74,19 @@ const createNewVataService = async (payload: TAdminVata) => {
             },
         });
 
-        await tx.subscription.create({
-            data: {
-                amount: payload.vata.softwareFee,
-                paymentMethod: "1st",
-                phoneNumber: "1st",
-                transactionId: "1st",
-                startDate: new Date(),
-                paidAt: new Date(),
-                endDate: payload.vata.nextPaymentDate,
-                status: "PAID",
-                vataId: vata.id
-            }
-        })
+        // await tx.subscriptionPlan.create({
+        //     data: {
+        //         amount: payload.vata.softwareFee,
+        //         paymentMethod: "1st",
+        //         phoneNumber: "1st",
+        //         transactionId: "1st",
+        //         startDate: new Date(),
+        //         paidAt: new Date(),
+        //         endDate: payload.vata.nextPaymentDate,
+        //         status: "PAID",
+        //         vataId: vata.id
+        //     }
+        // })
 
         await tx.user.create({
             data: {
