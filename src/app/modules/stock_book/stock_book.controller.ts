@@ -26,7 +26,6 @@ const createStockBookController = catchAsync(async (req, res) => {
       message: "স্টক বুক সফলভাবে তৈরি হয়েছে।",
       statusCode: StatusCodes.CREATED,
       success: true,
-      data: result,
     });
   }
 });
@@ -56,7 +55,6 @@ const getAllStockController = catchAsync(async (req, res) => {
 });
 
 
-
 // DELETE
 const deleteStockBookController = catchAsync(async (req, res) => {
   const { id } = req.params;
@@ -76,8 +74,35 @@ const deleteStockBookController = catchAsync(async (req, res) => {
   }
 });
 
+
+
+// MAIN STOCK ==============
+// GET ALL STOCK
+const getMainStockController = catchAsync(async (req, res) => {
+  const seasonId = req.seasonId
+  const user = req.user as TAuthUser
+  const result = await StockBookService.getMainStockInformation(user, seasonId);
+  if (!result.data.length) {
+    return sendResponse(res, {
+      statusCode: StatusCodes.OK,
+      success: true,
+      message: "কোনো স্টকের তথ্য পাওয়া যায়নি।",
+      data: [],
+    });
+  }
+
+  return sendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: "স্টকের তথ্য সফলভাবে পাওয়া গেছে।",
+    data: result,
+  });
+});
+
+
 export const StockBookController = {
   createStockBookController,
   getAllStockController,
-  deleteStockBookController
+  deleteStockBookController,
+  getMainStockController
 };

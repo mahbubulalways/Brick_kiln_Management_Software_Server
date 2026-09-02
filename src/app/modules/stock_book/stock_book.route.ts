@@ -21,6 +21,13 @@ router.get(
     ActiveSeasonGuard,
     StockBookController.getAllStockController
 )
+// GET ALL
+router.get(
+    "/main",
+    AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+    ActiveSeasonGuard,
+    StockBookController.getMainStockController
+)
 
 // DELETE
 router.delete(

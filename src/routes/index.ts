@@ -24,6 +24,10 @@ import vataRoute from "../app/modules/vata/vata.route";
 import seasonRoute from "../app/modules/season/season.route";
 import driverRoute from "../app/modules/driver/driver.route";
 import stockBookRoute from "../app/modules/stock_book/stock_book.route";
+import goodsStockCategoryRouter from "../app/modules/goods_category/goods_category.route";
+import goodStockRouter from "../app/modules/goods_stock/good_stock.route";
+import goodIssueRouter from "../app/modules/good_issue/good_issue.route";
+import goodIssueRefundRouter from "../app/modules/good_refund/good_refund.routes";
 
 // ADMIN MODULES
 import adminRoutes from "../app/modules/system_modules/admin/admin.route";
@@ -55,7 +59,11 @@ const applicationRoutes: IApplicationRoute[] = [
   { path: "/season", route: seasonRoute },
   { path: "/driver", route: driverRoute },
   { path: "/stock-book", route: stockBookRoute },
-  
+  { path: "/goods-category", route: goodsStockCategoryRouter },
+  { path: "/goods", route: goodStockRouter },
+  { path: "/goods-issue", route: goodIssueRouter },
+  { path: "/goods-issue-refund", route: goodIssueRefundRouter },
+
   // ADMIN MODULES
   {
     path: "/system/admin",

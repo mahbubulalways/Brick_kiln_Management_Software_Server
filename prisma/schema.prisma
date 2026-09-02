@@ -349,6 +349,89 @@ model StockBook {
   vata        Vata     @relation(fields: [vataId], references: [id])
 }
 
+// GOODS STOCK
+model GoodsStockCategory {
+  id          String       @id @default(uuid())
+  name        String
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  vataId      String
+  vata        Vata         @relation(fields: [vataId], references: [id])
+  goodsStocks GoodsStock[]
+}
+
+model GoodsStock {
+  id              String             @id @default(uuid())
+  name            String
+  shop            String
+  quantity        Float
+  price           Float
+  warranty        DateTime?
+  image           String?
+  categoryId      String
+  category        GoodsStockCategory @relation(fields: [categoryId], references: [id])
+  vataId          String
+  vata            Vata               @relation(fields: [vataId], references: [id])
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+  goodsIssues     GoodsIssue[]
+  goodsLosses     GoodsLoss[]
+  goodHistoryLogs GoodHistoryLog[]
+}
+
+model GoodsIssue {
+  id        String     @id @default(uuid())
+  name      String
+  location  String
+  quantity  Float
+  date      DateTime
+  image     String?
+  goodId    String
+  note      String?
+  good      GoodsStock @relation(fields: [goodId], references: [id])
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+enum GoodHistoryType {
+  ISSUE
+  RETURN
+}
+
+model GoodHistoryLog {
+  id          String          @id @default(uuid())
+  type        GoodHistoryType
+  receiveBy   String
+  quantity    Int
+  returnBy    String?
+  goodId      String
+  date        DateTime
+  good        GoodsStock      @relation(fields: [goodId], references: [id])
+  damage      Int?
+  lost        Int?
+  okay        Int?
+  image       String?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+}
+
+enum GoodLossType {
+  DAMAGED
+  LOST
+}
+
+model GoodsLoss {
+  id         String       @id @default(uuid())
+  goodId     String
+  good       GoodsStock   @relation(fields: [goodId], references: [id])
+  quantity   Float
+  type       GoodLossType
+  lossAmount Float
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+}
+
+// DOCUMENT
 model Document {
   id        String       @id @default(cuid())
   name      String
@@ -523,6 +606,8 @@ model Vata {
   subscriptionPayments          SubscriptionPayment[]
   // loadTypes                     LoadType[]
   stocks                        StockBook[]
+  goodsStockCategories          GoodsStockCategory[]
+  goodsStocks                   GoodsStock[]
 
   @@map("vatainformation")
 }
