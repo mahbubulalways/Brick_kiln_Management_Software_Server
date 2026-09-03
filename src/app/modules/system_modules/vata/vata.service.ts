@@ -64,8 +64,7 @@ const createNewVataService = async (payload: TAdminVata) => {
                 ownerName: vataInformation.ownerName,
                 ownerPhoneNumber: vataInformation.ownerPhoneNumber,
                 challansPhoneNumber: vataInformation.challansPhoneNumber,
-                smsRate: Number(vataInformation.smsRate),
-                softwareFee: Number(vataInformation.softwareFee),
+                susbscriptionPlanId: vataInformation.susbscriptionPlanId,
                 nextPaymentDate: new Date(vataInformation.nextPaymentDate),
                 subdomain: vataInformation.subdomain || subdomain,
                 subscriptionEnd: payload.vata.nextPaymentDate,
@@ -74,19 +73,28 @@ const createNewVataService = async (payload: TAdminVata) => {
             },
         });
 
-        // await tx.subscriptionPlan.create({
-        //     data: {
-        //         amount: payload.vata.softwareFee,
-        //         paymentMethod: "1st",
-        //         phoneNumber: "1st",
-        //         transactionId: "1st",
-        //         startDate: new Date(),
-        //         paidAt: new Date(),
-        //         endDate: payload.vata.nextPaymentDate,
-        //         status: "PAID",
-        //         vataId: vata.id
-        //     }
-        // })
+        const planPrice = await tx.subscriptionPlan.findFirst({
+            where: {
+                id: vataInformation.susbscriptionPlanId
+            },
+            select:{
+                price:true
+            }
+        })
+        await tx.subscriptionPayment.create({
+            data: {
+                amount: planPrice?.price!,
+                paymentMethod: "1st",
+                phoneNumber: "1st",
+                transactionId: "1st",
+                startDate: new Date(),
+                paidAt: new Date(),
+                endDate: payload.vata.nextPaymentDate,
+                status: "PAID",
+                vataId: vata.id,
+                subscriptionPlanId: vata.susbscriptionPlanId!
+            }
+        })
 
         await tx.user.create({
             data: {

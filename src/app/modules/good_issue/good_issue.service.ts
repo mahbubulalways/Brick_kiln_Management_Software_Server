@@ -4,6 +4,9 @@ import { TAuthUser } from "../../../interface/token";
 import { TGoodIssue } from "./good_issue.interface";
 import { IUploadFile } from "../../../interface/multer";
 import { prisma } from "../../../helpers/prisma";
+import { TQuery } from "../../../interface/query";
+import { paginationHelper } from "../../../helpers/paginationHelper";
+import { createMetaConfig } from "../../../utils/createMetaConfig";
 
 const createGoodIssueService = async (req: Request) => {
     const file = req?.file as IUploadFile || null;
@@ -97,23 +100,46 @@ const getSingleGoodIssueService = async (user: TAuthUser, id: string) => {
 }
 
 // GOODS ISSUE HISTORY LOG
-const getGoodsIssueHistoryLogs = async (user: TAuthUser) => {
-    const result = await prisma.goodHistoryLog.findMany({
-        where: {
-            good: {
-                vataId: user.vataId
-            }
-        },
-        include: {
-            good: {
-                select: {
-                    name: true
+const getGoodsIssueHistoryLogs = async (user: TAuthUser, query: TQuery) => {
+    const { limit, page, skip } = paginationHelper(query.page, query.limit);
+    const [result, total] = await Promise.all([
+        prisma.goodHistoryLog.findMany({
+            where: {
+                good: {
+                    vataId: user.vataId
                 }
-            }
-        }
-    })
+            },
+            include: {
+                good: {
+                    select: {
+                        name: true
+                    }
+                }
+            },
+            orderBy: {
+                createdAt: "desc"
+            },
+            skip,
+            take: limit
+        }),
 
-    return result
+        prisma.goodHistoryLog.count({
+            where: {
+                good: {
+                    vataId: user.vataId
+                }
+            },
+        })
+    ])
+    const meta = createMetaConfig({
+        limit: limit,
+        page: page,
+        totalData: total,
+    });
+    return {
+        data: result,
+        meta
+    }
 }
 
 export const GoodIssueService = {

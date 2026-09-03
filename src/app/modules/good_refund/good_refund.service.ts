@@ -58,6 +58,7 @@ const createRefundGoodService = async (req: Request) => {
     }
 
     const price = Number(good.price);
+
     await prisma.$transaction(async (tx) => {
         if (lostQuantity > 0) {
             await tx.goodsLoss.create({

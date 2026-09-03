@@ -4,6 +4,7 @@ import catchAsync from "../../../utils/catchAsync";
 import { AppError } from "../../errors/ApplicationError";
 import { GoodIssueService } from "./good_issue.service";
 import { sendResponse } from "../../../utils/sendResponse";
+import { parseListQuery } from "../../../utils/parseListQuery";
 
 const createGoodIssueController = catchAsync(async (req, res) => {
     const result = await GoodIssueService.createGoodIssueService(req);
@@ -28,7 +29,7 @@ const getAllGoodIssueController = catchAsync(
         const result =
             await GoodIssueService.getAllGoodIssueService(user);
 
-        if (result) {
+        if (result.length) {
             sendResponse(res, {
                 statusCode: StatusCodes.OK,
                 success: true,
@@ -76,10 +77,11 @@ const getSingleGoodIssueController = catchAsync(
 const getGoodIssueHistoryController = catchAsync(
     async (req, res) => {
         const user = req.user as TAuthUser;
+        const { limit, page } = await parseListQuery(req.query);
         const result =
-            await GoodIssueService.getGoodsIssueHistoryLogs(user);
+            await GoodIssueService.getGoodsIssueHistoryLogs(user,{limit, page});
 
-        if (result) {
+        if (result.data.length) {
             sendResponse(res, {
                 statusCode: StatusCodes.OK,
                 success: true,
@@ -96,6 +98,7 @@ const getGoodIssueHistoryController = catchAsync(
         }
     }
 );
+
 
 
 export const GoodIssueController = {

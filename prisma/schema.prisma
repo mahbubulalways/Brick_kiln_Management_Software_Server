@@ -361,22 +361,22 @@ model GoodsStockCategory {
 }
 
 model GoodsStock {
-  id              String             @id @default(uuid())
-  name            String
-  shop            String
-  quantity        Float
-  price           Float
-  warranty        DateTime?
-  image           String?
-  categoryId      String
-  category        GoodsStockCategory @relation(fields: [categoryId], references: [id])
-  vataId          String
-  vata            Vata               @relation(fields: [vataId], references: [id])
-  createdAt       DateTime           @default(now())
-  updatedAt       DateTime           @updatedAt
-  goodsIssues     GoodsIssue[]
-  goodsLosses     GoodsLoss[]
-  goodHistoryLogs GoodHistoryLog[]
+  id                  String               @id @default(uuid())
+  name                String
+  shop                String
+  quantity            Float
+  price               Float
+  warranty            DateTime?
+  image               String?
+  categoryId          String
+  category            GoodsStockCategory   @relation(fields: [categoryId], references: [id])
+  vataId              String
+  vata                Vata                 @relation(fields: [vataId], references: [id])
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+  goodsIssues         GoodsIssue[]
+  goodsLosses         GoodsLoss[]
+  goodHistoryLogs     GoodHistoryLog[]
 }
 
 model GoodsIssue {
@@ -399,20 +399,20 @@ enum GoodHistoryType {
 }
 
 model GoodHistoryLog {
-  id          String          @id @default(uuid())
-  type        GoodHistoryType
-  receiveBy   String
-  quantity    Int
-  returnBy    String?
-  goodId      String
-  date        DateTime
-  good        GoodsStock      @relation(fields: [goodId], references: [id])
-  damage      Int?
-  lost        Int?
-  okay        Int?
-  image       String?
-  createdAt   DateTime        @default(now())
-  updatedAt   DateTime        @updatedAt
+  id        String          @id @default(uuid())
+  type      GoodHistoryType
+  receiveBy String
+  quantity  Int
+  returnBy  String?
+  goodId    String
+  date      DateTime
+  good      GoodsStock      @relation(fields: [goodId], references: [id])
+  damage    Int?
+  lost      Int?
+  okay      Int?
+  image     String?
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
 }
 
 enum GoodLossType {
@@ -430,6 +430,18 @@ model GoodsLoss {
   createdAt  DateTime     @default(now())
   updatedAt  DateTime     @updatedAt
 }
+
+// model GoodStockDashboard {
+//   id       String          @id @default(uuid())
+//   type     GoodHistoryType
+//   quantity Int
+//   date     DateTime
+//   goodId   String
+//   good     GoodsStock      @relation(fields: [goodId], references: [id])
+//   damage   Int?
+//   lost     Int?
+//   okay     Int?
+// }
 
 // DOCUMENT
 model Document {
@@ -575,8 +587,6 @@ model Vata {
   ownerName                     String
   ownerPhoneNumber              String
   challansPhoneNumber           String
-  smsRate                       Float?
-  softwareFee                   Float
   nextPaymentDate               DateTime?
   createdAt                     DateTime                       @default(now())
   updatedAt                     DateTime                       @updatedAt

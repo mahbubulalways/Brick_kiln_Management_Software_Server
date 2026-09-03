@@ -32,6 +32,7 @@ import goodIssueRefundRouter from "../app/modules/good_refund/good_refund.routes
 // ADMIN MODULES
 import adminRoutes from "../app/modules/system_modules/admin/admin.route";
 import adminVataRoutes from "../app/modules/system_modules/vata/vata.route";
+import subscriptionRoutes from "../app/modules/system_modules/subscriptions/subscriptions.route";
 
 const router = Router();
 const applicationRoutes: IApplicationRoute[] = [
@@ -72,6 +73,10 @@ const applicationRoutes: IApplicationRoute[] = [
   {
     path: "/system/vata",
     route: adminVataRoutes,
+  },
+  {
+    path: "/system/subscription",
+    route: subscriptionRoutes,
   }
 ];
 
