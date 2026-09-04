@@ -6,7 +6,7 @@ export type TAdminVata = {
         nameBangla: string;
         address: string;
         subdomain: string
-        susbscriptionPlanId: string;
+        subscriptionPlanId: string;
         // Owner Information
         ownerName: string;
         ownerPhoneNumber: string;
@@ -22,4 +22,16 @@ export type TAdminVata = {
         username: string;
         password: string;
     };
+};
+
+
+
+export type TAdminVataUpdate = {
+    address: string;
+    nameBangla: string;
+    nameEnglish: string;
+    ownerName: string;
+    challansPhoneNumber: string;
+    ownerPhoneNumber: string;
+    subdomain: string;
 };

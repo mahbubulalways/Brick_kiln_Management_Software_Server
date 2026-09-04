@@ -49,8 +49,27 @@ const getVataInformationController = catchAsync(async (req, res) => {
 
 // CREATE NEW VATA CONTROLLER
 const getMyVataInformationController = catchAsync(async (req, res) => {
-      const user = req.user as TAuthUser;
+    const user = req.user as TAuthUser;
     const result = await VataService.getMyVataInformationService(user);
+    if (result) {
+        sendResponse(res, {
+            statusCode: StatusCodes.CREATED,
+            success: true,
+            message: "ভাটার তথ্য সফলভাবে পাওয়া গেছে",
+            data: result,
+        });
+    } else {
+        throw new AppError(
+            StatusCodes.NOT_FOUND,
+            "ভাটার তথ্য পাওয়া যায়নি"
+        );
+    }
+});
+
+// GET MY NAVBAR FEATURES
+const getMyVataNavbarFeaturesController = catchAsync(async (req, res) => {
+    const user = req.user as TAuthUser;
+    const result = await VataService.getMyVataNavbarFeaturesService(user);
     if (result) {
         sendResponse(res, {
             statusCode: StatusCodes.CREATED,
@@ -70,5 +89,6 @@ const getMyVataInformationController = catchAsync(async (req, res) => {
 export const VataController = {
     checkSubdomainExistController,
     getVataInformationController,
-    getMyVataInformationController
+    getMyVataInformationController,
+    getMyVataNavbarFeaturesController
 };

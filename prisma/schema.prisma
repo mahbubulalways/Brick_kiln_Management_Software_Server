@@ -361,22 +361,22 @@ model GoodsStockCategory {
 }
 
 model GoodsStock {
-  id                  String               @id @default(uuid())
-  name                String
-  shop                String
-  quantity            Float
-  price               Float
-  warranty            DateTime?
-  image               String?
-  categoryId          String
-  category            GoodsStockCategory   @relation(fields: [categoryId], references: [id])
-  vataId              String
-  vata                Vata                 @relation(fields: [vataId], references: [id])
-  createdAt           DateTime             @default(now())
-  updatedAt           DateTime             @updatedAt
-  goodsIssues         GoodsIssue[]
-  goodsLosses         GoodsLoss[]
-  goodHistoryLogs     GoodHistoryLog[]
+  id              String             @id @default(uuid())
+  name            String
+  shop            String
+  quantity        Float
+  price           Float
+  warranty        DateTime?
+  image           String?
+  categoryId      String
+  category        GoodsStockCategory @relation(fields: [categoryId], references: [id])
+  vataId          String
+  vata            Vata               @relation(fields: [vataId], references: [id])
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+  goodsIssues     GoodsIssue[]
+  goodsLosses     GoodsLoss[]
+  goodHistoryLogs GoodHistoryLog[]
 }
 
 model GoodsIssue {
@@ -592,8 +592,8 @@ model Vata {
   updatedAt                     DateTime                       @updatedAt
   subdomain                     String                         @unique
   status                        VataStatus                     @default(ACTIVE)
-  susbscriptionPlanId           String?
-  subscriptionPlan              SubscriptionPlan?              @relation(fields: [susbscriptionPlanId], references: [id])
+  subscriptionPlanId            String?
+  subscriptionPlan              SubscriptionPlan?              @relation(fields: [subscriptionPlanId], references: [id])
   subscriptionStart             DateTime?
   subscriptionEnd               DateTime?
   contacts                      Contact[]

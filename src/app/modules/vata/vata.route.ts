@@ -17,6 +17,11 @@ router.get(
     AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
     VataController.getMyVataInformationController
 )
+router.get(
+    '/nav',
+    AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+    VataController.getMyVataNavbarFeaturesController
+)
 
 router.get('/verify-domain/:id', VataController.checkSubdomainExistController)
 

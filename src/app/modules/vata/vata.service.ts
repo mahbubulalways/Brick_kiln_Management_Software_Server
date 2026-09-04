@@ -23,7 +23,7 @@ const getVataInformationService = async (user: TAuthUser) => {
             address: true,
             id: true,
             challansPhoneNumber: true,
-            ownerName:true
+            ownerName: true
         }
     })
     return result
@@ -32,13 +32,54 @@ const getVataInformationService = async (user: TAuthUser) => {
 
 // GET VATA INFO
 const getMyVataInformationService = async (user: TAuthUser) => {
-    const result = await prisma.vata.findFirst({ where: { id: user.vataId } })
+    const result = await prisma.vata.findFirst({
+        where: { id: user.vataId }, select: {
+            address: true,
+            ownerName: true,
+            vataId: true,
+            challansPhoneNumber: true,
+            ownerPhoneNumber: true,
+            nameBangla: true,
+            nameEnglish: true,
+            nextPaymentDate: true,
+            subscriptionPlan: {
+                select: {
+                    name: true,
+                    billingCycle: true,
+                    price: true,
+
+                }
+            }
+        }
+    })
     return result
+}
+
+
+// GET MY NAVBAR
+const getMyVataNavbarFeaturesService = async (user: TAuthUser) => {
+    const result = await prisma.vata.findFirst({
+        where: {
+            id: user.vataId
+        },
+        select: {
+            id:true,
+            subscriptionPlan: {
+                select: {
+                    features: true
+                }
+            }
+        }
+    })
+
+    return result
+
 }
 
 
 export const VataService = {
     checkSubdomainExistService,
     getVataInformationService,
-    getMyVataInformationService
+    getMyVataInformationService,
+    getMyVataNavbarFeaturesService
 }

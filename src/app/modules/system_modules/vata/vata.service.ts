@@ -2,7 +2,7 @@ import { StatusCodes } from "http-status-codes";
 import { Prisma } from "../../../../generated/prisma/client";
 import { prisma } from "../../../../helpers/prisma";
 import { AppError } from "../../../errors/ApplicationError";
-import { TAdminVata } from "./vata.interface";
+import { TAdminVata, TAdminVataUpdate } from "./vata.interface";
 import { bcryptHelper } from "../../../../helpers/bcryptHelper";
 
 // CREATE NEW VATA
@@ -64,7 +64,7 @@ const createNewVataService = async (payload: TAdminVata) => {
                 ownerName: vataInformation.ownerName,
                 ownerPhoneNumber: vataInformation.ownerPhoneNumber,
                 challansPhoneNumber: vataInformation.challansPhoneNumber,
-                susbscriptionPlanId: vataInformation.susbscriptionPlanId,
+                subscriptionPlanId: vataInformation.subscriptionPlanId,
                 nextPaymentDate: new Date(vataInformation.nextPaymentDate),
                 subdomain: vataInformation.subdomain || subdomain,
                 subscriptionEnd: payload.vata.nextPaymentDate,
@@ -75,10 +75,10 @@ const createNewVataService = async (payload: TAdminVata) => {
 
         const planPrice = await tx.subscriptionPlan.findFirst({
             where: {
-                id: vataInformation.susbscriptionPlanId
+                id: vataInformation.subscriptionPlanId
             },
-            select:{
-                price:true
+            select: {
+                price: true
             }
         })
         await tx.subscriptionPayment.create({
@@ -92,7 +92,8 @@ const createNewVataService = async (payload: TAdminVata) => {
                 endDate: payload.vata.nextPaymentDate,
                 status: "PAID",
                 vataId: vata.id,
-                subscriptionPlanId: vata.susbscriptionPlanId!
+                subscriptionPlanId: vata.subscriptionPlanId!,
+
             }
         })
 
@@ -112,8 +113,6 @@ const createNewVataService = async (payload: TAdminVata) => {
     return result
 }
 
-
-
 // GET ALL VATA
 const getAllVataService = async () => {
     const result = await prisma.vata.findMany({
@@ -129,7 +128,15 @@ const getAllVataService = async () => {
             ownerName: true,
             address: true,
             createdAt: true,
-            softwareFee: true,
+            status: true,
+            subscriptionStart: true,
+            subscriptionEnd: true,
+            subscriptionPlan: {
+                select: {
+                    name: true,
+                    price: true
+                }
+            }
         }
     })
     return result
@@ -152,7 +159,15 @@ const getAllInactiveVataService = async () => {
             ownerName: true,
             address: true,
             createdAt: true,
-            softwareFee: true,
+            status: true,
+            subscriptionStart: true,
+            subscriptionEnd: true,
+            subscriptionPlan: {
+                select: {
+                    name: true,
+                    price: true
+                }
+            }
         }
     })
     return result
@@ -171,21 +186,164 @@ const getSingleVataService = async (id: string) => {
             ownerName: true,
             address: true,
             createdAt: true,
-            softwareFee: true,
-            smsRate: true,
             subscriptionEnd: true,
             subscriptionStart: true,
             subdomain: true,
-            subscriptions: true,
+            subscriptionPlan: {
+                select: {
+                    name: true,
+                    price: true,
+                }
+            },
+            subscriptionPayments: {
+                select: {
+                    amount: true,
+                    createdAt: true,
+                    endDate: true,
+                    id: true,
+                    paidAt: true,
+                    paymentMethod: true,
+                    phoneNumber: true,
+                    startDate: true,
+                    status: true,
+                    transactionId: true,
+
+                }
+            },
             ownerPhoneNumber: true
         }
     })
     return result
 }
 
+
+// GETB SINGLE VATA INFO FOR UPDATE
+const getSingleVataInformationService = async (id: string) => {
+    const result = await prisma.vata.findFirst({
+        where: {
+            id
+        },
+        select: {
+            address: true,
+            nameBangla: true,
+            nameEnglish: true,
+            ownerName: true,
+            challansPhoneNumber: true,
+            ownerPhoneNumber: true,
+            subdomain: true,
+        }
+    })
+    console.log(result)
+    return result
+}
+
+// UPDATE VATA INFO
+const updateVataInfoService = async (
+    id: string,
+    info: TAdminVataUpdate
+) => {
+
+    const updateData = {
+        nameBangla: info.nameBangla,
+        nameEnglish: info.nameEnglish,
+        ownerName: info.ownerName,
+        ownerPhoneNumber: info.ownerPhoneNumber,
+        challansPhoneNumber: info.challansPhoneNumber,
+        address: info.address,
+        subdomain: info.subdomain,
+    };
+
+    const result = await prisma.vata.update({
+        where: {
+            id,
+        },
+        data: updateData,
+    });
+
+    return result;
+};
+
+
+// UPDATE VATA SUBSCRIPTION
+const updateVataSubscriptionService = async (
+    id: string,
+    payload: { subscriptionPlanId: string }
+) => {
+    return await prisma.$transaction(async (tx) => {
+        // Find subscription plan
+        const findsubscription = await tx.subscriptionPlan.findFirst({
+            where: {
+                id: payload.subscriptionPlanId,
+            },
+            select: {
+                price: true,
+                billingCycle: true,
+            },
+        });
+
+        // Subscription plan not found
+        if (!findsubscription) {
+            throw new AppError(
+                StatusCodes.NOT_FOUND,
+                "নির্বাচিত সাবস্ক্রিপশন প্ল্যানটি পাওয়া যায়নি।"
+            );
+        }
+
+        // Start date
+        const startDate = new Date();
+
+        // Calculate end date
+        const endDate = new Date(startDate);
+
+        if (findsubscription.billingCycle === "MONTHLY") {
+            // 1 month later
+            endDate.setMonth(endDate.getMonth() + 1);
+        } else if (findsubscription.billingCycle === "YEARLY") {
+            // 1 year later
+            endDate.setFullYear(endDate.getFullYear() + 1);
+        } else {
+            throw new AppError(
+                StatusCodes.BAD_REQUEST,
+                "সাবস্ক্রিপশনের বিলিং সাইকেল সঠিক নয়।"
+            );
+        }
+        const vataUpdate = await tx.vata.update({
+            where: {
+                id,
+            },
+            data: {
+                subscriptionPlanId: payload.subscriptionPlanId,
+                subscriptionStart: startDate,
+                subscriptionEnd: endDate,
+                nextPaymentDate: endDate,
+            },
+        });
+
+        await tx.subscriptionPayment.create({
+            data: {
+                amount: findsubscription.price,
+                paymentMethod: "Update",
+                phoneNumber: "Update",
+                transactionId: "Update",
+                startDate,
+                endDate,
+                paidAt: new Date(),
+                status: "PAID",
+                subscriptionPlanId: payload.subscriptionPlanId,
+                vataId: id,
+            },
+        });
+
+        return vataUpdate;
+    });
+};
+
 export const AdminVataService = {
     createNewVataService,
     getAllVataService,
     getSingleVataService,
-    getAllInactiveVataService
+    getAllInactiveVataService,
+    getSingleVataInformationService,
+    updateVataInfoService,
+    updateVataSubscriptionService
 }
