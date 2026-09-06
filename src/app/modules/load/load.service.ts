@@ -1,34 +1,159 @@
-import { LoadInfo, Prisma } from "../../../generated/prisma/client";
+
+import { StatusCodes } from "http-status-codes";
+import { LoadType, Prisma } from "../../../generated/prisma/client";
 import { paginationHelper } from "../../../helpers/paginationHelper";
 import { prisma } from "../../../helpers/prisma";
 import { TQuery } from "../../../interface/query";
 import { TAuthUser } from "../../../interface/token";
 import { createMetaConfig } from "../../../utils/createMetaConfig";
 import { getDateRangeDbSearch } from "../../../utils/getDateRangeDbSearch";
+import { AppError } from "../../errors/ApplicationError";
 import { TLoadInfo } from "./load.interface";
+import { checkAvailableBrick, updateBrickStock } from "./load.utils";
 
 // CREATE LOAD INFO
-const createLoadInfoService = async (user: TAuthUser, seasonId: string, payload: TLoadInfo) => {
-    const round = payload.round
-    const result = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
-        let roundExist = await tx.round.findFirst({ where: { name: round, vataId: user.vataId } })
-        if (!roundExist) {
-            roundExist = await tx.round.create({ data: { name: round, vataId: user.vataId, seasonId } })
+const createLoadInfoService = async (
+    user: TAuthUser,
+    seasonId: string,
+    payload: TLoadInfo
+) => {
+    const round = payload.round;
+    const result = await prisma.$transaction(
+        async (tx: Prisma.TransactionClient) => {
+
+            // ROUND OPERATIONS
+            let roundExist = await tx.round.findFirst({
+                where: {
+                    name: round,
+                    vataId: user.vataId,
+                    seasonId,
+                },
+            });
+            if (!roundExist) {
+                roundExist = await tx.round.create({
+                    data: {
+                        name: round,
+                        vataId: user.vataId,
+                        seasonId,
+                    },
+                });
+            }
+
+            // QUANTITY
+            const quantity = Number(payload.quantity || 0);
+
+            // CHECK AVAILABILITY
+            await checkAvailableBrick(
+                tx,
+                user.vataId,
+                payload.loadType,
+                quantity
+            );
+
+
+            // BRICK STOCK SUMMARUY
+            let brickSummary =
+                await tx.brickStockSummary.findFirst({
+                    where: {
+                        vataId: user.vataId,
+                    },
+                });
+            if (!brickSummary) {
+                brickSummary =
+                    await tx.brickStockSummary.create({
+                        data: {
+                            vataId: user.vataId,
+                            rawBrick: 0,
+                            fieldBrick: 0,
+                            stockBrick: 0,
+                            chulliBrick: 0,
+                        },
+                    });
+            }
+
+
+
+            // LOAD CREATE
+            const load = await tx.loadInfo.create({
+                data: {
+                    date: payload.date,
+                    loadType: payload.loadType,
+                    roundId: roundExist.id,
+                    quantity,
+                    classId: payload.classId || null,
+                },
+            });
+
+            // UPDATE BRICK STOCK SUMMARY
+            if (payload.loadType === LoadType.RAWENTRY) {
+                await tx.brickStockSummary.update({
+                    where: {
+                        id: brickSummary.id,
+                    },
+                    data: {
+                        rawBrick: {
+                            increment: quantity,
+                        },
+                    },
+                });
+            }
+
+            else if (payload.loadType === LoadType.RAW_TO_FIELD) {
+                await tx.brickStockSummary.update({
+                    where: {
+                        vataId: user.vataId,
+                    },
+                    data: {
+                        rawBrick: { decrement: quantity },
+                        fieldBrick: { increment: quantity }
+                    }
+                })
+            }
+
+            else if (payload.loadType === LoadType.FIELD_TO_CHULLI) {
+                await tx.brickStockSummary.update({
+                    where: {
+                        vataId: user.vataId,
+                    },
+                    data: {
+                        fieldBrick: { decrement: quantity },
+                        chulliBrick: { increment: quantity }
+                    }
+                })
+            }
+
+            else if (payload.loadType === LoadType.STOCK_TO_CHULLI) {
+                await tx.brickStockSummary.update({
+                    where: {
+                        vataId: user.vataId,
+                    },
+                    data: {
+                        stockBrick: { decrement: quantity },
+                        chulliBrick: { increment: quantity }
+                    }
+                })
+            }
+
+            else if (payload.loadType === LoadType.FIELD_TO_STOCK) {
+                await tx.brickStockSummary.update({
+                    where: {
+                        vataId: user.vataId,
+                    },
+                    data: {
+                        fieldBrick: { decrement: quantity },
+                        stockBrick: { increment: quantity }
+                    }
+                })
+            }
+
+
+            return load;
         }
-        const loadData = {
-            roundId: roundExist.id,
-            date: payload.date,
-            quantity: Number(payload.quantity),
-            loadType: payload.loadType,
-            classType: payload.classType || null
-        }
-        const load = await tx.loadInfo.create({
-            data: loadData,
-        });
-        return load
-    })
+    );
+
     return result;
 };
+
 
 // GET ALL LOAD INFO
 const getAllLoadInfoService = async (user: TAuthUser, seasonId: string, query: TQuery) => {
@@ -53,14 +178,7 @@ const getAllLoadInfoService = async (user: TAuthUser, seasonId: string, query: T
     // SEARCH
     if (query.search?.trim()) {
         const search = query.search.trim();
-
         where.OR = [
-            {
-                loadType: {
-                    contains: search,
-                    mode: "insensitive",
-                },
-            },
             {
                 round: {
                     name: {
@@ -124,59 +242,124 @@ const getSingleLoadInfoService = async (user: TAuthUser, id: string) => {
 // UPDATE LOAD INFO
 const updateLoadInfoService = async (
     user: TAuthUser,
-    seasonId:string,
+    seasonId: string,
     id: string,
     payload: TLoadInfo
 ) => {
-    const result = await prisma.$transaction(async (tx) => {
-        // Round name
-        const roundName = `${payload.round}`;
+    return await prisma.$transaction(async (tx) => {
+        // --------------------------------
+        // GET OLD LOAD
+        // --------------------------------
 
-        // Check round exists
-        let roundExist = await tx.round.findFirst({
+        const oldLoad = await tx.loadInfo.findUnique({
             where: {
-                vataId: user.vataId,
-                name: roundName,
+                id,
             },
         });
 
-        // Create round if not exists
-        if (!roundExist) {
-            roundExist = await tx.round.create({
+        if (!oldLoad) {
+            throw new AppError(
+                StatusCodes.NOT_FOUND,
+                "লোডের তথ্য পাওয়া যায়নি।"
+            );
+        }
+
+        // --------------------------------
+        // ROUND
+        // --------------------------------
+
+        let round = await tx.round.findFirst({
+            where: {
+                name: payload.round,
+                vataId: user.vataId,
+                seasonId,
+            },
+        });
+
+        if (!round) {
+            round = await tx.round.create({
                 data: {
+                    name: payload.round,
                     vataId: user.vataId,
-                    name: roundName,
-                    seasonId
+                    seasonId,
                 },
             });
         }
 
-        // Update load info
+        // --------------------------------
+        // BRICK STOCK SUMMARY
+        // --------------------------------
+
+        const brickSummary = await tx.brickStockSummary.findFirst({
+            where: {
+                vataId: user.vataId,
+            },
+        });
+
+        if (!brickSummary) {
+            throw new AppError(
+                StatusCodes.NOT_FOUND,
+                "ইটের স্টক তথ্য পাওয়া যায়নি।"
+            );
+        }
+
+        const oldQuantity = Number(oldLoad.quantity);
+        const newQuantity = Number(payload.quantity || 0);
+
+        // --------------------------------
+        // 1. REVERSE OLD LOAD
+        // --------------------------------
+
+        await updateBrickStock(
+            tx,
+            brickSummary.id,
+            oldLoad.loadType,
+            oldQuantity,
+            true
+        );
+
+        // --------------------------------
+        // 2. CHECK NEW LOAD AVAILABILITY
+        // --------------------------------
+
+        await checkAvailableBrick(
+            tx,
+            user.vataId,
+            payload.loadType,
+            newQuantity
+        );
+
+        // --------------------------------
+        // 3. APPLY NEW LOAD
+        // --------------------------------
+
+        await updateBrickStock(
+            tx,
+            brickSummary.id,
+            payload.loadType,
+            newQuantity
+        );
+
+        // --------------------------------
+        // 4. UPDATE LOAD INFO
+        // --------------------------------
+
         const load = await tx.loadInfo.update({
             where: {
                 id,
-                round: {
-                    vataId: user.vataId
-                }
             },
             data: {
-                roundId: roundExist.id,
                 date: payload.date,
-                quantity: Number(payload.quantity),
                 loadType: payload.loadType,
-                classType: payload.classType || null,
-            },
-            include: {
-                round: true,
+                roundId: round.id,
+                quantity: newQuantity,
+                classId: payload.classId || null,
             },
         });
 
         return load;
     });
-
-    return result;
 };
-
 // DELETE LOAD INFO
 const deleteLoadInfoService = async (user: TAuthUser, id: string) => {
     return await prisma.loadInfo.update({

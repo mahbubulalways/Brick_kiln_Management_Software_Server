@@ -11,4 +11,5 @@ const ActiveSeasonGuard_1 = __importDefault(require("../../middlewares/ActiveSea
 const router = (0, express_1.Router)();
 router.get("/area", (0, AuthGuard_1.default)(enums_1.UserRole.OWNER, enums_1.UserRole.ADMIN, enums_1.UserRole.MANAGER), report_controller_1.ReportController.getAllCustomertController);
 router.get("/dashboard", (0, AuthGuard_1.default)(enums_1.UserRole.OWNER, enums_1.UserRole.ADMIN, enums_1.UserRole.MANAGER), ActiveSeasonGuard_1.default, report_controller_1.ReportController.dashboardAllReportController);
+router.get("/load-unload", (0, AuthGuard_1.default)(enums_1.UserRole.OWNER, enums_1.UserRole.ADMIN, enums_1.UserRole.MANAGER), ActiveSeasonGuard_1.default, report_controller_1.ReportController.getLoadUnloadReportController);
 exports.default = router;

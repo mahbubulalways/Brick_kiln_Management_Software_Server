@@ -29,6 +29,7 @@ import goodStockRouter from "../app/modules/goods_stock/good_stock.route";
 import goodIssueRouter from "../app/modules/good_issue/good_issue.route";
 import goodIssueRefundRouter from "../app/modules/good_refund/good_refund.routes";
 import subscriptionPaymentRouter from "../app/modules/subscription_payment/subscription_payment.route";
+import vatacarRouter from "../app/modules/vata_car/vata_car.route";
 
 // ADMIN MODULES
 import adminRoutes from "../app/modules/system_modules/admin/admin.route";
@@ -65,6 +66,7 @@ const applicationRoutes: IApplicationRoute[] = [
   { path: "/goods", route: goodStockRouter },
   { path: "/goods-issue", route: goodIssueRouter },
   { path: "/goods-issue-refund", route: goodIssueRefundRouter },
+  { path: "/car", route: vatacarRouter },
   { path: "/subscription-payment", route: subscriptionPaymentRouter }, // vata + system
 
   // ADMIN MODULES

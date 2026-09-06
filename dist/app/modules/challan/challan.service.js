@@ -81,7 +81,7 @@ const createInvoiceService = async (user, seasonId, customer, invoiceItems, invo
                 class: it.class,
                 rate: Number(it.rate),
                 quantity: Number(it.quantity),
-                price: it.price,
+                price: Number(it.price),
                 challanId: newInvoice.id,
                 deliveryDate: invoice.deliveryDate,
             };

@@ -7,6 +7,7 @@ const prisma_1 = require("../../../helpers/prisma");
 const paginationHelper_1 = require("../../../helpers/paginationHelper");
 const createMetaConfig_1 = require("../../../utils/createMetaConfig");
 const getDateRangeDbSearch_1 = require("../../../utils/getDateRangeDbSearch");
+const delivery_utils_1 = require("./delivery.utils");
 const getNextDeliveryNo = async (user) => {
     const result = await prisma_1.prisma.delivery.findFirst({
         where: {
@@ -33,10 +34,18 @@ const createDeliveryService = async (user, payload) => {
     if (isDeliveryNoExist?.id) {
         throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.CONFLICT, "এই ডেলিভারি নম্বর ইতিমধ্যে আছে");
     }
-    // HERE COME SERIAL ID AS INVOICE ID 
+    // // HERE COME SERIAL ID AS INVOICE ID 
     const mainInvoiceId = await prisma_1.prisma.challan.findFirst({
-        where: { serial: Number(payload.invoiceId), vataId: user.vataId }, select: { id: true }
+        where: {
+            serial: Number(payload.invoiceId), vataId: user.vataId
+        },
+        select: { id: true, carRent: true, seasonId: true }
     });
+    const checkStockQuantity = await (0, delivery_utils_1.getStockByClass)(user, mainInvoiceId?.seasonId, payload.items.class);
+    if (checkStockQuantity < payload.items.todaysDelivery) {
+        throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.BAD_REQUEST, `পর্যাপ্ত ইট নেই। বর্তমানে ${checkStockQuantity} টি ইট আছে, 
+       কিন্তু ${payload.items.quantity} টি ইট প্রয়োজন।`);
+    }
     const lastDelivered = await prisma_1.prisma.delivery.aggregate({
         where: {
             invoiceId: mainInvoiceId?.id,
@@ -90,7 +99,7 @@ const createDeliveryService = async (user, payload) => {
                 },
             });
         }
-        const updateItem = await tx.challanItem.update({
+        await tx.challanItem.update({
             data: {
                 delivered: {
                     increment: data?.deliveryReceived,
@@ -100,6 +109,30 @@ const createDeliveryService = async (user, payload) => {
                 id: payload?.itemId,
             },
         });
+        const carRent = Number(payload?.carRent) || Number(mainInvoiceId?.carRent);
+        if (carRent && payload?.carNumber) {
+            console.log("first");
+            const car = await tx.vataCar.findFirst({
+                where: {
+                    carNo: payload.carNumber,
+                    vataId: user.vataId
+                },
+                select: {
+                    id: true
+                }
+            });
+            if (!car) {
+                throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.NOT_FOUND, "এই গাড়িটি পাওয়া যায়নি");
+            }
+            await tx.carIncomeDelivery.create({
+                data: {
+                    amount: carRent,
+                    carId: car?.id,
+                    deliveryId: createDelivery?.id,
+                    driverId: payload.driverId,
+                }
+            });
+        }
         return createDelivery;
     });
     return result;
@@ -107,7 +140,11 @@ const createDeliveryService = async (user, payload) => {
 // GET DELIVERIES THAT GO TODAT
 const getDeliveryThatGoTodayService = async (user, seasonId, query) => {
     const { limit, page, skip } = (0, paginationHelper_1.paginationHelper)(query.page, query.limit);
-    const where = { vataId: user.vataId, isDeleted: false, seasonId };
+    const where = {
+        vataId: user.vataId,
+        isDeleted: false,
+        seasonId,
+    };
     // Create start and end of day boundaries
     if (query.search?.trim()) {
         const search = query.search.trim();
@@ -179,7 +216,8 @@ const getDeliveryThatGoTodayService = async (user, seasonId, query) => {
         prisma_1.prisma.challan.count({ where })
     ]);
     // Filter out challans with no items
-    const filteredResult = result.filter((challan) => challan.items.length > 0);
+    const filteredResult = result.filter((challan) => challan.items.length > 0)
+        .filter((challan) => challan.items.some((item) => Number(item.delivered) < Number(item.quantity)));
     const meta = (0, createMetaConfig_1.createMetaConfig)({
         limit: limit,
         page: page,

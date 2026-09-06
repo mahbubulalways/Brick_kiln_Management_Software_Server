@@ -51,9 +51,9 @@ model ClassAndRate {
   updatedAt   DateTime     @default(now()) @updatedAt
   isDeleted   Boolean      @default(false)
   vataId      String
-  unloadItems UnloadItem[]
   vata        Vata         @relation(fields: [vataId], references: [id])
   loadInfos   LoadInfo[]
+  unloadItems UnloadItem[]
 
   @@unique([vataId, classType, className])
   @@map("classAndRates")
@@ -154,27 +154,28 @@ model CustomerDue {
 }
 
 model Delivery {
-  id                String    @id @default(uuid())
-  deliveryDate      DateTime
-  deliveryNo        Int
-  nextDeliveryDate  DateTime?
-  quantity          Int
-  deliveryReceived  Int
-  class             String
-  deliveryRemaining Int
-  carNo             String?
-  lastDelivered     Int?
-  carRent           Float?
-  invoiceId         String
-  isDeleted         Boolean   @default(false)
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
-  season            String?
-  deliveryById      String
-  driverId          String?
-  driver            Driver?   @relation(fields: [driverId], references: [id])
-  deliveryBy        User      @relation(fields: [deliveryById], references: [id])
-  invoice           Challan   @relation(fields: [invoiceId], references: [id])
+  id                  String              @id @default(uuid())
+  deliveryDate        DateTime
+  deliveryNo          Int
+  nextDeliveryDate    DateTime?
+  quantity            Int
+  deliveryReceived    Int
+  class               String
+  deliveryRemaining   Int
+  carNo               String?
+  lastDelivered       Int?
+  carRent             Float?
+  invoiceId           String
+  isDeleted           Boolean             @default(false)
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+  season              String?
+  deliveryById        String
+  driverId            String?
+  driver              Driver?             @relation(fields: [driverId], references: [id])
+  deliveryBy          User                @relation(fields: [deliveryById], references: [id])
+  invoice             Challan             @relation(fields: [invoiceId], references: [id])
+  carIncomeDeliveries CarIncomeDelivery[]
 
   @@unique([invoiceId, deliveryNo])
   @@map("deliveries")
@@ -274,30 +275,26 @@ model Round {
   vata      Vata       @relation(fields: [vataId], references: [id])
   unloads   Unload[]
 
-  @@unique([vataId, name])
+  @@unique([vataId, name, seasonId])
   @@index([vataId])
 }
 
 // LOAD INFO
-// model LoadType {
-//   id        String     @id @default(uuid())
-//   name      String
-//   vataId    String
-//   createdAt DateTime   @default(now())
-//   updatedAt DateTime   @updatedAt
-//   vata      Vata       @relation(fields: [vataId], references: [id])
-//   loadInfos LoadInfo[]
-
-//   @@unique([vataId, name])
-// }
+enum LoadType {
+  RAWENTRY
+  RAW_TO_FIELD
+  FIELD_TO_CHULLI
+  STOCK_TO_CHULLI
+  CHULLI_TO_FINISHED
+  FIELD_TO_STOCK
+}
 
 model LoadInfo {
   id        String        @id @default(uuid())
   date      DateTime
   roundId   String
   quantity  Int
-  // loadTypeId String
-  // loadType   LoadType      @relation(fields: [loadTypeId], references: [id])
+  loadType  LoadType
   classId   String?
   class     ClassAndRate? @relation(fields: [classId], references: [id])
   isDeleted Boolean       @default(false)
@@ -307,28 +304,45 @@ model LoadInfo {
 }
 
 model Unload {
-  id          String       @id @default(uuid())
-  date        DateTime
-  roundId     String
-  isDeleted   Boolean      @default(false)
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @updatedAt
-  round       Round        @relation(fields: [roundId], references: [id])
-  unloadItems UnloadItem[]
-}
-
-model UnloadItem {
   id        String       @id @default(uuid())
-  unloadId  String
-  classId   String
-  quantity  Int          @default(0)
+  date      DateTime
+  roundId   String
   isDeleted Boolean      @default(false)
   createdAt DateTime     @default(now())
   updatedAt DateTime     @updatedAt
-  classType ClassAndRate @relation(fields: [classId], references: [id])
-  unload    Unload       @relation(fields: [unloadId], references: [id])
+  round     Round        @relation(fields: [roundId], references: [id])
+  items     UnloadItem[]
 
-  @@unique([unloadId, classId])
+  @@index([roundId])
+}
+
+model UnloadItem {
+  id        String        @id @default(uuid())
+  unloadId  String
+  classId   String?
+  quantity  Int           @default(0)
+  damaged   Int           @default(0)
+  unload    Unload        @relation(fields: [unloadId], references: [id])
+  class     ClassAndRate? @relation(fields: [classId], references: [id])
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  @@index([unloadId])
+  @@index([classId])
+}
+
+model BrickStockSummary {
+  id          String   @id @default(uuid())
+  vataId      String
+  vata        Vata     @relation(fields: [vataId], references: [id])
+  rawBrick    Int      @default(0)
+  fieldBrick  Int      @default(0)
+  stockBrick  Int      @default(0)
+  chulliBrick Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([vataId])
 }
 
 // STOCK MANAGEMENT
@@ -618,6 +632,8 @@ model Vata {
   stocks                        StockBook[]
   goodsStockCategories          GoodsStockCategory[]
   goodsStocks                   GoodsStock[]
+  brickStockSummaries           BrickStockSummary[]
+  vataCars                      VataCar[]
 
   @@map("vatainformation")
 }
@@ -699,15 +715,16 @@ model Season {
 
 // DRIVER
 model Driver {
-  id          String     @id @default(uuid())
-  name        String
-  PhoneNumber String
-  salary      Decimal    @db.Decimal(12, 2)
-  vataId      String
-  vata        Vata       @relation(fields: [vataId], references: [id])
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
-  deliveries  Delivery[]
+  id                  String              @id @default(uuid())
+  name                String
+  PhoneNumber         String
+  salary              Decimal             @db.Decimal(12, 2)
+  vataId              String
+  vata                Vata                @relation(fields: [vataId], references: [id])
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+  deliveries          Delivery[]
+  carIncomeDeliveries CarIncomeDelivery[]
 }
 
 // PLATFORM
@@ -721,6 +738,30 @@ model Driver {
 //   userId      String
 //   user        User     @relation(fields: [userId], references: [id])
 // }
+
+// CAR 
+model VataCar {
+  id                  String              @id @default(uuid())
+  vataId              String
+  carNo               String
+  vata                Vata                @relation(fields: [vataId], references: [id])
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+  carIncomeDeliveries CarIncomeDelivery[]
+}
+
+model CarIncomeDelivery {
+  id         String   @id @default(uuid())
+  amount     Float
+  driverId   String
+  deliveryId String
+  delivery   Delivery @relation(fields: [deliveryId], references: [id])
+  driver     Driver   @relation(fields: [driverId], references: [id])
+  carId      String
+  car        VataCar  @relation(fields: [carId], references: [id])
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
 
 enum UserRole {
   OWNER

@@ -55,8 +55,25 @@ const getMyVataInformationController = (0, catchAsync_1.default)(async (req, res
         throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.NOT_FOUND, "ভাটার তথ্য পাওয়া যায়নি");
     }
 });
+// GET MY NAVBAR FEATURES
+const getMyVataNavbarFeaturesController = (0, catchAsync_1.default)(async (req, res) => {
+    const user = req.user;
+    const result = await vata_service_1.VataService.getMyVataNavbarFeaturesService(user);
+    if (result) {
+        (0, sendResponse_1.sendResponse)(res, {
+            statusCode: http_status_codes_1.StatusCodes.CREATED,
+            success: true,
+            message: "ভাটার তথ্য সফলভাবে পাওয়া গেছে",
+            data: result,
+        });
+    }
+    else {
+        throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.NOT_FOUND, "ভাটার তথ্য পাওয়া যায়নি");
+    }
+});
 exports.VataController = {
     checkSubdomainExistController,
     getVataInformationController,
-    getMyVataInformationController
+    getMyVataInformationController,
+    getMyVataNavbarFeaturesController
 };

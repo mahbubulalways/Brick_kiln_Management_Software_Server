@@ -24,7 +24,6 @@ const createStockBookController = (0, catchAsync_1.default)(async (req, res) => 
             message: "স্টক বুক সফলভাবে তৈরি হয়েছে।",
             statusCode: http_status_codes_1.StatusCodes.CREATED,
             success: true,
-            data: result,
         });
     }
 });
@@ -64,8 +63,30 @@ const deleteStockBookController = (0, catchAsync_1.default)(async (req, res) => 
         });
     }
 });
+// MAIN STOCK ==============
+// GET ALL STOCK
+const getMainStockController = (0, catchAsync_1.default)(async (req, res) => {
+    const seasonId = req.seasonId;
+    const user = req.user;
+    const result = await stock_book_service_1.StockBookService.getMainStockInformation(user, seasonId);
+    if (!result.data.length) {
+        return (0, sendResponse_1.sendResponse)(res, {
+            statusCode: http_status_codes_1.StatusCodes.OK,
+            success: true,
+            message: "কোনো স্টকের তথ্য পাওয়া যায়নি।",
+            data: [],
+        });
+    }
+    return (0, sendResponse_1.sendResponse)(res, {
+        statusCode: http_status_codes_1.StatusCodes.OK,
+        success: true,
+        message: "স্টকের তথ্য সফলভাবে পাওয়া গেছে।",
+        data: result,
+    });
+});
 exports.StockBookController = {
     createStockBookController,
     getAllStockController,
-    deleteStockBookController
+    deleteStockBookController,
+    getMainStockController
 };

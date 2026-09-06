@@ -80,9 +80,58 @@ const getSingleVataController = (0, catchAsync_1.default)(async (req, res) => {
         });
     }
 });
+// GET SINGLE VATA
+const getSingleVataInfoController = (0, catchAsync_1.default)(async (req, res) => {
+    const id = req.params.id;
+    const result = await vata_service_1.AdminVataService.getSingleVataInformationService(id);
+    if (!result) {
+        throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.NOT_FOUND, "কোনো ভাটা পাওয়া যায়নি।");
+    }
+    else {
+        (0, sendResponse_1.sendResponse)(res, {
+            statusCode: http_status_codes_1.StatusCodes.OK,
+            success: true,
+            message: "ভাটা সফলভাবে পাওয়া গেছে।",
+            data: result,
+        });
+    }
+});
+// UPDATE VATA INFORMATION
+const updateVataInfoController = (0, catchAsync_1.default)(async (req, res) => {
+    const id = req.params.id;
+    const body = req.body;
+    const result = await vata_service_1.AdminVataService.updateVataInfoService(id, body);
+    if (!result) {
+        throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.BAD_REQUEST, "ভাটার তথ্য আপডেট করা সম্ভব হয়নি।");
+    }
+    (0, sendResponse_1.sendResponse)(res, {
+        statusCode: http_status_codes_1.StatusCodes.OK,
+        success: true,
+        message: "ভাটার তথ্য সফলভাবে আপডেট হয়েছে।",
+        data: result,
+    });
+});
+// UPDATE SUBSCRIPTION
+const updateVataSubscriptionController = (0, catchAsync_1.default)(async (req, res) => {
+    const id = req.params.id;
+    const body = req.body;
+    const result = await vata_service_1.AdminVataService.updateVataSubscriptionService(id, body);
+    if (!result) {
+        throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.BAD_REQUEST, "ভাটার সাবস্ক্রিপশন আপডেট করা সম্ভব হয়নি।");
+    }
+    (0, sendResponse_1.sendResponse)(res, {
+        statusCode: http_status_codes_1.StatusCodes.OK,
+        success: true,
+        message: "ভাটার সাবস্ক্রিপশন সফলভাবে আপডেট হয়েছে।",
+        data: result,
+    });
+});
 exports.AdminVataController = {
     createNewVataController,
     getAllVataController,
     getSingleVataController,
-    getInactiveVataController
+    getInactiveVataController,
+    getSingleVataInfoController,
+    updateVataInfoController,
+    updateVataSubscriptionController
 };

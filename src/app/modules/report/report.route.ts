@@ -15,5 +15,10 @@ router.get("/dashboard",
     ActiveSeasonGuard,
     ReportController.dashboardAllReportController)
 
+router.get("/load-unload",
+    AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+    ActiveSeasonGuard,
+    ReportController.getLoadUnloadReportController)
+
 
 export default router

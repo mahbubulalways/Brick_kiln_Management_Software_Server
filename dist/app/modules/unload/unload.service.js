@@ -12,72 +12,145 @@ const createNewUnloadService = async (user, seasonId, payload) => {
     startOfDay.setHours(0, 0, 0, 0);
     const endOfDay = new Date(payload.date);
     endOfDay.setHours(23, 59, 59, 999);
+    const quantity = Number(payload.quantity);
+    if (quantity <= 0) {
+        throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.BAD_REQUEST, "পরিমাণ অবশ্যই ০ এর বেশি হতে হবে।");
+    }
     const result = await prisma_1.prisma.$transaction(async (tx) => {
-        const roundId = await tx.round.findFirst({
-            where: { name: payload.round, vataId: user.vataId },
-            select: { id: true }
+        const round = await tx.round.findFirst({
+            where: {
+                name: payload.round,
+                vataId: user.vataId,
+                seasonId,
+            },
+            select: {
+                id: true,
+            },
         });
-        if (!roundId?.id) {
-            throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.NOT_FOUND, "ROUND ID PAI NAI");
+        if (!round?.id) {
+            throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.NOT_FOUND, "রাউন্ড পাওয়া যায়নি।");
         }
         let unload = await tx.unload.findFirst({
             where: {
-                roundId: roundId.id,
+                roundId: round.id,
                 round: {
                     vataId: user.vataId,
-                    seasonId
+                    seasonId,
                 },
                 date: {
                     gte: startOfDay,
                     lte: endOfDay,
                 },
             },
-            select: { id: true }
+            select: {
+                id: true,
+            },
         });
         if (!unload?.id) {
             unload = await tx.unload.create({
                 data: {
                     date: payload.date,
-                    roundId: roundId?.id,
-                }
+                    roundId: round.id,
+                },
+                select: {
+                    id: true,
+                },
             });
         }
-        // FIND CLASS ID
-        const classId = await tx.classAndRate.findFirst({
-            where: { className: payload.className, vataId: user.vataId, },
-            select: { id: true }
+        const classInfo = await tx.classAndRate.findFirst({
+            where: {
+                className: payload.className,
+                vataId: user.vataId,
+            },
+            select: {
+                id: true,
+            },
         });
-        if (!classId) {
-            throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.NOT_FOUND, "CLASS PAI NAI");
+        if (!classInfo) {
+            throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.NOT_FOUND, "কোনো শ্রেণি পাওয়া যায়নি।");
         }
-        const findRoundItem = await tx.unloadItem.findFirst({
-            where: { classId: classId?.id, unloadId: unload.id }
+        const brickStock = await tx.brickStockSummary.findFirst({
+            where: {
+                vataId: user.vataId,
+            },
+        });
+        if (!brickStock) {
+            throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.NOT_FOUND, "ইটের স্টক পাওয়া যায়নি।");
+        }
+        const existingItem = await tx.unloadItem.findFirst({
+            where: {
+                classId: classInfo.id,
+                unloadId: unload.id,
+            },
         });
         let item;
-        if (findRoundItem) {
+        if (existingItem) {
+            const oldQuantity = Number(existingItem.quantity);
+            const difference = quantity - oldQuantity;
+            if (difference > 0) {
+                const currentChulliBrick = Number(brickStock.chulliBrick);
+                if (currentChulliBrick < difference) {
+                    throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.BAD_REQUEST, `চুল্লিতে পর্যাপ্ত ইট নেই। বর্তমানে চুল্লিতে ${currentChulliBrick} টি ইট আছে।`);
+                }
+                await tx.brickStockSummary.update({
+                    where: {
+                        id: brickStock.id,
+                    },
+                    data: {
+                        chulliBrick: {
+                            decrement: difference,
+                        },
+                    },
+                });
+            }
+            if (difference < 0) {
+                await tx.brickStockSummary.update({
+                    where: {
+                        id: brickStock.id,
+                    },
+                    data: {
+                        chulliBrick: {
+                            increment: Math.abs(difference),
+                        },
+                    },
+                });
+            }
             item = await tx.unloadItem.update({
                 where: {
-                    id: findRoundItem.id,
+                    id: existingItem.id,
                 },
                 data: {
-                    quantity: Number(payload.quantity),
-                }
+                    quantity,
+                },
             });
         }
         else {
+            const currentChulliBrick = Number(brickStock.chulliBrick);
+            if (currentChulliBrick < quantity) {
+                throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.BAD_REQUEST, `চুল্লিতে পর্যাপ্ত ইট নেই। বর্তমানে চুল্লিতে ${currentChulliBrick} টি ইট আছে।`);
+            }
             item = await tx.unloadItem.create({
                 data: {
-                    classId: classId?.id,
-                    quantity: Number(payload.quantity),
+                    classId: classInfo.id,
+                    quantity,
                     unloadId: unload.id,
-                }
+                },
+            });
+            await tx.brickStockSummary.update({
+                where: {
+                    id: brickStock.id,
+                },
+                data: {
+                    chulliBrick: {
+                        decrement: quantity,
+                    },
+                },
             });
         }
         return item;
     });
     return result;
 };
-// gert
 // GET ALL UNLOAD
 const getAllUnloadService = async (user, seasonId, query) => {
     const { limit, page, skip } = (0, paginationHelper_1.paginationHelper)(query.page, query.limit);
@@ -113,9 +186,9 @@ const getAllUnloadService = async (user, seasonId, query) => {
             where,
             include: {
                 round: true,
-                unloadItems: {
+                items: {
                     include: {
-                        classType: {
+                        class: {
                             select: {
                                 className: true,
                                 id: true
@@ -146,11 +219,17 @@ const getAllUnloadDataNoPaginateService = async (user) => {
             isDeleted: false,
             round: { vataId: user.vataId, }
         },
-        include: {
-            round: true,
-            unloadItems: {
-                include: {
-                    classType: {
+        select: {
+            date: true,
+            round: {
+                select: {
+                    name: true
+                }
+            },
+            items: {
+                select: {
+                    quantity: true,
+                    class: {
                         select: {
                             className: true,
                             id: true,
@@ -159,8 +238,9 @@ const getAllUnloadDataNoPaginateService = async (user) => {
                     }
                 }
             }
-        },
+        }
     });
+    console.log(result);
     return result;
 };
 const deleteUnloadService = async (user, id) => {

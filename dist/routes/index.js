@@ -28,9 +28,16 @@ const vata_route_1 = __importDefault(require("../app/modules/vata/vata.route"));
 const season_route_1 = __importDefault(require("../app/modules/season/season.route"));
 const driver_route_1 = __importDefault(require("../app/modules/driver/driver.route"));
 const stock_book_route_1 = __importDefault(require("../app/modules/stock_book/stock_book.route"));
+const goods_category_route_1 = __importDefault(require("../app/modules/goods_category/goods_category.route"));
+const good_stock_route_1 = __importDefault(require("../app/modules/goods_stock/good_stock.route"));
+const good_issue_route_1 = __importDefault(require("../app/modules/good_issue/good_issue.route"));
+const good_refund_routes_1 = __importDefault(require("../app/modules/good_refund/good_refund.routes"));
+const subscription_payment_route_1 = __importDefault(require("../app/modules/subscription_payment/subscription_payment.route"));
+const vata_car_route_1 = __importDefault(require("../app/modules/vata_car/vata_car.route"));
 // ADMIN MODULES
 const admin_route_1 = __importDefault(require("../app/modules/system_modules/admin/admin.route"));
 const vata_route_2 = __importDefault(require("../app/modules/system_modules/vata/vata.route"));
+const subscriptions_route_1 = __importDefault(require("../app/modules/system_modules/subscriptions/subscriptions.route"));
 const router = (0, express_1.Router)();
 const applicationRoutes = [
     { path: "/class", route: classAndRate_route_1.default },
@@ -57,6 +64,12 @@ const applicationRoutes = [
     { path: "/season", route: season_route_1.default },
     { path: "/driver", route: driver_route_1.default },
     { path: "/stock-book", route: stock_book_route_1.default },
+    { path: "/goods-category", route: goods_category_route_1.default },
+    { path: "/goods", route: good_stock_route_1.default },
+    { path: "/goods-issue", route: good_issue_route_1.default },
+    { path: "/goods-issue-refund", route: good_refund_routes_1.default },
+    { path: "/car", route: vata_car_route_1.default },
+    { path: "/subscription-payment", route: subscription_payment_route_1.default }, // vata + system
     // ADMIN MODULES
     {
         path: "/system/admin",
@@ -65,6 +78,10 @@ const applicationRoutes = [
     {
         path: "/system/vata",
         route: vata_route_2.default,
+    },
+    {
+        path: "/system/subscription",
+        route: subscriptions_route_1.default,
     }
 ];
 applicationRoutes.forEach((route) => router.use(route.path, route.route));

@@ -22,6 +22,14 @@ router.get(
   ClassAndRateController.getClassAndRateController
 );
 
+
+// GET ALL CLASS AND RATE OPTIONS
+router.get(
+  API_ENDPOINTS.CLASS_AND_RATE.OPTIONS,
+  AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+  ClassAndRateController.getClassAndRateOptionsController
+);
+
 // GET SINGLE CLASS AND RATE BY ID
 router.get(
   API_ENDPOINTS.CLASS_AND_RATE.GET_CLASS_BY_ID,

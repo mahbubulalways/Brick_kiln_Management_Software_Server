@@ -5,6 +5,7 @@ exports.API_ENDPOINTS = {
     CLASS_AND_RATE: {
         CREATE: "/create",
         GET_ALL_ClASS: "/class-and-rate",
+        OPTIONS: "/options",
         GET_CLASS_BY_ID: "/class-and-rate/:id",
         UPDATE_CLASS_BY_ID: "/update-class-and-rate/:id",
         DELETE: "/delete/:id",

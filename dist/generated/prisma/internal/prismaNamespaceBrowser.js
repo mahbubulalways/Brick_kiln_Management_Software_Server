@@ -48,7 +48,7 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.NullsOrder = exports.QueryMode = exports.SortOrder = exports.DriverScalarFieldEnum = exports.SeasonScalarFieldEnum = exports.SubscriptionPaymentScalarFieldEnum = exports.SubscriptionPlanScalarFieldEnum = exports.VataScalarFieldEnum = exports.WeatherScalarFieldEnum = exports.ContactScalarFieldEnum = exports.ReceivablePayableTransactionScalarFieldEnum = exports.ReceivablePayableScalarFieldEnum = exports.TaskManagerScalarFieldEnum = exports.ProductScalarFieldEnum = exports.CarRentScalarFieldEnum = exports.DocumentScalarFieldEnum = exports.StockBookScalarFieldEnum = exports.UnloadItemScalarFieldEnum = exports.UnloadScalarFieldEnum = exports.LoadInfoScalarFieldEnum = exports.RoundScalarFieldEnum = exports.CashScalarFieldEnum = exports.PaymentScalarFieldEnum = exports.LedgerScalarFieldEnum = exports.Due_CollectionScalarFieldEnum = exports.DeliveryScalarFieldEnum = exports.CustomerDueScalarFieldEnum = exports.CustomerScalarFieldEnum = exports.ChallanItemScalarFieldEnum = exports.ChallanScalarFieldEnum = exports.ClassAndRateScalarFieldEnum = exports.LoginHistoryScalarFieldEnum = exports.UserScalarFieldEnum = exports.TransactionIsolationLevel = exports.ModelName = exports.AnyNull = exports.JsonNull = exports.DbNull = exports.NullTypes = exports.Decimal = void 0;
+exports.NullsOrder = exports.QueryMode = exports.SortOrder = exports.CarIncomeDeliveryScalarFieldEnum = exports.VataCarScalarFieldEnum = exports.DriverScalarFieldEnum = exports.SeasonScalarFieldEnum = exports.SubscriptionPaymentScalarFieldEnum = exports.SubscriptionPlanScalarFieldEnum = exports.VataScalarFieldEnum = exports.WeatherScalarFieldEnum = exports.ContactScalarFieldEnum = exports.ReceivablePayableTransactionScalarFieldEnum = exports.ReceivablePayableScalarFieldEnum = exports.TaskManagerScalarFieldEnum = exports.ProductScalarFieldEnum = exports.CarRentScalarFieldEnum = exports.DocumentScalarFieldEnum = exports.GoodsLossScalarFieldEnum = exports.GoodHistoryLogScalarFieldEnum = exports.GoodsIssueScalarFieldEnum = exports.GoodsStockScalarFieldEnum = exports.GoodsStockCategoryScalarFieldEnum = exports.StockBookScalarFieldEnum = exports.BrickStockSummaryScalarFieldEnum = exports.UnloadItemScalarFieldEnum = exports.UnloadScalarFieldEnum = exports.LoadInfoScalarFieldEnum = exports.RoundScalarFieldEnum = exports.CashScalarFieldEnum = exports.PaymentScalarFieldEnum = exports.LedgerScalarFieldEnum = exports.Due_CollectionScalarFieldEnum = exports.DeliveryScalarFieldEnum = exports.CustomerDueScalarFieldEnum = exports.CustomerScalarFieldEnum = exports.ChallanItemScalarFieldEnum = exports.ChallanScalarFieldEnum = exports.ClassAndRateScalarFieldEnum = exports.LoginHistoryScalarFieldEnum = exports.UserScalarFieldEnum = exports.TransactionIsolationLevel = exports.ModelName = exports.AnyNull = exports.JsonNull = exports.DbNull = exports.NullTypes = exports.Decimal = void 0;
 const runtime = __importStar(require("@prisma/client/runtime/index-browser"));
 exports.Decimal = runtime.Decimal;
 exports.NullTypes = {
@@ -91,7 +91,13 @@ exports.ModelName = {
     LoadInfo: 'LoadInfo',
     Unload: 'Unload',
     UnloadItem: 'UnloadItem',
+    BrickStockSummary: 'BrickStockSummary',
     StockBook: 'StockBook',
+    GoodsStockCategory: 'GoodsStockCategory',
+    GoodsStock: 'GoodsStock',
+    GoodsIssue: 'GoodsIssue',
+    GoodHistoryLog: 'GoodHistoryLog',
+    GoodsLoss: 'GoodsLoss',
     Document: 'Document',
     CarRent: 'CarRent',
     Product: 'Product',
@@ -104,7 +110,9 @@ exports.ModelName = {
     SubscriptionPlan: 'SubscriptionPlan',
     SubscriptionPayment: 'SubscriptionPayment',
     Season: 'Season',
-    Driver: 'Driver'
+    Driver: 'Driver',
+    VataCar: 'VataCar',
+    CarIncomeDelivery: 'CarIncomeDelivery'
 };
 /*
  * Enums
@@ -291,6 +299,7 @@ exports.LoadInfoScalarFieldEnum = {
     date: 'date',
     roundId: 'roundId',
     quantity: 'quantity',
+    loadType: 'loadType',
     classId: 'classId',
     isDeleted: 'isDeleted',
     createdAt: 'createdAt',
@@ -309,7 +318,17 @@ exports.UnloadItemScalarFieldEnum = {
     unloadId: 'unloadId',
     classId: 'classId',
     quantity: 'quantity',
-    isDeleted: 'isDeleted',
+    damaged: 'damaged',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+};
+exports.BrickStockSummaryScalarFieldEnum = {
+    id: 'id',
+    vataId: 'vataId',
+    rawBrick: 'rawBrick',
+    fieldBrick: 'fieldBrick',
+    stockBrick: 'stockBrick',
+    chulliBrick: 'chulliBrick',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
 };
@@ -325,6 +344,62 @@ exports.StockBookScalarFieldEnum = {
     createdById: 'createdById',
     seasonId: 'seasonId',
     vataId: 'vataId'
+};
+exports.GoodsStockCategoryScalarFieldEnum = {
+    id: 'id',
+    name: 'name',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt',
+    vataId: 'vataId'
+};
+exports.GoodsStockScalarFieldEnum = {
+    id: 'id',
+    name: 'name',
+    shop: 'shop',
+    quantity: 'quantity',
+    price: 'price',
+    warranty: 'warranty',
+    image: 'image',
+    categoryId: 'categoryId',
+    vataId: 'vataId',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+};
+exports.GoodsIssueScalarFieldEnum = {
+    id: 'id',
+    name: 'name',
+    location: 'location',
+    quantity: 'quantity',
+    date: 'date',
+    image: 'image',
+    goodId: 'goodId',
+    note: 'note',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+};
+exports.GoodHistoryLogScalarFieldEnum = {
+    id: 'id',
+    type: 'type',
+    receiveBy: 'receiveBy',
+    quantity: 'quantity',
+    returnBy: 'returnBy',
+    goodId: 'goodId',
+    date: 'date',
+    damage: 'damage',
+    lost: 'lost',
+    okay: 'okay',
+    image: 'image',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+};
+exports.GoodsLossScalarFieldEnum = {
+    id: 'id',
+    goodId: 'goodId',
+    quantity: 'quantity',
+    type: 'type',
+    lossAmount: 'lossAmount',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
 };
 exports.DocumentScalarFieldEnum = {
     id: 'id',
@@ -431,14 +506,12 @@ exports.VataScalarFieldEnum = {
     ownerName: 'ownerName',
     ownerPhoneNumber: 'ownerPhoneNumber',
     challansPhoneNumber: 'challansPhoneNumber',
-    smsRate: 'smsRate',
-    softwareFee: 'softwareFee',
     nextPaymentDate: 'nextPaymentDate',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt',
     subdomain: 'subdomain',
     status: 'status',
-    susbscriptionPlanId: 'susbscriptionPlanId',
+    subscriptionPlanId: 'subscriptionPlanId',
     subscriptionStart: 'subscriptionStart',
     subscriptionEnd: 'subscriptionEnd'
 };
@@ -489,6 +562,22 @@ exports.DriverScalarFieldEnum = {
     PhoneNumber: 'PhoneNumber',
     salary: 'salary',
     vataId: 'vataId',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+};
+exports.VataCarScalarFieldEnum = {
+    id: 'id',
+    vataId: 'vataId',
+    carNo: 'carNo',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+};
+exports.CarIncomeDeliveryScalarFieldEnum = {
+    id: 'id',
+    amount: 'amount',
+    driverId: 'driverId',
+    deliveryId: 'deliveryId',
+    carId: 'carId',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
 };

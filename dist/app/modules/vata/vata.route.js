@@ -10,5 +10,6 @@ const enums_1 = require("../../../generated/prisma/enums");
 const router = (0, express_1.Router)();
 router.get('/info', (0, AuthGuard_1.default)(enums_1.UserRole.OWNER, enums_1.UserRole.ADMIN, enums_1.UserRole.MANAGER), vata_controller_1.VataController.getVataInformationController);
 router.get('/me', (0, AuthGuard_1.default)(enums_1.UserRole.OWNER, enums_1.UserRole.ADMIN, enums_1.UserRole.MANAGER), vata_controller_1.VataController.getMyVataInformationController);
+router.get('/nav', (0, AuthGuard_1.default)(enums_1.UserRole.OWNER, enums_1.UserRole.ADMIN, enums_1.UserRole.MANAGER), vata_controller_1.VataController.getMyVataNavbarFeaturesController);
 router.get('/verify-domain/:id', vata_controller_1.VataController.checkSubdomainExistController);
 exports.default = router;

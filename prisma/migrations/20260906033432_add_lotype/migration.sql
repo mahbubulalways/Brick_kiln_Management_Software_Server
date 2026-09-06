@@ -1,0 +1,2 @@
+-- AlterEnum
+ALTER TYPE "LoadType" ADD VALUE 'RAW_TO_FIELD';

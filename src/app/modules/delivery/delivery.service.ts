@@ -8,6 +8,7 @@ import { paginationHelper } from "../../../helpers/paginationHelper";
 import { createMetaConfig } from "../../../utils/createMetaConfig";
 import { getDateRangeDbSearch } from "../../../utils/getDateRangeDbSearch";
 import { TAuthUser } from "../../../interface/token";
+import { getStockByClass } from "./delivery.utils";
 
 const getNextDeliveryNo = async (user: TAuthUser) => {
   const result = await prisma.delivery.findFirst({
@@ -39,11 +40,25 @@ const createDeliveryService = async (user: TAuthUser, payload: TDelivery) => {
     throw new AppError(StatusCodes.CONFLICT, "এই ডেলিভারি নম্বর ইতিমধ্যে আছে");
   }
 
-
-  // HERE COME SERIAL ID AS INVOICE ID 
+  // // HERE COME SERIAL ID AS INVOICE ID 
   const mainInvoiceId = await prisma.challan.findFirst({
-    where: { serial: Number(payload.invoiceId), vataId: user.vataId }, select: { id: true }
+    where: {
+      serial: Number(payload.invoiceId), vataId: user.vataId
+    },
+    select: { id: true, carRent: true, seasonId: true }
   },)
+
+  const checkStockQuantity = await getStockByClass(
+    user, mainInvoiceId?.seasonId!, payload.items.class
+  )
+
+  if (checkStockQuantity < payload.items.todaysDelivery) {
+    throw new AppError(
+      StatusCodes.BAD_REQUEST,
+      `পর্যাপ্ত ইট নেই। বর্তমানে ${checkStockQuantity} টি ইট আছে, 
+       কিন্তু ${payload.items.quantity} টি ইট প্রয়োজন।`
+    );
+  }
 
   const lastDelivered = await prisma.delivery.aggregate({
     where: {
@@ -106,7 +121,7 @@ const createDeliveryService = async (user: TAuthUser, payload: TDelivery) => {
 
       }
 
-      const updateItem = await tx.challanItem.update({
+      await tx.challanItem.update({
         data: {
           delivered: {
             increment: data?.deliveryReceived,
@@ -117,6 +132,35 @@ const createDeliveryService = async (user: TAuthUser, payload: TDelivery) => {
         },
       });
 
+      const carRent = Number(payload?.carRent) || Number(mainInvoiceId?.carRent)
+      if (carRent && payload?.carNumber) {
+        console.log("first")
+        const car = await tx.vataCar.findFirst({
+          where: {
+            carNo: payload.carNumber,
+            vataId: user.vataId
+          },
+          select: {
+            id: true
+          }
+        })
+        if (!car) {
+          throw new AppError(
+            StatusCodes.NOT_FOUND,
+            "এই গাড়িটি পাওয়া যায়নি"
+          );
+        }
+        await tx.carIncomeDelivery.create({
+          data: {
+            amount: carRent,
+            carId: car?.id,
+            deliveryId: createDelivery?.id,
+            driverId: payload.driverId,
+
+          }
+        })
+      }
+
       return createDelivery;
     },
   );
@@ -126,7 +170,12 @@ const createDeliveryService = async (user: TAuthUser, payload: TDelivery) => {
 // GET DELIVERIES THAT GO TODAT
 const getDeliveryThatGoTodayService = async (user: TAuthUser, seasonId: string, query: TQuery) => {
   const { limit, page, skip } = paginationHelper(query.page, query.limit);
-  const where: Prisma.ChallanWhereInput = { vataId: user.vataId, isDeleted: false, seasonId };
+  const where: Prisma.ChallanWhereInput = {
+    vataId: user.vataId,
+    isDeleted: false,
+    seasonId,
+
+  };
 
   // Create start and end of day boundaries
 
@@ -203,7 +252,13 @@ const getDeliveryThatGoTodayService = async (user: TAuthUser, seasonId: string, 
   ]);
 
   // Filter out challans with no items
-  const filteredResult = result.filter((challan) => challan.items.length > 0);
+  const filteredResult = result.filter((challan) => challan.items.length > 0)
+    .filter((challan) =>
+      challan.items.some(
+        (item) => Number(item.delivered) < Number(item.quantity)
+      )
+    );
+    
   const meta = createMetaConfig({
     limit: limit,
     page: page,

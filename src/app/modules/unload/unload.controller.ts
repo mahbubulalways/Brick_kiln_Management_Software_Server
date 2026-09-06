@@ -9,9 +9,9 @@ import { TAuthUser } from "../../../interface/token";
 const createUnloadInfoController = catchAsync(
     async (req, res) => {
         const user = req.user as TAuthUser
-         const seasonId = req.seasonId
+             const seasonId = req.seasonId
         const result =
-            await UnloadService.createNewUnloadService(user,seasonId, req.body);
+            await UnloadService.createNewUnloadService(user,seasonId,req.body);
 
         if (result) {
             sendResponse(res, {

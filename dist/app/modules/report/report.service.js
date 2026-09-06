@@ -151,7 +151,12 @@ const dashboardAllReportService = async (user, seasonId) => {
     };
     return Informations;
 };
+const getLoadUnloadReportService = async (user) => {
+    const result = await prisma_1.prisma.brickStockSummary.findFirst({ where: { vataId: user.vataId } });
+    return result;
+};
 exports.ReportService = {
     getTopSellingAreasService,
-    dashboardAllReportService
+    dashboardAllReportService,
+    getLoadUnloadReportService
 };

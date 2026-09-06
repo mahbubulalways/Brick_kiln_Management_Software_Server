@@ -16,4 +16,10 @@ router.get('/all', (0, AuthGuard_1.default)(enums_1.UserRole.SUPER_ADMIN, enums_
 router.get('/inactive', (0, AuthGuard_1.default)(enums_1.UserRole.SUPER_ADMIN, enums_1.UserRole.SYSTEM_ADMIN), vata_controller_1.AdminVataController.getInactiveVataController);
 // GET SINGLE VATA
 router.get('/single/:id', (0, AuthGuard_1.default)(enums_1.UserRole.SUPER_ADMIN, enums_1.UserRole.SYSTEM_ADMIN), vata_controller_1.AdminVataController.getSingleVataController);
+// FOR UPDATE
+router.get('/info/:id', (0, AuthGuard_1.default)(enums_1.UserRole.SUPER_ADMIN, enums_1.UserRole.SYSTEM_ADMIN), vata_controller_1.AdminVataController.getSingleVataInfoController);
+// UPDATE
+router.patch('/update/:id', (0, AuthGuard_1.default)(enums_1.UserRole.SUPER_ADMIN, enums_1.UserRole.SYSTEM_ADMIN), vata_controller_1.AdminVataController.updateVataInfoController);
+// UPDATE VATA SUBSCRIPTION
+router.patch('/update-vata-subscription/:id', (0, AuthGuard_1.default)(enums_1.UserRole.SUPER_ADMIN, enums_1.UserRole.SYSTEM_ADMIN), vata_controller_1.AdminVataController.updateVataSubscriptionController);
 exports.default = router;

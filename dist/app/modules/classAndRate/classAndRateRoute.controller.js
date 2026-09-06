@@ -92,10 +92,32 @@ const deleteClassAndRateController = (0, catchAsync_1.default)(async (req, res) 
         });
     }
 });
+// OPTIONS
+const getClassAndRateOptionsController = (0, catchAsync_1.default)(async (req, res) => {
+    const user = req.user;
+    const result = await classAndRateRoute_service_1.ClassAndRateService.getClassAndRateOptionsService(user);
+    if (!result.length) {
+        (0, sendResponse_1.sendResponse)(res, {
+            message: "শ্রেণী ও রেট নিয়ে তথ্য আনতে ব্যর্থ হয়েছে",
+            statusCode: http_status_codes_1.StatusCodes.OK,
+            success: true,
+            data: [],
+        });
+    }
+    else {
+        (0, sendResponse_1.sendResponse)(res, {
+            message: "শ্রেণী ও রেট সফলভাবে পাওয়া গেছে",
+            statusCode: http_status_codes_1.StatusCodes.OK,
+            success: true,
+            data: result,
+        });
+    }
+});
 exports.ClassAndRateController = {
     createClassAndRateController,
     getClassAndRateController,
     getSingleClassAndRateController,
     updateClassAndRateController,
-    deleteClassAndRateController
+    deleteClassAndRateController,
+    getClassAndRateOptionsController
 };

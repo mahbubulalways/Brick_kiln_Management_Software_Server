@@ -103,14 +103,14 @@ const getClassAndRateService = async (user: TAuthUser, query: TQuery) => {
     })
   ]);
 
-    const meta = createMetaConfig({
-          limit,
-          page,
-          totalData: total,
-      });
+  const meta = createMetaConfig({
+    limit,
+    page,
+    totalData: total,
+  });
 
   return {
-    data:result,
+    data: result,
     meta
   };
 };
@@ -147,10 +147,30 @@ const deleteClassAndRateService = async (user: TAuthUser, id: string) => {
   return result;
 };
 
+
+// GET OPTIONS 
+const getClassAndRateOptionsService = async (user: TAuthUser) => {
+  const result = await prisma.classAndRate.findMany({
+    where: {
+      vataId: user.vataId,
+      isDeleted: false
+    },
+    select: {
+      className: true,
+      id: true,
+
+    },
+    orderBy: { createdAt: "asc" },
+  });
+
+  return result
+};
+
 export const ClassAndRateService = {
   createClassAndRateService,
   getClassAndRateService,
   getSingleClassAndRateService,
   updateClassAndRateService,
-  deleteClassAndRateService
+  deleteClassAndRateService,
+  getClassAndRateOptionsService
 };

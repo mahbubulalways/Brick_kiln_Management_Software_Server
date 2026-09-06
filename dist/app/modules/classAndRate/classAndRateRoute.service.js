@@ -113,10 +113,26 @@ const deleteClassAndRateService = async (user, id) => {
     });
     return result;
 };
+// GET OPTIONS 
+const getClassAndRateOptionsService = async (user) => {
+    const result = await prisma_1.prisma.classAndRate.findMany({
+        where: {
+            vataId: user.vataId,
+            isDeleted: false
+        },
+        select: {
+            className: true,
+            id: true,
+        },
+        orderBy: { createdAt: "asc" },
+    });
+    return result;
+};
 exports.ClassAndRateService = {
     createClassAndRateService,
     getClassAndRateService,
     getSingleClassAndRateService,
     updateClassAndRateService,
-    deleteClassAndRateService
+    deleteClassAndRateService,
+    getClassAndRateOptionsService
 };

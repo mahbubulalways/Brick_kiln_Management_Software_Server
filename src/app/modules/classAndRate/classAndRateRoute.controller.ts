@@ -124,10 +124,35 @@ const deleteClassAndRateController = catchAsync(async (req, res) => {
   }
 });
 
+
+// OPTIONS
+const getClassAndRateOptionsController = catchAsync(async (req, res) => {
+  const user = req.user as TAuthUser
+  const result = await ClassAndRateService.getClassAndRateOptionsService(user);
+  if (!result.length) {
+    sendResponse(res, {
+      message: "শ্রেণী ও রেট নিয়ে তথ্য আনতে ব্যর্থ হয়েছে",
+      statusCode: StatusCodes.OK,
+      success: true,
+      data: [],
+    })
+
+  } else {
+    sendResponse(res, {
+      message: "শ্রেণী ও রেট সফলভাবে পাওয়া গেছে",
+      statusCode: StatusCodes.OK,
+      success: true,
+      data: result,
+    });
+  }
+});
+
+
 export const ClassAndRateController = {
   createClassAndRateController,
   getClassAndRateController,
   getSingleClassAndRateController,
   updateClassAndRateController,
-  deleteClassAndRateController
+  deleteClassAndRateController,
+  getClassAndRateOptionsController
 };
