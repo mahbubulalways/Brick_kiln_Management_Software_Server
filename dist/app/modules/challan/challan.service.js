@@ -8,6 +8,8 @@ const generateCode_1 = require("../../../utils/generateCode");
 const getDateRangeDbSearch_1 = require("../../../utils/getDateRangeDbSearch");
 const ApplicationError_1 = require("../../errors/ApplicationError");
 const http_status_codes_1 = require("http-status-codes");
+const send_sms_utils_1 = require("../send_sms/send_sms.utils");
+const formatDate_1 = require("../../../utils/formatDate");
 // CREATE CUSTOMER AND INVOICE AND INVOICE ITEMS
 const createInvoiceService = async (user, seasonId, customer, invoiceItems, invoice) => {
     const isSerialExist = await prisma_1.prisma.challan.findFirst({
@@ -73,7 +75,7 @@ const createInvoiceService = async (user, seasonId, customer, invoiceItems, invo
                 challanId: newInvoice.id,
                 customerId: newInvoice.customerId,
                 seasonId: seasonId,
-            }
+            },
         });
         //  FORMAT INVOKE ITEMS AND ADD INVOICE ID
         const invokeInvoiceId = invoiceItems.map((it) => {
@@ -89,6 +91,22 @@ const createInvoiceService = async (user, seasonId, customer, invoiceItems, invo
         // CREATE ITEMS OF CHALLAN
         await tx.challanItem.createMany({
             data: invokeInvoiceId,
+        });
+        const deliveryDate = (0, formatDate_1.formatDate)(invoice.deliveryDate);
+        const clientMessage = `চালান নং: ${newInvoice.serial}, ${invoiceItems
+            .map((item) => `${item.class}: ${Number(item.quantity)} টি`)
+            .join(", ")}, ডেলিভারি: ${deliveryDate}`;
+        const ownerMessage = `নতুন চালান: ${newInvoice.serial}, কাস্টমার: ${existingCustomer.name}, ${invoiceItems
+            .map((item) => `${item.class}: ${Number(item.quantity)} টি`)
+            .join(", ")}, ডেলিভারি: ${deliveryDate}`;
+        await (0, send_sms_utils_1.getUserAndPermissionForSms)({
+            tx,
+            clientPhoneNumber: existingCustomer.phoneNumber,
+            from: "NEW_INVOICE",
+            clientMessage,
+            user,
+            sendToOwner: true,
+            ownerMessage,
         });
         return newInvoice;
     });
@@ -178,7 +196,11 @@ const searchChallanForDeliveryService = async (user, query) => {
 // GET AL INVOICE WITH CUSTOMER NAME AND ADDRESS
 const getAllInvoiceService = async (user, seasonId, query) => {
     const { limit, page, skip } = (0, paginationHelper_1.paginationHelper)(query.page, query.limit);
-    const where = { vataId: user.vataId, isDeleted: false, seasonId: seasonId };
+    const where = {
+        vataId: user.vataId,
+        isDeleted: false,
+        seasonId: seasonId,
+    };
     if (query.search?.trim()) {
         const search = query.search.trim();
         where.customer = {
@@ -213,10 +235,12 @@ const getAllInvoiceService = async (user, seasonId, query) => {
             include: {
                 customer: true,
                 items: true,
-                season: true
-            }, skip, take: limit
+                season: true,
+            },
+            skip,
+            take: limit,
         }),
-        prisma_1.prisma.challan.count({ where })
+        prisma_1.prisma.challan.count({ where }),
     ]);
     const meta = (0, createMetaConfig_1.createMetaConfig)({
         limit: limit,
@@ -235,7 +259,7 @@ const getAllAdvanceInvoiceService = async (user, seasonId, query) => {
         vataId: user.vataId,
         isDeleted: false,
         chalanType: "অগ্রিম চালান",
-        seasonId
+        seasonId,
     };
     if (query.search?.trim()) {
         const search = query.search.trim();
@@ -265,9 +289,11 @@ const getAllAdvanceInvoiceService = async (user, seasonId, query) => {
             include: {
                 customer: true,
                 items: true,
-            }, skip, take: limit
+            },
+            skip,
+            take: limit,
         }),
-        prisma_1.prisma.challan.count({ where })
+        prisma_1.prisma.challan.count({ where }),
     ]);
     const meta = (0, createMetaConfig_1.createMetaConfig)({
         limit: limit,
@@ -291,14 +317,15 @@ const getSingleInvoiceService = async (user, id) => {
             items: true,
             createdBy: {
                 select: {
-                    name: true
-                }
-            }, season: {
+                    name: true,
+                },
+            },
+            season: {
                 select: {
                     name: true,
-                    id: true
-                }
-            }
+                    id: true,
+                },
+            },
         },
     });
     return result;
@@ -309,7 +336,7 @@ const getSingleInvoiceItemsService = async (user, id, query) => {
     const parsedNumber = splitIds.map((id) => id);
     const challanId = await prisma_1.prisma.challan.findFirst({
         where: { serial: Number(id), vataId: user.vataId },
-        select: { id: true }
+        select: { id: true },
     });
     const result = await prisma_1.prisma.challanItem.findMany({
         where: {
@@ -326,7 +353,8 @@ const getSingleInvoiceItemsService = async (user, id, query) => {
 // UPDATE INVOICE
 const updateInvoiceService = async (user, serialId, invoice, items) => {
     const invoiceId = await prisma_1.prisma.challan.findFirst({
-        where: { serial: Number(serialId), vataId: user.vataId }, select: { id: true }
+        where: { serial: Number(serialId), vataId: user.vataId },
+        select: { id: true },
     });
     const result = await prisma_1.prisma.$transaction(async (tx) => {
         // update invoice
@@ -334,7 +362,7 @@ const updateInvoiceService = async (user, serialId, invoice, items) => {
             data: invoice,
             where: {
                 id: invoiceId?.id,
-                vataId: user.vataId
+                vataId: user.vataId,
             },
         });
         //  SEPARATE NEW AND OLD ITEMS
@@ -388,7 +416,7 @@ const deleteInvoiceService = async (user, invoiceId) => {
         },
         where: {
             id: invoiceId,
-            vataId: user.vataId
+            vataId: user.vataId,
         },
     });
     await prisma_1.prisma.challanItem.updateMany({
@@ -409,7 +437,7 @@ const getItemsWithInvoiceService = async (user, seasonId, query) => {
         challan: {
             vataId: user.vataId,
             seasonId,
-        }
+        },
     };
     if (query.date) {
         const dateRange = (0, getDateRangeDbSearch_1.getDateRangeDbSearch)(query.date);
@@ -421,7 +449,7 @@ const getItemsWithInvoiceService = async (user, seasonId, query) => {
     }
     if (query.search === "ADVANCED") {
         whereCondition.challan = {
-            chalanType: "অগ্রিম চালান"
+            chalanType: "অগ্রিম চালান",
         };
     }
     const result = await prisma_1.prisma.challanItem.findMany({
@@ -451,9 +479,10 @@ const updateItemsDateService = async (user, id, updateDate) => {
             deliveryDate: updateDate,
         },
         where: {
-            id, challan: {
-                vataId: user.vataId
-            }
+            id,
+            challan: {
+                vataId: user.vataId,
+            },
         },
     });
     return result;
@@ -463,9 +492,9 @@ const updateInvoiceDeliveryDateService = async (user, id, updatedDate) => {
     const challanId = await prisma_1.prisma.challan.findFirst({
         where: {
             serial: Number(id),
-            vataId: user.vataId
+            vataId: user.vataId,
         },
-        select: { id: true }
+        select: { id: true },
     });
     const result = await prisma_1.prisma.challan.update({
         data: {
@@ -475,12 +504,13 @@ const updateInvoiceDeliveryDateService = async (user, id, updatedDate) => {
                     data: {
                         deliveryDate: updatedDate,
                     },
-                    where: { challanId: challanId?.id, },
+                    where: { challanId: challanId?.id },
                 },
             },
         },
         where: {
-            id: challanId?.id, vataId: user.vataId
+            id: challanId?.id,
+            vataId: user.vataId,
         },
     });
     return result;
@@ -496,5 +526,5 @@ exports.InvoiceService = {
     updateItemsDateService,
     updateInvoiceDeliveryDateService,
     getAllAdvanceInvoiceService,
-    searchChallanForDeliveryService
+    searchChallanForDeliveryService,
 };

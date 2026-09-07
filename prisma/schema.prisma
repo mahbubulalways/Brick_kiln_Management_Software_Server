@@ -628,12 +628,15 @@ model Vata {
   users                         User[]
   drivers                       Driver[]
   subscriptionPayments          SubscriptionPayment[]
-  // loadTypes                     LoadType[]
   stocks                        StockBook[]
   goodsStockCategories          GoodsStockCategory[]
   goodsStocks                   GoodsStock[]
   brickStockSummaries           BrickStockSummary[]
   vataCars                      VataCar[]
+  smsRechargeHistories          SmsRechargeHistory[]
+  smsWallet                     SmsWallet?
+  vataSmsSettings               VataSmsSettings[]
+  smsLogs                       SmsLog[]
 
   @@map("vatainformation")
 }
@@ -762,6 +765,103 @@ model CarIncomeDelivery {
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 }
+
+//=============================== SMS PART=========================================
+// SMS RATE 
+model SmsSetting {
+  id         String   @id @default(uuid())
+  ratePerSms Decimal  @db.Decimal(10, 4)
+  bkash      String?
+  rocket     String?
+  nogod      String?
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+// SMS WALLET VATA
+model SmsWallet {
+  id     String @id @default(uuid())
+  vataId String @unique
+
+  balance        Float    @default(0)
+  totalPurchased Int      @default(0)
+  totalUsed      Int      @default(0)
+  currentRate    Float
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  vata Vata @relation(fields: [vataId], references: [id])
+}
+
+// SMS HISTORY
+model SmsRechargeHistory {
+  id            String            @id @default(uuid())
+  vataId        String
+  smsQuantity   Int
+  ratePerSms    Decimal           @db.Decimal(10, 4)
+  totalAmount   Decimal           @db.Decimal(12, 2)
+  paymentMethod String?
+  transactionId String?
+  phoneNumber   String?
+  type          SmsPaymentType
+  status        SmsRechargeStatus @default(PENDING)
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  vata          Vata              @relation(fields: [vataId], references: [id])
+}
+
+enum SmsPaymentType {
+  MANUAL
+  BKASH
+}
+
+enum SmsRechargeStatus {
+  PENDING
+  PAID
+  FAILED
+  CANCELLED
+}
+
+// KOI KOI SMS JABE 
+model VataSmsSettings {
+  id                  String  @id @default(uuid())
+  newInvoice          Boolean @default(false)
+  updateInvoice       Boolean @default(false)
+  deleteInvoice       Boolean @default(false)
+  newDelivery         Boolean @default(false)
+  newDueCollection    Boolean @default(false)
+  deuCollectionUpdate Boolean @default(false)
+  vataId              String
+  vata                Vata    @relation(fields: [vataId], references: [id])
+
+  @@unique([vataId])
+}
+
+// SMS LOG
+enum SmsStatus {
+  SENT
+  FAILED
+}
+
+model SmsLog {
+  id          String    @id @default(uuid())
+  vataId      String
+  phoneNumber String
+  message     String
+  status      SmsStatus
+  sendBy      String
+  cost        Float
+  sentAt      DateTime  @default(now())
+  vata        Vata      @relation(fields: [vataId], references: [id])
+
+  @@index([vataId])
+  @@index([phoneNumber])
+  @@index([status])
+  @@index([sentAt])
+}
+
+// ======================================ENUMS ======================================
 
 enum UserRole {
   OWNER

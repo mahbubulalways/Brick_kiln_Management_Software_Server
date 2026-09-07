@@ -30,11 +30,15 @@ import goodIssueRouter from "../app/modules/good_issue/good_issue.route";
 import goodIssueRefundRouter from "../app/modules/good_refund/good_refund.routes";
 import subscriptionPaymentRouter from "../app/modules/subscription_payment/subscription_payment.route";
 import vatacarRouter from "../app/modules/vata_car/vata_car.route";
+import smsRouter from "../app/modules/sms/sms.route";
+import vataSMsSettingRouter from "../app/modules/vata_sms_sittings/vata_sms_sittings.route";
+import sendSmsRoute from "../app/modules/send_sms/send_sms.route";
 
 // ADMIN MODULES
 import adminRoutes from "../app/modules/system_modules/admin/admin.route";
 import adminVataRoutes from "../app/modules/system_modules/vata/vata.route";
 import subscriptionRoutes from "../app/modules/system_modules/subscriptions/subscriptions.route";
+import smsRateRoutes from "../app/modules/system_modules/sms_rate/sms_rate.router";
 
 const router = Router();
 const applicationRoutes: IApplicationRoute[] = [
@@ -68,6 +72,9 @@ const applicationRoutes: IApplicationRoute[] = [
   { path: "/goods-issue-refund", route: goodIssueRefundRouter },
   { path: "/car", route: vatacarRouter },
   { path: "/subscription-payment", route: subscriptionPaymentRouter }, // vata + system
+  { path: "/sms", route: smsRouter },
+  { path: "/vata/sms-sittings", route: vataSMsSettingRouter },
+  { path: "/vata/send-sms", route: sendSmsRoute },
 
   // ADMIN MODULES
   {
@@ -81,7 +88,11 @@ const applicationRoutes: IApplicationRoute[] = [
   {
     path: "/system/subscription",
     route: subscriptionRoutes,
-  }
+  },
+  {
+    path: "/system/sms",
+    route: smsRateRoutes,
+  },
 ];
 
 applicationRoutes.forEach((route) => router.use(route.path, route.route));

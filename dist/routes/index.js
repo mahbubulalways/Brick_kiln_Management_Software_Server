@@ -34,10 +34,14 @@ const good_issue_route_1 = __importDefault(require("../app/modules/good_issue/go
 const good_refund_routes_1 = __importDefault(require("../app/modules/good_refund/good_refund.routes"));
 const subscription_payment_route_1 = __importDefault(require("../app/modules/subscription_payment/subscription_payment.route"));
 const vata_car_route_1 = __importDefault(require("../app/modules/vata_car/vata_car.route"));
+const sms_route_1 = __importDefault(require("../app/modules/sms/sms.route"));
+const vata_sms_sittings_route_1 = __importDefault(require("../app/modules/vata_sms_sittings/vata_sms_sittings.route"));
+const send_sms_route_1 = __importDefault(require("../app/modules/send_sms/send_sms.route"));
 // ADMIN MODULES
 const admin_route_1 = __importDefault(require("../app/modules/system_modules/admin/admin.route"));
 const vata_route_2 = __importDefault(require("../app/modules/system_modules/vata/vata.route"));
 const subscriptions_route_1 = __importDefault(require("../app/modules/system_modules/subscriptions/subscriptions.route"));
+const sms_rate_router_1 = __importDefault(require("../app/modules/system_modules/sms_rate/sms_rate.router"));
 const router = (0, express_1.Router)();
 const applicationRoutes = [
     { path: "/class", route: classAndRate_route_1.default },
@@ -70,6 +74,9 @@ const applicationRoutes = [
     { path: "/goods-issue-refund", route: good_refund_routes_1.default },
     { path: "/car", route: vata_car_route_1.default },
     { path: "/subscription-payment", route: subscription_payment_route_1.default }, // vata + system
+    { path: "/sms", route: sms_route_1.default },
+    { path: "/vata/sms-sittings", route: vata_sms_sittings_route_1.default },
+    { path: "/vata/send-sms", route: send_sms_route_1.default },
     // ADMIN MODULES
     {
         path: "/system/admin",
@@ -82,7 +89,11 @@ const applicationRoutes = [
     {
         path: "/system/subscription",
         route: subscriptions_route_1.default,
-    }
+    },
+    {
+        path: "/system/sms",
+        route: sms_rate_router_1.default,
+    },
 ];
 applicationRoutes.forEach((route) => router.use(route.path, route.route));
 exports.default = router;

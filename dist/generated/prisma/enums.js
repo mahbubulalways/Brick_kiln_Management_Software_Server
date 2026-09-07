@@ -9,7 +9,7 @@
 * 🟢 You can import this file directly.
 */
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.TransactionType = exports.TaskStatus = exports.DocumentType = exports.CashType = exports.VataStatus = exports.UserRole = exports.SubscriptionPaymentStatus = exports.BillingCycle = exports.SubscriptionPlanType = exports.GoodLossType = exports.GoodHistoryType = exports.LoadType = void 0;
+exports.TransactionType = exports.TaskStatus = exports.DocumentType = exports.CashType = exports.VataStatus = exports.UserRole = exports.SmsStatus = exports.SmsRechargeStatus = exports.SmsPaymentType = exports.SubscriptionPaymentStatus = exports.BillingCycle = exports.SubscriptionPlanType = exports.GoodLossType = exports.GoodHistoryType = exports.LoadType = void 0;
 exports.LoadType = {
     RAWENTRY: 'RAWENTRY',
     RAW_TO_FIELD: 'RAW_TO_FIELD',
@@ -41,6 +41,20 @@ exports.SubscriptionPaymentStatus = {
     PAID: 'PAID',
     EXPIRED: 'EXPIRED',
     CANCELLED: 'CANCELLED'
+};
+exports.SmsPaymentType = {
+    MANUAL: 'MANUAL',
+    BKASH: 'BKASH'
+};
+exports.SmsRechargeStatus = {
+    PENDING: 'PENDING',
+    PAID: 'PAID',
+    FAILED: 'FAILED',
+    CANCELLED: 'CANCELLED'
+};
+exports.SmsStatus = {
+    SENT: 'SENT',
+    FAILED: 'FAILED'
 };
 exports.UserRole = {
     OWNER: 'OWNER',

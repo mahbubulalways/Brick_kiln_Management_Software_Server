@@ -49,7 +49,7 @@ var __importStar = (this && this.__importStar) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.WeatherScalarFieldEnum = exports.ContactScalarFieldEnum = exports.ReceivablePayableTransactionScalarFieldEnum = exports.ReceivablePayableScalarFieldEnum = exports.TaskManagerScalarFieldEnum = exports.ProductScalarFieldEnum = exports.CarRentScalarFieldEnum = exports.DocumentScalarFieldEnum = exports.GoodsLossScalarFieldEnum = exports.GoodHistoryLogScalarFieldEnum = exports.GoodsIssueScalarFieldEnum = exports.GoodsStockScalarFieldEnum = exports.GoodsStockCategoryScalarFieldEnum = exports.StockBookScalarFieldEnum = exports.BrickStockSummaryScalarFieldEnum = exports.UnloadItemScalarFieldEnum = exports.UnloadScalarFieldEnum = exports.LoadInfoScalarFieldEnum = exports.RoundScalarFieldEnum = exports.CashScalarFieldEnum = exports.PaymentScalarFieldEnum = exports.LedgerScalarFieldEnum = exports.Due_CollectionScalarFieldEnum = exports.DeliveryScalarFieldEnum = exports.CustomerDueScalarFieldEnum = exports.CustomerScalarFieldEnum = exports.ChallanItemScalarFieldEnum = exports.ChallanScalarFieldEnum = exports.ClassAndRateScalarFieldEnum = exports.LoginHistoryScalarFieldEnum = exports.UserScalarFieldEnum = exports.TransactionIsolationLevel = exports.ModelName = exports.AnyNull = exports.JsonNull = exports.DbNull = exports.NullTypes = exports.prismaVersion = exports.getExtensionContext = exports.Decimal = exports.Sql = exports.raw = exports.join = exports.empty = exports.sql = exports.PrismaClientValidationError = exports.PrismaClientInitializationError = exports.PrismaClientRustPanicError = exports.PrismaClientUnknownRequestError = exports.PrismaClientKnownRequestError = void 0;
-exports.defineExtension = exports.NullsOrder = exports.QueryMode = exports.SortOrder = exports.CarIncomeDeliveryScalarFieldEnum = exports.VataCarScalarFieldEnum = exports.DriverScalarFieldEnum = exports.SeasonScalarFieldEnum = exports.SubscriptionPaymentScalarFieldEnum = exports.SubscriptionPlanScalarFieldEnum = exports.VataScalarFieldEnum = void 0;
+exports.defineExtension = exports.NullsOrder = exports.QueryMode = exports.SortOrder = exports.SmsLogScalarFieldEnum = exports.VataSmsSettingsScalarFieldEnum = exports.SmsRechargeHistoryScalarFieldEnum = exports.SmsWalletScalarFieldEnum = exports.SmsSettingScalarFieldEnum = exports.CarIncomeDeliveryScalarFieldEnum = exports.VataCarScalarFieldEnum = exports.DriverScalarFieldEnum = exports.SeasonScalarFieldEnum = exports.SubscriptionPaymentScalarFieldEnum = exports.SubscriptionPlanScalarFieldEnum = exports.VataScalarFieldEnum = void 0;
 const runtime = __importStar(require("@prisma/client/runtime/client"));
 /**
  * Prisma Errors
@@ -141,7 +141,12 @@ exports.ModelName = {
     Season: 'Season',
     Driver: 'Driver',
     VataCar: 'VataCar',
-    CarIncomeDelivery: 'CarIncomeDelivery'
+    CarIncomeDelivery: 'CarIncomeDelivery',
+    SmsSetting: 'SmsSetting',
+    SmsWallet: 'SmsWallet',
+    SmsRechargeHistory: 'SmsRechargeHistory',
+    VataSmsSettings: 'VataSmsSettings',
+    SmsLog: 'SmsLog'
 };
 /**
  * Enums
@@ -609,6 +614,60 @@ exports.CarIncomeDeliveryScalarFieldEnum = {
     carId: 'carId',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
+};
+exports.SmsSettingScalarFieldEnum = {
+    id: 'id',
+    ratePerSms: 'ratePerSms',
+    bkash: 'bkash',
+    rocket: 'rocket',
+    nogod: 'nogod',
+    isActive: 'isActive',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+};
+exports.SmsWalletScalarFieldEnum = {
+    id: 'id',
+    vataId: 'vataId',
+    balance: 'balance',
+    totalPurchased: 'totalPurchased',
+    totalUsed: 'totalUsed',
+    currentRate: 'currentRate',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+};
+exports.SmsRechargeHistoryScalarFieldEnum = {
+    id: 'id',
+    vataId: 'vataId',
+    smsQuantity: 'smsQuantity',
+    ratePerSms: 'ratePerSms',
+    totalAmount: 'totalAmount',
+    paymentMethod: 'paymentMethod',
+    transactionId: 'transactionId',
+    phoneNumber: 'phoneNumber',
+    type: 'type',
+    status: 'status',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+};
+exports.VataSmsSettingsScalarFieldEnum = {
+    id: 'id',
+    newInvoice: 'newInvoice',
+    updateInvoice: 'updateInvoice',
+    deleteInvoice: 'deleteInvoice',
+    newDelivery: 'newDelivery',
+    newDueCollection: 'newDueCollection',
+    deuCollectionUpdate: 'deuCollectionUpdate',
+    vataId: 'vataId'
+};
+exports.SmsLogScalarFieldEnum = {
+    id: 'id',
+    vataId: 'vataId',
+    phoneNumber: 'phoneNumber',
+    message: 'message',
+    status: 'status',
+    sendBy: 'sendBy',
+    cost: 'cost',
+    sentAt: 'sentAt'
 };
 exports.SortOrder = {
     asc: 'asc',

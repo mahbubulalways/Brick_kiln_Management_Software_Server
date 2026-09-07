@@ -18,7 +18,7 @@ const createAdminController = catchAsync(async (req, res) => {
             message: "অ্যাডমিন সফলভাবে তৈরি হয়েছে",
         });
     } else {
-        throw new AppError(StatusCodes.BAD_REQUEST, "অ্যাডমিন তৈরি করা যায়নি")
+          throw new AppError(StatusCodes.BAD_REQUEST, "অ্যাডমিন তৈরি করা যায়নি")
     }
 });
 
