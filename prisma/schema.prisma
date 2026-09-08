@@ -410,23 +410,26 @@ model GoodsIssue {
 enum GoodHistoryType {
   ISSUE
   RETURN
+  LOST
+  DEMAGE
 }
 
 model GoodHistoryLog {
-  id        String          @id @default(uuid())
-  type      GoodHistoryType
-  receiveBy String
-  quantity  Int
-  returnBy  String?
-  goodId    String
-  date      DateTime
-  good      GoodsStock      @relation(fields: [goodId], references: [id])
-  damage    Int?
-  lost      Int?
-  okay      Int?
-  image     String?
-  createdAt DateTime        @default(now())
-  updatedAt DateTime        @updatedAt
+  id          String          @id @default(uuid())
+  type        GoodHistoryType
+  description String?
+  receiveBy   String?
+  quantity    Int
+  returnBy    String?
+  goodId      String
+  date        DateTime
+  good        GoodsStock      @relation(fields: [goodId], references: [id])
+  damage      Int?
+  lost        Int?
+  okay        Int?
+  image       String?
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
 }
 
 enum GoodLossType {
