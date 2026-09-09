@@ -7,7 +7,6 @@ import { prisma } from "../../../helpers/prisma";
 import { parseListQuery } from "../../../utils/parseListQuery";
 import { TAuthUser } from "../../../interface/token";
 
-
 // GET INVOICE SERIAL
 const getInvoiceSerial = catchAsync(async (req, res) => {
   const user = req.user as TAuthUser;
@@ -21,7 +20,7 @@ const getInvoiceSerial = catchAsync(async (req, res) => {
   if (!result) {
     throw new AppError(
       StatusCodes.BAD_REQUEST,
-      "ইনভয়েস সিরিয়াল তৈরি করা যায়নি।"
+      "ইনভয়েস সিরিয়াল তৈরি করা যায়নি।",
     );
   }
 
@@ -38,20 +37,20 @@ const getInvoiceSerial = catchAsync(async (req, res) => {
 // CREATE CUSTOMER AND INVOICE AND INVOICE ITEMS
 const createInvoiceController = catchAsync(async (req, res) => {
   const body = req.body;
-  const user = req.user as TAuthUser
-  const seasonId = req.seasonId
+  const user = req.user as TAuthUser;
+  const seasonId = req.seasonId;
 
   const result = await InvoiceService.createInvoiceService(
     user,
     seasonId,
     body.customer,
     body.invoiceItems.items,
-    body.invoice
+    body.invoice,
   );
   if (!result?.id) {
     throw new AppError(
       StatusCodes.BAD_REQUEST,
-      "চ্যালান তৈরি করতে ব্যর্থ হয়েছে।"
+      "চ্যালান তৈরি করতে ব্যর্থ হয়েছে।",
     );
   } else {
     sendResponse(res, {
@@ -61,17 +60,15 @@ const createInvoiceController = catchAsync(async (req, res) => {
       data: result,
     });
   }
-
 });
 
 // SEARCH FOR DELIVERY
 const searchChallanForDeliveryController = catchAsync(async (req, res) => {
   const user = req.user as TAuthUser;
   const { search } = await parseListQuery(req.query);
-  const result = await InvoiceService.searchChallanForDeliveryService(
-    user,
-    { search },
-  );
+  const result = await InvoiceService.searchChallanForDeliveryService(user, {
+    search,
+  });
 
   if (!result) {
     return sendResponse(res, {
@@ -80,9 +77,7 @@ const searchChallanForDeliveryController = catchAsync(async (req, res) => {
       success: true,
       data: [],
     });
-  }
-
-  else {
+  } else {
     return sendResponse(res, {
       message: "চ্যালান সফলভাবে পাওয়া গেছে।",
       statusCode: StatusCodes.OK,
@@ -94,13 +89,15 @@ const searchChallanForDeliveryController = catchAsync(async (req, res) => {
 
 // GET AL INVOICE WITH CUSTOMER NAME AND ADDRESS
 const getAllInvoiceController = catchAsync(async (req, res) => {
-  const user = req.user as TAuthUser
-  const seasonId = req.seasonId
+  const user = req.user as TAuthUser;
+  const seasonId = req.seasonId;
   const { limit, page, search, date } = await parseListQuery(req.query);
-  const result = await InvoiceService.getAllInvoiceService(
-    user,
-    seasonId,
-    { limit, page, search, date });
+  const result = await InvoiceService.getAllInvoiceService(user, seasonId, {
+    limit,
+    page,
+    search,
+    date,
+  });
   if (!result?.data.length) {
     sendResponse(res, {
       message: "চ্যালান পাওয়া যায়নি।",
@@ -108,9 +105,7 @@ const getAllInvoiceController = catchAsync(async (req, res) => {
       success: true,
       data: [],
     });
-
-  }
-  else {
+  } else {
     sendResponse(res, {
       message: "চ্যালান সফলভাবে পাওয়া গেছে।",
       statusCode: StatusCodes.OK,
@@ -122,15 +117,19 @@ const getAllInvoiceController = catchAsync(async (req, res) => {
 
 // GET ADVANVCE INVOICE
 const getAllAdvanceInvoiceController = catchAsync(async (req, res) => {
-  const user = req.user as TAuthUser
-  const seasonId = req.seasonId
+  const user = req.user as TAuthUser;
+  const seasonId = req.seasonId;
   const { limit, page, search, date } = await parseListQuery(req.query);
-  const result = await InvoiceService.getAllAdvanceInvoiceService(user, seasonId, {
-    limit,
-    page,
-    search,
-    date
-  });
+  const result = await InvoiceService.getAllAdvanceInvoiceService(
+    user,
+    seasonId,
+    {
+      limit,
+      page,
+      search,
+      date,
+    },
+  );
   if (!result?.data.length) {
     sendResponse(res, {
       message: "চ্যালান পাওয়া যায়নি।",
@@ -138,9 +137,7 @@ const getAllAdvanceInvoiceController = catchAsync(async (req, res) => {
       success: true,
       data: [],
     });
-
-  }
-  else {
+  } else {
     sendResponse(res, {
       message: "চ্যালান সফলভাবে পাওয়া গেছে।",
       statusCode: StatusCodes.OK,
@@ -153,12 +150,11 @@ const getAllAdvanceInvoiceController = catchAsync(async (req, res) => {
 //  GET SINGLE INVOICE
 const getSingleInvoiceController = catchAsync(async (req, res) => {
   const id = req?.params?.id;
-  const user = req.user as TAuthUser
+  const user = req.user as TAuthUser;
   const result = await InvoiceService.getSingleInvoiceService(user, id);
   if (!result?.id) {
     throw new AppError(StatusCodes.BAD_REQUEST, "চ্যালান পাওয়া যায়নি।");
-  }
-  else {
+  } else {
     sendResponse(res, {
       message: !result?.id
         ? "চ্যালান পাওয়া যায়নি।"
@@ -174,11 +170,11 @@ const getSingleInvoiceController = catchAsync(async (req, res) => {
 const getSingleInvoiceItemsController = catchAsync(async (req, res) => {
   const id = req?.params?.id;
   const query = req.query;
-  const user = req.user as TAuthUser
+  const user = req.user as TAuthUser;
   const result = await InvoiceService.getSingleInvoiceItemsService(
     user,
     id,
-    query?.ids as string
+    query?.ids as string,
   );
   if (!result?.length) {
     sendResponse(res, {
@@ -187,8 +183,7 @@ const getSingleInvoiceItemsController = catchAsync(async (req, res) => {
       success: true,
       data: {},
     });
-  }
-  else {
+  } else {
     sendResponse(res, {
       message: "চ্যালান সফলভাবে পাওয়া গেছে।",
       statusCode: StatusCodes.OK,
@@ -203,21 +198,19 @@ const getSingleInvoiceItemsController = catchAsync(async (req, res) => {
 const updateInvoiceController = catchAsync(async (req, res) => {
   const id = req?.params?.id;
   const body = req.body;
-  const user = req.user as TAuthUser
+  const user = req.user as TAuthUser;
   const result = await InvoiceService.updateInvoiceService(
     user,
     id,
     body.invoice,
-    body.invoiceItems
+    body.invoiceItems,
   );
   if (!result?.id) {
     throw new AppError(
       StatusCodes.BAD_REQUEST,
-      "চ্যালান হালনাগাদ করতে ব্যর্থ হয়েছে।"
+      "চ্যালান হালনাগাদ করতে ব্যর্থ হয়েছে।",
     );
-  }
-
-  else {
+  } else {
     sendResponse(res, {
       message: "চ্যালান সফলভাবে হালনাগাদ হয়েছে।",
       statusCode: StatusCodes.OK,
@@ -230,12 +223,12 @@ const updateInvoiceController = catchAsync(async (req, res) => {
 // DELETE INVOICE
 const deleteInvoiceController = catchAsync(async (req, res) => {
   const id = req?.params?.id;
-  const user = req.user as TAuthUser
+  const user = req.user as TAuthUser;
   const result = await InvoiceService.deleteInvoiceService(user, id);
   if (!result?.id) {
     throw new AppError(
       StatusCodes.BAD_REQUEST,
-      "চ্যালান মুছে ফেলতে ব্যর্থ হয়েছে।"
+      "চ্যালান মুছে ফেলতে ব্যর্থ হয়েছে।",
     );
   } else {
     sendResponse(res, {
@@ -245,22 +238,25 @@ const deleteInvoiceController = catchAsync(async (req, res) => {
       data: result,
     });
   }
-
-
 });
 
 // GET ITEMS WITH INVOICE
 const getItemsWithInvoiceController = catchAsync(async (req, res) => {
   const { search, date } = await parseListQuery(req.query);
-  const user = req.user as TAuthUser
-  const seasonId = req.seasonId
+  const user = req.user as TAuthUser;
+  const seasonId = req.seasonId;
   const result = await InvoiceService.getItemsWithInvoiceService(
     user,
     seasonId,
-    { date, search }
+    { date, search },
   );
   if (!result?.length) {
-    throw new AppError(StatusCodes.BAD_REQUEST, "চ্যালান পাওয়া যায়নি।");
+    sendResponse(res, {
+      message: "চ্যালান পাওয়া যায়নি।",
+      statusCode: StatusCodes.OK,
+      success: true,
+      data: [],
+    });
   } else {
     sendResponse(res, {
       message: " চ্যালান সফলভাবে পাওয়া গেছে।",
@@ -269,24 +265,22 @@ const getItemsWithInvoiceController = catchAsync(async (req, res) => {
       data: result,
     });
   }
-
-
 });
 
 // CHANGE INVOICE DELIVERY DATE
 const updateInvoiceDeliveryDateController = catchAsync(async (req, res) => {
   const id = req?.params.id;
   const updatedDate = req.body.updatedDate;
-  const user = req.user as TAuthUser
+  const user = req.user as TAuthUser;
   const result = await InvoiceService.updateInvoiceDeliveryDateService(
     user,
     id,
-    updatedDate
+    updatedDate,
   );
   if (!result?.id) {
     throw new AppError(
       StatusCodes.BAD_REQUEST,
-      "চ্যালান আপডেট করতে ব্যর্থ হয়েছে।"
+      "চ্যালান আপডেট করতে ব্যর্থ হয়েছে।",
     );
   } else {
     sendResponse(res, {
@@ -301,20 +295,18 @@ const updateInvoiceDeliveryDateController = catchAsync(async (req, res) => {
 const updateInvoiceItemDeliveryDateController = catchAsync(async (req, res) => {
   const id = req?.params.id;
   const updatedDate = req.body.updatedDate;
-  const user = req.user as TAuthUser
+  const user = req.user as TAuthUser;
   const result = await InvoiceService.updateItemsDateService(
     user,
     id,
-    updatedDate
+    updatedDate,
   );
   if (!result?.id) {
     throw new AppError(
       StatusCodes.BAD_REQUEST,
-      "চ্যালান আপডেট করতে ব্যর্থ হয়েছে।"
+      "চ্যালান আপডেট করতে ব্যর্থ হয়েছে।",
     );
-  }
-  else {
-
+  } else {
     sendResponse(res, {
       message: " চ্যালান সফলভাবে আপডেট হয়েছে",
       statusCode: StatusCodes.OK,
@@ -335,5 +327,5 @@ export const InvoiceController = {
   updateInvoiceDeliveryDateController,
   updateInvoiceItemDeliveryDateController,
   getAllAdvanceInvoiceController,
-  searchChallanForDeliveryController
+  searchChallanForDeliveryController,
 };

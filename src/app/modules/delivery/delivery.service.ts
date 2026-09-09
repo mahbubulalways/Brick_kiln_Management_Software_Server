@@ -15,7 +15,7 @@ const getNextDeliveryNo = async (user: TAuthUser) => {
     where: {
       invoice: {
         vataId: user.vataId,
-      }
+      },
     },
     orderBy: {
       deliveryNo: "desc",
@@ -24,7 +24,7 @@ const getNextDeliveryNo = async (user: TAuthUser) => {
       deliveryNo: true,
     },
   });
-
+  console.log(result);
   return result ? result.deliveryNo + 1 : 1;
 };
 
@@ -33,6 +33,12 @@ const createDeliveryService = async (user: TAuthUser, payload: TDelivery) => {
   const isDeliveryNoExist = await prisma.delivery.findFirst({
     where: {
       deliveryNo: Number(payload?.deliveryNo),
+      invoice: {
+        vataId: user.vataId,
+      },
+    },
+    include: {
+      invoice: true,
     },
   });
 
@@ -40,23 +46,26 @@ const createDeliveryService = async (user: TAuthUser, payload: TDelivery) => {
     throw new AppError(StatusCodes.CONFLICT, "এই ডেলিভারি নম্বর ইতিমধ্যে আছে");
   }
 
-  // // HERE COME SERIAL ID AS INVOICE ID 
+  // // HERE COME SERIAL ID AS INVOICE ID
   const mainInvoiceId = await prisma.challan.findFirst({
     where: {
-      serial: Number(payload.invoiceId), vataId: user.vataId
+      serial: Number(payload.invoiceId),
+      vataId: user.vataId,
     },
-    select: { id: true, carRent: true, seasonId: true }
-  },)
+    select: { id: true, carRent: true, seasonId: true },
+  });
 
   const checkStockQuantity = await getStockByClass(
-    user, mainInvoiceId?.seasonId!, payload.items.class
-  )
+    user,
+    mainInvoiceId?.seasonId!,
+    payload.items.class,
+  );
 
   if (checkStockQuantity < payload.items.todaysDelivery) {
     throw new AppError(
       StatusCodes.BAD_REQUEST,
       `পর্যাপ্ত ইট নেই। বর্তমানে ${checkStockQuantity} টি ইট আছে, 
-       কিন্তু ${payload.items.quantity} টি ইট প্রয়োজন।`
+       কিন্তু ${payload.items.quantity} টি ইট প্রয়োজন।`,
     );
   }
 
@@ -84,10 +93,8 @@ const createDeliveryService = async (user: TAuthUser, payload: TDelivery) => {
     carRent: Number(payload.carRent),
     deliveryById: user.userId,
     driverId: payload.driverId,
-    lastDelivered: totalDelivered
-
+    lastDelivered: totalDelivered,
   };
-
 
   const result = await prisma.$transaction(
     async (tx: Prisma.TransactionClient) => {
@@ -105,7 +112,7 @@ const createDeliveryService = async (user: TAuthUser, payload: TDelivery) => {
           carRent: data.carRent,
           deliveryById: data.deliveryById,
           driverId: data.driverId,
-          lastDelivered: totalDelivered
+          lastDelivered: totalDelivered,
         },
       });
 
@@ -118,7 +125,6 @@ const createDeliveryService = async (user: TAuthUser, payload: TDelivery) => {
             id: payload.itemId,
           },
         });
-
       }
 
       await tx.challanItem.update({
@@ -132,23 +138,21 @@ const createDeliveryService = async (user: TAuthUser, payload: TDelivery) => {
         },
       });
 
-      const carRent = Number(payload?.carRent) || Number(mainInvoiceId?.carRent)
+      const carRent =
+        Number(payload?.carRent) || Number(mainInvoiceId?.carRent);
       if (carRent && payload?.carNumber) {
-        console.log("first")
+        console.log("first");
         const car = await tx.vataCar.findFirst({
           where: {
             carNo: payload.carNumber,
-            vataId: user.vataId
+            vataId: user.vataId,
           },
           select: {
-            id: true
-          }
-        })
+            id: true,
+          },
+        });
         if (!car) {
-          throw new AppError(
-            StatusCodes.NOT_FOUND,
-            "এই গাড়িটি পাওয়া যায়নি"
-          );
+          throw new AppError(StatusCodes.NOT_FOUND, "এই গাড়িটি পাওয়া যায়নি");
         }
         await tx.carIncomeDelivery.create({
           data: {
@@ -156,9 +160,8 @@ const createDeliveryService = async (user: TAuthUser, payload: TDelivery) => {
             carId: car?.id,
             deliveryId: createDelivery?.id,
             driverId: payload.driverId,
-
-          }
-        })
+          },
+        });
       }
 
       return createDelivery;
@@ -168,13 +171,16 @@ const createDeliveryService = async (user: TAuthUser, payload: TDelivery) => {
 };
 
 // GET DELIVERIES THAT GO TODAT
-const getDeliveryThatGoTodayService = async (user: TAuthUser, seasonId: string, query: TQuery) => {
+const getDeliveryThatGoTodayService = async (
+  user: TAuthUser,
+  seasonId: string,
+  query: TQuery,
+) => {
   const { limit, page, skip } = paginationHelper(query.page, query.limit);
   const where: Prisma.ChallanWhereInput = {
     vataId: user.vataId,
     isDeleted: false,
     seasonId,
-
   };
 
   // Create start and end of day boundaries
@@ -185,10 +191,10 @@ const getDeliveryThatGoTodayService = async (user: TAuthUser, seasonId: string, 
     where.OR = [
       ...(isNumber
         ? [
-          {
-            serial: Number(search),
-          },
-        ]
+            {
+              serial: Number(search),
+            },
+          ]
         : []),
       {
         customer: {
@@ -213,9 +219,7 @@ const getDeliveryThatGoTodayService = async (user: TAuthUser, seasonId: string, 
     ];
   }
 
-  const dateRange = query.date
-    ? getDateRangeDbSearch(query.date)
-    : undefined;
+  const dateRange = query.date ? getDateRangeDbSearch(query.date) : undefined;
   if (query.date) {
     if (dateRange) {
       where.items = {
@@ -238,27 +242,29 @@ const getDeliveryThatGoTodayService = async (user: TAuthUser, seasonId: string, 
         items: {
           where: dateRange
             ? {
-              deliveryDate: dateRange,
-            }
+                deliveryDate: dateRange,
+              }
             : undefined,
         },
       },
       orderBy: {
         deliveryDate: "asc",
-      }, skip,
-      take: limit
+      },
+      skip,
+      take: limit,
     }),
-    prisma.challan.count({ where })
+    prisma.challan.count({ where }),
   ]);
 
   // Filter out challans with no items
-  const filteredResult = result.filter((challan) => challan.items.length > 0)
+  const filteredResult = result
+    .filter((challan) => challan.items.length > 0)
     .filter((challan) =>
       challan.items.some(
-        (item) => Number(item.delivered) < Number(item.quantity)
-      )
+        (item) => Number(item.delivered) < Number(item.quantity),
+      ),
     );
-    
+
   const meta = createMetaConfig({
     limit: limit,
     page: page,
@@ -272,14 +278,18 @@ const getDeliveryThatGoTodayService = async (user: TAuthUser, seasonId: string, 
 };
 
 // GET DELIVERIES THAT DONE TODAY
-const getTodaysDeliveryThatDone = async (user: TAuthUser, seasonId: string, query: TQuery) => {
+const getTodaysDeliveryThatDone = async (
+  user: TAuthUser,
+  seasonId: string,
+  query: TQuery,
+) => {
   const { limit, page, skip } = paginationHelper(query.page, query.limit);
   const where: Prisma.DeliveryWhereInput = {
     isDeleted: false,
     invoice: {
       vataId: user.vataId,
-      seasonId
-    }
+      seasonId,
+    },
   };
 
   // Create start and end of day boundaries
@@ -301,15 +311,17 @@ const getTodaysDeliveryThatDone = async (user: TAuthUser, seasonId: string, quer
         },
         driver: {
           select: {
-            name: true
-          }
-        }
-      }, skip, take: limit, orderBy: { createdAt: "desc" }
+            name: true,
+          },
+        },
+      },
+      skip,
+      take: limit,
+      orderBy: { createdAt: "desc" },
     }),
 
-    prisma.delivery.count({ where })
-
-  ])
+    prisma.delivery.count({ where }),
+  ]);
   const meta = createMetaConfig({
     limit: limit,
     page: page,
@@ -323,22 +335,21 @@ const getTodaysDeliveryThatDone = async (user: TAuthUser, seasonId: string, quer
 };
 
 // GET ALL DELIVERY
-const getAllDeliveryListService = async (user: TAuthUser, seasonId: string, query: TQuery) => {
-  const { limit, page, skip } = paginationHelper(
-    query.page,
-    query.limit,
-  );
+const getAllDeliveryListService = async (
+  user: TAuthUser,
+  seasonId: string,
+  query: TQuery,
+) => {
+  const { limit, page, skip } = paginationHelper(query.page, query.limit);
 
   const where: Prisma.ChallanWhereInput = {
     isDeleted: false,
     vataId: user.vataId,
-    seasonId
+    seasonId,
   };
 
   // Date range
-  const dateRange = query.date
-    ? getDateRangeDbSearch(query.date)
-    : undefined;
+  const dateRange = query.date ? getDateRangeDbSearch(query.date) : undefined;
 
   // Filter challan by item delivery date
   if (dateRange) {
@@ -357,10 +368,10 @@ const getAllDeliveryListService = async (user: TAuthUser, seasonId: string, quer
     where.OR = [
       ...(isNumber
         ? [
-          {
-            serial: Number(search),
-          },
-        ]
+            {
+              serial: Number(search),
+            },
+          ]
         : []),
 
       {
@@ -411,8 +422,8 @@ const getAllDeliveryListService = async (user: TAuthUser, seasonId: string, quer
         items: {
           where: dateRange
             ? {
-              deliveryDate: dateRange,
-            }
+                deliveryDate: dateRange,
+              }
             : undefined,
         },
       },
@@ -429,15 +440,13 @@ const getAllDeliveryListService = async (user: TAuthUser, seasonId: string, quer
         items: {
           where: dateRange
             ? {
-              deliveryDate: dateRange,
-            }
+                deliveryDate: dateRange,
+              }
             : undefined,
         },
       },
     }),
   ]);
-
-
 
   const filteredResult = result
     .map((challan) => {
@@ -453,19 +462,14 @@ const getAllDeliveryListService = async (user: TAuthUser, seasonId: string, quer
           0,
         ) || 0;
 
-      const totalDue = Math.max(
-        totalDueAmount - totalCollected,
-        0,
-      );
+      const totalDue = Math.max(totalDueAmount - totalCollected, 0);
 
       return {
         ...challan,
         totalDueAmount,
         totalCollected,
         totalDue,
-        items: challan.items.filter(
-          (item) => item.quantity > item.delivered,
-        ),
+        items: challan.items.filter((item) => item.quantity > item.delivered),
       };
     })
     .filter((challan) => challan.items.length > 0);
@@ -473,9 +477,7 @@ const getAllDeliveryListService = async (user: TAuthUser, seasonId: string, quer
   const totalCount = total
     .map((challan) => ({
       ...challan,
-      items: challan.items.filter(
-        (item) => item.quantity > item.delivered,
-      ),
+      items: challan.items.filter((item) => item.quantity > item.delivered),
     }))
     .filter((challan) => challan.items.length > 0).length;
 
@@ -485,7 +487,6 @@ const getAllDeliveryListService = async (user: TAuthUser, seasonId: string, quer
     totalData: totalCount,
   });
 
-
   return {
     meta,
     data: filteredResult,
@@ -494,40 +495,46 @@ const getAllDeliveryListService = async (user: TAuthUser, seasonId: string, quer
 
 const getSingleDeliveryService = async (id: string) => {
   const result = await prisma.delivery.findFirst({
-    where: { id }, include: {
+    where: { id },
+    include: {
       invoice: {
         select: {
           id: true,
           serial: true,
           challanDate: true,
           deliveryDate: true,
+          totalPrice: true,
+          items: {
+            select: {
+              rate: true,
+              price: true,
+            },
+          },
 
           customer: {
             select: {
               name: true,
               phoneNumber: true,
-              address: true
-            }
-          }
-        }
+              address: true,
+            },
+          },
+        },
       },
       driver: {
         select: {
           name: true,
-          PhoneNumber: true
-        }
+          PhoneNumber: true,
+        },
       },
       deliveryBy: {
         select: {
-          name: true
-        }
+          name: true,
+        },
       },
-    }
+    },
   });
   return result;
 };
-
-
 
 export const DeliveryService = {
   getNextDeliveryNo,

@@ -600,6 +600,8 @@ model Vata {
   vataId                        String                         @unique
   nameEnglish                   String
   nameBangla                    String
+  additionalAddress             String?
+  shortDescription              String?
   address                       String
   ownerName                     String
   ownerPhoneNumber              String

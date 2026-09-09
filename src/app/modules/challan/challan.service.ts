@@ -240,6 +240,7 @@ const getAllInvoiceService = async (
   query: TQuery,
 ) => {
   const { limit, page, skip } = paginationHelper(query.page, query.limit);
+
   const where: Prisma.ChallanWhereInput = {
     vataId: user.vataId,
     isDeleted: false,
@@ -247,22 +248,28 @@ const getAllInvoiceService = async (
   };
   if (query.search?.trim()) {
     const search = query.search.trim();
-    where.customer = {
-      OR: [
-        {
-          name: {
-            contains: search,
-            mode: "insensitive",
+    const isNumber = !isNaN(Number(search));
+
+    if (isNumber) {
+      where.serial = Number(search);
+    } else {
+      where.customer = {
+        OR: [
+          {
+            name: {
+              contains: search,
+              mode: "insensitive",
+            },
           },
-        },
-        {
-          address: {
-            contains: search,
-            mode: "insensitive",
+          {
+            address: {
+              contains: search,
+              mode: "insensitive",
+            },
           },
-        },
-      ],
-    };
+        ],
+      };
+    }
   }
   if (query.date) {
     const dateRange = getDateRangeDbSearch(query.date);
@@ -308,6 +315,7 @@ const getAllAdvanceInvoiceService = async (
   query: TQuery,
 ) => {
   const { limit, page, skip } = paginationHelper(query.page, query.limit);
+  console.log(limit);
   const where: Prisma.ChallanWhereInput = {
     vataId: user.vataId,
     isDeleted: false,
