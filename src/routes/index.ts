@@ -39,6 +39,7 @@ import adminRoutes from "../app/modules/system_modules/admin/admin.route";
 import adminVataRoutes from "../app/modules/system_modules/vata/vata.route";
 import subscriptionRoutes from "../app/modules/system_modules/subscriptions/subscriptions.route";
 import smsRateRoutes from "../app/modules/system_modules/sms_rate/sms_rate.router";
+import databaseRoutes from "../app/modules/system_modules/database/database.router";
 
 const router = Router();
 const applicationRoutes: IApplicationRoute[] = [
@@ -93,6 +94,10 @@ const applicationRoutes: IApplicationRoute[] = [
     path: "/system/sms",
     route: smsRateRoutes,
   },
+  // {
+  //   path: "/system/database",
+  //   route: databaseRoutes,
+  // },
 ];
 
 applicationRoutes.forEach((route) => router.use(route.path, route.route));

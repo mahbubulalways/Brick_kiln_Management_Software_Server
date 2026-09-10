@@ -7,7 +7,8 @@ export interface IPayment {
   totalBill: number;
   cutting: number;
   payment: number;
-  paymentDate:Date,
+  paymentDate: Date;
   paymentDifference: number;
   document: string | null;
+  address: string;
 }

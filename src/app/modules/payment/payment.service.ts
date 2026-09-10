@@ -32,21 +32,28 @@ const createPaymentService = async (req: Request, user: TAuthUser) => {
     payment: Number(body.payment),
     paymentDifference: Number(body.paymentDifference),
     document: file?.filename || null,
+    address: body.address || null,
   };
-  const result = await prisma.payment.create({ data: { ...data, vataId: user.vataId } });
+  const result = await prisma.payment.create({
+    data: { ...data, vataId: user.vataId },
+  });
   return result;
 };
 
 // GET ALL PAYMENTS
-const getAllPaymentService = async (user: TAuthUser, seasonId: string, query: TQuery) => {
+const getAllPaymentService = async (
+  user: TAuthUser,
+  seasonId: string,
+  query: TQuery,
+) => {
   const pagination = paginationHelper(query.page, query.limit);
 
   const where: Prisma.PaymentWhereInput = {
     vataId: user.vataId,
     isDeleted: false,
     ledger: {
-      seasonId
-    }
+      seasonId,
+    },
   };
 
   // Search by ledger name
@@ -84,7 +91,7 @@ const getAllPaymentService = async (user: TAuthUser, seasonId: string, query: TQ
         ledger: {
           select: {
             name: true,
-            id: true
+            id: true,
           },
         },
       },
@@ -113,20 +120,23 @@ const getAllPaymentService = async (user: TAuthUser, seasonId: string, query: TQ
 };
 
 // GET PAYMENT REPORT GROUP VIA DATE
-const paymentReportViaGroupService = async (user: TAuthUser, seasonId: string, date: string) => {
-
+const paymentReportViaGroupService = async (
+  user: TAuthUser,
+  seasonId: string,
+  date: string,
+) => {
   const where: Prisma.PaymentWhereInput = {
     isDeleted: false,
     vataId: user.vataId,
     ledger: {
-      seasonId
-    }
-  }
+      seasonId,
+    },
+  };
 
   if (date) {
-    const dateRange = getDateRangeDbSearch(date)
+    const dateRange = getDateRangeDbSearch(date);
     if (dateRange) {
-      where.paymentDate = dateRange
+      where.paymentDate = dateRange;
     }
   }
   const result = await prisma.payment.findMany({
@@ -186,11 +196,13 @@ const paymentReportViaGroupService = async (user: TAuthUser, seasonId: string, d
   return groupedPayments;
 };
 
-// GET SINGLE PAYMENT 
+// GET SINGLE PAYMENT
 const getSinglePaymentService = async (user: TAuthUser, id: string) => {
-  return prisma.payment.findFirst({ where: { vataId: user.vataId, id: id }, include: { ledger: { select: { name: true } } } })
-}
-
+  return prisma.payment.findFirst({
+    where: { vataId: user.vataId, id: id },
+    include: { ledger: { select: { name: true } } },
+  });
+};
 
 // UPDATE PAYMENT
 const updatePaymentService = async (user: TAuthUser, req: Request) => {
@@ -211,10 +223,7 @@ const updatePaymentService = async (user: TAuthUser, req: Request) => {
   });
 
   if (!existingPayment) {
-    throw new AppError(
-      StatusCodes.NOT_FOUND,
-      "পেমেন্ট পাওয়া যায়নি।",
-    );
+    throw new AppError(StatusCodes.NOT_FOUND, "পেমেন্ট পাওয়া যায়নি।");
   }
 
   // ============================================
@@ -231,10 +240,7 @@ const updatePaymentService = async (user: TAuthUser, req: Request) => {
   });
 
   if (!ledger) {
-    throw new AppError(
-      StatusCodes.NOT_FOUND,
-      "খতিয়ান পাওয়া যায়নি।",
-    );
+    throw new AppError(StatusCodes.NOT_FOUND, "খতিয়ান পাওয়া যায়নি।");
   }
 
   // ============================================
@@ -250,7 +256,7 @@ const updatePaymentService = async (user: TAuthUser, req: Request) => {
     cutting: Number(body.cutting) || 0,
     payment: Number(body.payment) || 0,
     paymentDifference: Number(body.paymentDifference) || 0,
-    paymentDate: body.paymentDate
+    paymentDate: body.paymentDate,
   };
 
   // ============================================
@@ -266,7 +272,7 @@ const updatePaymentService = async (user: TAuthUser, req: Request) => {
   const result = await prisma.payment.update({
     where: {
       id,
-      vataId: user.vataId
+      vataId: user.vataId,
     },
     data,
   });
@@ -274,12 +280,13 @@ const updatePaymentService = async (user: TAuthUser, req: Request) => {
   return result;
 };
 
-
-// DELETE PAYMENT 
+// DELETE PAYMENT
 const deletePaymentServie = async (user: TAuthUser, id: string) => {
-  return await prisma.payment.update({ where: { id, vataId: user.vataId }, data: { isDeleted: true } })
-
-}
+  return await prisma.payment.update({
+    where: { id, vataId: user.vataId },
+    data: { isDeleted: true },
+  });
+};
 
 export const PaymentService = {
   createPaymentService,
@@ -287,5 +294,5 @@ export const PaymentService = {
   paymentReportViaGroupService,
   getSinglePaymentService,
   updatePaymentService,
-  deletePaymentServie
+  deletePaymentServie,
 };

@@ -1,18 +1,12 @@
-import { Prisma, SmsStatus } from "../../../generated/prisma/client";
-
+import { SmsStatus } from "../../../generated/prisma/client";
+import { prisma } from "../../../helpers/prisma";
 import { TAuthUser } from "../../../interface/token";
-
-import { sendSmsToPhoneNumbers } from "../../../utils/sendSmsToPhoneNumbers";
+import { sendSmsToPhoneNumbers } from "../../service/smsService";
 
 type TSmsSend = {
   user: TAuthUser;
-
-  tx: Prisma.TransactionClient;
-
   sendToOwner?: boolean;
-
   clientPhoneNumber: string;
-
   from:
     | "NEW_INVOICE"
     | "UPDATE_INVOICE"
@@ -20,34 +14,27 @@ type TSmsSend = {
     | "NEW_DELIVERY"
     | "DEU_COLLECTION"
     | "UPDATE_DEU_COLLECTION";
-
-  clientMessage?: string;
-
-  ownerMessage?: string;
+  message: string;
 };
 
 export const getUserAndPermissionForSms = async ({
   clientPhoneNumber,
-  clientMessage,
-  ownerMessage,
+  message,
   sendToOwner,
-  tx,
   user,
   from,
 }: TSmsSend) => {
-  const [userInfo, vataOwners, smsPermission, smsWallet] = await Promise.all([
-    tx.user.findFirst({
+  const [userInfo, vataOwner, smsPermission, smsWallet] = await Promise.all([
+    prisma.user.findFirst({
       where: {
         username: user.username,
       },
       select: {
-        id: true,
-        name: true,
         username: true,
       },
     }),
 
-    tx.user.findMany({
+    prisma.user.findFirst({
       where: {
         vataId: user.vataId,
         role: "OWNER",
@@ -61,7 +48,7 @@ export const getUserAndPermissionForSms = async ({
       },
     }),
 
-    tx.vataSmsSettings.findFirst({
+    prisma.vataSmsSettings.findFirst({
       where: {
         vataId: user.vataId,
       },
@@ -75,23 +62,13 @@ export const getUserAndPermissionForSms = async ({
       },
     }),
 
-    tx.smsWallet.findFirst({
+    prisma.smsWallet.findFirst({
       where: {
         vataId: user.vataId,
       },
     }),
   ]);
 
-  // OWNER PHONE NUMBERS
-  const ownerPhoneNumbers = [
-    ...new Set(
-      vataOwners
-        .map((owner) => owner.vata?.ownerPhoneNumber)
-        .filter((phone): phone is string => Boolean(phone)),
-    ),
-  ];
-
-  // SMS PERMISSION
   const permissionMap: Record<TSmsSend["from"], boolean> = {
     NEW_INVOICE: Boolean(smsPermission?.newInvoice),
     UPDATE_INVOICE: Boolean(smsPermission?.updateInvoice),
@@ -101,161 +78,77 @@ export const getUserAndPermissionForSms = async ({
     UPDATE_DEU_COLLECTION: Boolean(smsPermission?.deuCollectionUpdate),
   };
 
-  const hasPermission = permissionMap[from];
-
-  // PERMISSION OFF
-  if (!hasPermission) {
-    return {
-      success: false,
-      message: "SMS permission is disabled",
-      from,
-      smsPermission: false,
-      smsNumbers: [],
-    };
+  if (!permissionMap[from] || !smsWallet || !message) {
+    return;
   }
 
-  // CLIENT NUMBERS
-  const clientNumbers: string[] = [];
+  const smsRate = Number(smsWallet.currentRate ?? 0);
 
-  if (clientPhoneNumber && clientMessage) {
-    clientNumbers.push(clientPhoneNumber);
+  const ownerPhoneNumber = vataOwner?.vata?.ownerPhoneNumber;
+
+  const phoneNumbers: string[] = [];
+
+  if (clientPhoneNumber) {
+    phoneNumbers.push(clientPhoneNumber);
   }
 
-  // OWNER NUMBERS
-  const ownerNumbers = sendToOwner && ownerMessage ? ownerPhoneNumbers : [];
-
-  // ALL SMS NUMBERS
-  const smsNumbers = [...clientNumbers, ...ownerNumbers];
-
-  // TOTAL SMS
-  const totalSms = smsNumbers.length;
-
-  // যদি কোনো SMS পাঠানোর দরকার না থাকে
-  if (totalSms === 0) {
-    return {
-      success: false,
-      message: "No SMS number found",
-      from,
-      smsPermission: true,
-      smsNumbers: [],
-    };
+  if (sendToOwner && ownerPhoneNumber) {
+    phoneNumbers.push(ownerPhoneNumber);
   }
 
-  // SMS RATE
-  const smsRate = smsWallet?.currentRate ?? 0;
-
-  // TOTAL SMS COST
-  const totalCost = totalSms * Number(smsRate);
-
-  // WALLET না থাকলে
-  if (!smsWallet) {
-    return {
-      success: false,
-      message: "SMS wallet not found",
-      from,
-      smsPermission: true,
-      smsNumbers,
-    };
+  if (!phoneNumbers.length) {
+    return;
   }
 
-  // BALANCE CHECK
-  const currentBalance = Number(smsWallet.balance);
+  const totalSms = phoneNumbers.length;
 
-  if (currentBalance < totalCost) {
-    return {
-      success: false,
-      message: "Insufficient SMS balance",
-      from,
-      smsPermission: true,
-      smsNumbers: [],
-      requiredBalance: totalCost,
-      currentBalance,
-      totalSms,
-    };
+  const currentBalance =
+    Number(smsWallet.totalPurchased) - Number(smsWallet.totalUsed);
+
+  if (currentBalance < totalSms) {
+    return;
   }
 
-  /*
-   * ==============================
-   * SEND CLIENT SMS
-   * ==============================
-   */
+  const response = await sendSmsToPhoneNumbers(phoneNumbers, message);
 
-  if (clientNumbers.length && clientMessage) {
-    await sendSmsToPhoneNumbers(clientNumbers, clientMessage);
-  }
+  console.log(response?.data);
 
-  /*
-   * ==============================
-   * SEND OWNER SMS
-   * ==============================
-   */
-
-  if (ownerNumbers.length && ownerMessage) {
-    await sendSmsToPhoneNumbers(ownerNumbers, ownerMessage);
-  }
-
-  /*
-   * ==============================
-   * CLIENT SMS LOG
-   * ==============================
-   */
-
-  const clientLogs = clientNumbers.map((phoneNumber) => ({
-    message: clientMessage as string,
-    cost: Number(smsRate),
-    phoneNumber,
-    sendBy: userInfo?.username as string,
-    status: SmsStatus.SENT,
-    vataId: user.vataId,
-  }));
-
-  /*
-   * ==============================
-   * OWNER SMS LOG
-   * ==============================
-   */
-
-  const ownerLogs = ownerNumbers.map((phoneNumber) => ({
-    message: ownerMessage as string,
-    cost: Number(smsRate),
-    phoneNumber,
-    sendBy: userInfo?.username as string,
-    status: SmsStatus.SENT,
-    vataId: user.vataId,
-  }));
-
-  const smsLogs = [...clientLogs, ...ownerLogs];
-
-  /*
-   * ==============================
-   * SAVE SMS LOG
-   * ==============================
-   */
-
-  if (smsLogs.length) {
-    await tx.smsLog.createMany({
-      data: smsLogs,
+  if (!response) {
+    await prisma.smsLog.createMany({
+      data: phoneNumbers.map((phoneNumber) => ({
+        message,
+        cost: 0,
+        phoneNumber,
+        sendBy: userInfo?.username ?? user.username,
+        status: SmsStatus.FAILED,
+        vataId: user.vataId,
+      })),
     });
+
+    return;
   }
 
-  /*
-   * ==============================
-   * UPDATE SMS WALLET
-   * ==============================
-   */
+  await prisma.smsLog.createMany({
+    data: phoneNumbers.map((phoneNumber) => ({
+      message,
+      cost: smsRate,
+      phoneNumber,
+      sendBy: userInfo?.username ?? user.username,
+      status: SmsStatus.SENT,
+      vataId: user.vataId,
+    })),
+  });
 
-  await tx.smsWallet.update({
+  await prisma.smsWallet.update({
     where: {
       vataId: user.vataId,
     },
-
     data: {
       totalUsed: {
         increment: totalSms,
       },
-
       balance: {
-        decrement: totalCost,
+        decrement: totalSms * smsRate,
       },
     },
   });

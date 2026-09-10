@@ -68,12 +68,18 @@ const createNewVataService = async (payload: TAdminVata) => {
           additionalAddress: vataInformation.additionalAddress || null,
           ownerName: vataInformation.ownerName,
           ownerPhoneNumber: vataInformation.ownerPhoneNumber,
-          challansPhoneNumber: vataInformation.challansPhoneNumber,
           subscriptionPlanId: vataInformation.subscriptionPlanId,
           nextPaymentDate: new Date(vataInformation.nextPaymentDate),
           subdomain: vataInformation.subdomain || subdomain,
           subscriptionEnd: payload.vata.nextPaymentDate,
           subscriptionStart: new Date(),
+
+          challanManagerPhoneNumber: payload?.vata.challanManagerPhoneNumber,
+          challanPersonOneName: payload.vata.challanPersonOneName,
+          challanPersonOnePhoneNumber: payload.vata.challanPersonOnePhoneNumber,
+          challanPersonTwoName: payload.vata.challanPersonTwoPhoneNumber,
+          challanPersonTwoPhoneNumber: payload.vata.challanManagerPhoneNumber,
+          shortForm: payload?.vata.shortForm,
         },
       });
 

@@ -14,7 +14,15 @@ export type TAdminVata = {
     ownerPhoneNumber: string;
 
     // Challan Information
-    challansPhoneNumber: string;
+    shortForm: string;
+    challanManagerPhoneNumber: string;
+
+    challanPersonOneName: string;
+    challanPersonOnePhoneNumber: string;
+
+    challanPersonTwoName: string;
+    challanPersonTwoPhoneNumber: string;
+
     nextPaymentDate: string;
   };
 

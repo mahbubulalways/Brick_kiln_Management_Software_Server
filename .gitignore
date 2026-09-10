@@ -13,3 +13,5 @@ node_modules
 /prisma/..src/generated/prisma
 
 /src/generated/prisma
+
+brick-management-backup-153526dd73b8.json

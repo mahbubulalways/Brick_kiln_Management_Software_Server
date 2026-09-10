@@ -226,7 +226,8 @@ model Ledger {
 
 model Payment {
   id                String   @id @default(uuid())
-  quantity          Float
+  serial            Int      @default(autoincrement())
+  quantity          Float    @default(0)
   cutting           Float    @default(0)
   payment           Float
   ledgerId          String
@@ -237,7 +238,8 @@ model Payment {
   paymentDetails    String?
   paymentDifference Float    @default(0)
   paymentType       String
-  rate              Float
+  rate              Float    @default(0)
+  address           String?
   totalBill         Float
   isDeleted         Boolean  @default(false)
   paymentDate       DateTime @default(now())
@@ -596,16 +598,23 @@ model Weather {
 }
 
 model Vata {
-  id                            String                         @id @default(uuid())
-  vataId                        String                         @unique
-  nameEnglish                   String
-  nameBangla                    String
-  additionalAddress             String?
-  shortDescription              String?
-  address                       String
-  ownerName                     String
-  ownerPhoneNumber              String
-  challansPhoneNumber           String
+  id                        String  @id @default(uuid())
+  vataId                    String  @unique
+  nameEnglish               String
+  nameBangla                String
+  additionalAddress         String?
+  shortDescription          String?
+  address                   String
+  ownerName                 String
+  ownerPhoneNumber          String
+  shortForm                 String?
+  challanManagerPhoneNumber String?
+
+  challanPersonOneName        String?
+  challanPersonOnePhoneNumber String?
+
+  challanPersonTwoName          String?
+  challanPersonTwoPhoneNumber   String?
   nextPaymentDate               DateTime?
   createdAt                     DateTime                       @default(now())
   updatedAt                     DateTime                       @updatedAt

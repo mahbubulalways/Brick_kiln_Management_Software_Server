@@ -14,13 +14,17 @@ const getLedgerCountService = async (user: TAuthUser) => {
 };
 
 // CREATE A LEDGER
-const createLedgerService = async (user: TAuthUser, seasonId: string, data: Ledger) => {
+const createLedgerService = async (
+  user: TAuthUser,
+  seasonId: string,
+  data: Ledger,
+) => {
   const isExist = await prisma.ledger.findFirst({
     where: {
       name: data.name,
       vataId: user.vataId,
       isDeleted: false,
-      seasonId
+      seasonId,
     },
   });
 
@@ -34,13 +38,12 @@ const createLedgerService = async (user: TAuthUser, seasonId: string, data: Ledg
   const result = await prisma.ledger.create({
     data: {
       ...data,
-      serial:Number(data.serial),
-      quantity: Number(data.quantity),
-      rate: Number(data.rate),
+      serial: Number(data.serial),
+      quantity: Number(data.quantity || 0),
+      rate: Number(data.rate || 0),
       vataId: user.vataId,
-      seasonId
-
-    }
+      seasonId,
+    },
   });
 
   return result;
@@ -53,7 +56,7 @@ const getLedgerOptionService = async (user: TAuthUser, seasonId: string) => {
       parentId: null,
       isDeleted: false,
       vataId: user.vataId,
-      seasonId
+      seasonId,
     },
     select: {
       id: true,
@@ -64,19 +67,20 @@ const getLedgerOptionService = async (user: TAuthUser, seasonId: string) => {
     },
   });
 
-
-
   return res;
 };
 
 // GET ALL LEDGER WITH CHILDREN
-const getAllLedgerWithChildrenService = async (user: TAuthUser, seasonId: string) => {
+const getAllLedgerWithChildrenService = async (
+  user: TAuthUser,
+  seasonId: string,
+) => {
   const res = await prisma.ledger.findMany({
     where: {
       parentId: null,
       isDeleted: false,
       vataId: user.vataId,
-      seasonId
+      seasonId,
     },
     select: {
       id: true,
@@ -91,15 +95,18 @@ const getAllLedgerWithChildrenService = async (user: TAuthUser, seasonId: string
   return res;
 };
 
-
 // GET ALL LEDGERS WITH PAGINATION
-const getAllLedgerWithChildrenPaginationService = async (user: TAuthUser, seasonId: string, query: TQuery) => {
-  const { limit, page, skip, } = paginationHelper(query.page, query.limit);
+const getAllLedgerWithChildrenPaginationService = async (
+  user: TAuthUser,
+  seasonId: string,
+  query: TQuery,
+) => {
+  const { limit, page, skip } = paginationHelper(query.page, query.limit);
   const where: Prisma.LedgerWhereInput = {
     vataId: user.vataId,
     isDeleted: false,
-    seasonId
-    // parentId: null, 
+    seasonId,
+    // parentId: null,
   };
   if (query.search?.trim()) {
     const search = query.search.trim();
@@ -108,9 +115,8 @@ const getAllLedgerWithChildrenPaginationService = async (user: TAuthUser, season
         name: {
           contains: search,
           mode: "insensitive",
-        }
+        },
       },
-
     ];
   }
 
@@ -126,8 +132,8 @@ const getAllLedgerWithChildrenPaginationService = async (user: TAuthUser, season
         serial: true,
         parent: {
           select: {
-            name: true
-          }
+            name: true,
+          },
         },
         children: {
           select: {
@@ -136,7 +142,7 @@ const getAllLedgerWithChildrenPaginationService = async (user: TAuthUser, season
             rate: true,
             quantity: true,
             serial: true,
-          }
+          },
         },
       },
       skip,
@@ -145,7 +151,7 @@ const getAllLedgerWithChildrenPaginationService = async (user: TAuthUser, season
         createdAt: "asc",
       },
     }),
-    prisma.ledger.count({ where })
+    prisma.ledger.count({ where }),
   ]);
 
   const meta = createMetaConfig({
@@ -160,15 +166,16 @@ const getAllLedgerWithChildrenPaginationService = async (user: TAuthUser, season
   };
 };
 
-
-
 // GET ALL LEDGER WITH TK
-const getAllLedgerWithAmountService = async (user: TAuthUser, seasonId: string,) => {
+const getAllLedgerWithAmountService = async (
+  user: TAuthUser,
+  seasonId: string,
+) => {
   const result = await prisma.ledger.findMany({
     where: {
       isDeleted: false,
       seasonId,
-      vataId: user.vataId
+      vataId: user.vataId,
     },
     include: {
       payments: {
@@ -192,7 +199,7 @@ const getAllLedgerWithAmountService = async (user: TAuthUser, seasonId: string,)
   result.forEach((ledger) => {
     const ownTotal = ledger.payments.reduce(
       (sum, payment) => sum + Number(payment.payment || 0),
-      0
+      0,
     );
 
     ledgerMap.set(ledger.id, {
@@ -230,7 +237,7 @@ const getAllLedgerWithAmountService = async (user: TAuthUser, seasonId: string,)
 
     const childrenTotal = parent.children.reduce(
       (sum: number, child: any) => sum + child.total,
-      0
+      0,
     );
 
     const total = parent.total + childrenTotal;
@@ -259,9 +266,17 @@ const getAllLedgerWithAmountService = async (user: TAuthUser, seasonId: string,)
 
 // GET DETAILS
 
-const getDetailsLedgerService = async (user: TAuthUser, seasonId: string, id: string, query: TQuery) => {
+const getDetailsLedgerService = async (
+  user: TAuthUser,
+  seasonId: string,
+  id: string,
+  query: TQuery,
+) => {
   const { limit, page, skip } = paginationHelper(query.page, query.limit);
-  const where: Prisma.PaymentWhereInput = { vataId: user.vataId, isDeleted: false };
+  const where: Prisma.PaymentWhereInput = {
+    vataId: user.vataId,
+    isDeleted: false,
+  };
   // Create start and end of day boundaries
   if (query.date) {
     const dateRange = getDateRangeDbSearch(query.date);
@@ -269,24 +284,27 @@ const getDetailsLedgerService = async (user: TAuthUser, seasonId: string, id: st
       where.paymentDate = dateRange;
     }
   }
-  const ledger = await prisma.ledger.findUnique({ where: { id, vataId: user.vataId, seasonId }, select: { name: true, id: true, parentId: true } })
+  const ledger = await prisma.ledger.findUnique({
+    where: { id, vataId: user.vataId, seasonId },
+    select: { name: true, id: true, parentId: true },
+  });
   if (ledger?.name) {
     where.ledger = {
       name: ledger.name,
     };
   } else {
-    throw new AppError(StatusCodes.NOT_FOUND, "")
+    throw new AppError(StatusCodes.NOT_FOUND, "");
   }
   const [payment, total] = await Promise.all([
     prisma.payment.findMany({ where }),
-    prisma.payment.count({ where })
-  ])
+    prisma.payment.count({ where }),
+  ]);
 
   const format = {
     ledger: ledger?.name,
     id: ledger?.id,
-    data: payment
-  }
+    data: payment,
+  };
 
   const meta = createMetaConfig({
     limit: limit,
@@ -298,42 +316,44 @@ const getDetailsLedgerService = async (user: TAuthUser, seasonId: string, id: st
     meta,
     data: format,
   };
-}
+};
 
-// const GET SINGLE 
+// const GET SINGLE
 const getSingleLedgerService = async (user: TAuthUser, id: string) => {
   const result = await prisma.ledger.findFirst({
-    where: { id, vataId: user.vataId }, select: {
+    where: { id, vataId: user.vataId },
+    select: {
       serial: true,
       name: true,
       parentId: true,
       rate: true,
-      quantity: true
-    }
-  })
+      quantity: true,
+    },
+  });
 
-  return result
-}
+  return result;
+};
 /// UPDATE KHOTIYAN
-const updateLedgerService = async (user: TAuthUser, id: string, data: Ledger) => {
+const updateLedgerService = async (
+  user: TAuthUser,
+  id: string,
+  data: Ledger,
+) => {
   const isExist = await prisma.ledger.findUnique({
     where: {
       id,
-      vataId: user.vataId
+      vataId: user.vataId,
     },
   });
 
   if (!isExist) {
-    throw new AppError(
-      StatusCodes.NOT_FOUND,
-      "এই খতিয়ানটি পাওয়া যায়নি।",
-    );
+    throw new AppError(StatusCodes.NOT_FOUND, "এই খতিয়ানটি পাওয়া যায়নি।");
   }
 
   const result = await prisma.ledger.update({
     where: {
       id,
-      vataId: user.vataId
+      vataId: user.vataId,
     },
     data: {
       quantity: Number(data.quantity),
@@ -349,21 +369,18 @@ const deleteLedgerService = async (user: TAuthUser, id: string) => {
   const isExist = await prisma.ledger.findUnique({
     where: {
       id,
-      vataId: user.vataId
+      vataId: user.vataId,
     },
   });
 
   if (!isExist) {
-    throw new AppError(
-      StatusCodes.NOT_FOUND,
-      "এই খতিয়ানটি পাওয়া যায়নি।",
-    );
+    throw new AppError(StatusCodes.NOT_FOUND, "এই খতিয়ানটি পাওয়া যায়নি।");
   }
 
   const result = await prisma.ledger.update({
     where: {
       id,
-      vataId: user.vataId
+      vataId: user.vataId,
     },
     data: {
       isDeleted: true,
@@ -372,8 +389,6 @@ const deleteLedgerService = async (user: TAuthUser, id: string) => {
 
   return result;
 };
-
-
 
 export const LedgerService = {
   getLedgerCountService,
@@ -385,5 +400,5 @@ export const LedgerService = {
   getAllLedgerWithChildrenPaginationService,
   getSingleLedgerService,
   updateLedgerService,
-  deleteLedgerService
+  deleteLedgerService,
 };
