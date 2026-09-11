@@ -9,6 +9,7 @@ import { prisma } from "../../../helpers/prisma";
 import { TQuery } from "../../../interface/query";
 import { TAuthUser } from "../../../interface/token";
 import { getDateRangeDbSearch } from "../../../utils/getDateRangeDbSearch";
+import { generateDailyNotifications } from "../notification/notification.service";
 import { ReportUtils } from "./report.utils";
 
 const getTopSellingAreasService = async (user: TAuthUser) => {
@@ -145,7 +146,7 @@ const dashboardAllReportService = async (
       vataId: user.vataId,
     },
   };
-  console.log(query.date);
+  console.log(await generateDailyNotifications());
   if (query.date) {
     const dateRange = getDateRangeDbSearch(query.date);
     if (dateRange) {

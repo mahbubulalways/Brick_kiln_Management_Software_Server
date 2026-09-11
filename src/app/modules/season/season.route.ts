@@ -3,66 +3,61 @@ import { prisma } from "../../../helpers/prisma";
 import { SeasonController } from "./season.controller";
 import AuthGuard from "../../middlewares/AuthGuard";
 import { UserRole } from "../../../generated/prisma/enums";
+import { TAuthUser } from "../../../interface/token";
 
-const router = Router()
+const router = Router();
 
-const generateSeasons = () => {
-  const currentYear = new Date().getFullYear();
+router.get(
+  "/create",
+  AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+  async (req, res, next) => {
+    try {
+      const currentYear = new Date().getFullYear();
+      const vata = req.user as TAuthUser;
+      const seasons = Array.from({ length: 25 }, (_, index) => {
+        const startYear = 2025 + index;
+        const endYear = startYear + 1;
 
-  return Array.from({ length: 25 }, (_, index) => {
-    const startYear = 2025 + index;
-    const endYear = startYear + 1;
+        return {
+          name: `${startYear}-${endYear}`,
+          startDate: new Date(`${startYear}-10-01T00:00:00.000Z`),
+          endDate: new Date(`${endYear}-09-30T23:59:59.999Z`),
+          isActive: startYear === currentYear,
+          vataId: vata.vataId,
+        };
+      });
 
-    return {
-      name: `${startYear}-${endYear}`,
-      startDate: new Date(`${startYear}-10-01T00:00:00.000Z`),
-      endDate: new Date(`${endYear}-09-30T23:59:59.999Z`),
-      isActive: startYear === currentYear,
-    };
-  });
-};
+      const result = await prisma.season.createMany({
+        data: seasons,
+        skipDuplicates: true,
+      });
 
-router.get("/create", async (req, res, next) => {
-  try {
-    const currentYear = new Date().getFullYear();
+      res.status(200).json({
+        success: true,
+        message: "Seasons created successfully",
+        data: result,
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
+);
 
-    const seasons = Array.from({ length: 25 }, (_, index) => {
-      const startYear = 2025 + index;
-      const endYear = startYear + 1;
+router.get(
+  "/",
+  AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+  SeasonController.getAllSeasons,
+);
+router.get(
+  "/active",
+  AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+  SeasonController.getActiveSeason,
+);
 
-      return {
-        name: `${startYear}-${endYear}`,
-        startDate: new Date(`${startYear}-10-01T00:00:00.000Z`),
-        endDate: new Date(`${endYear}-09-30T23:59:59.999Z`),
-        isActive: startYear === currentYear,
-      };
-    });
+router.patch(
+  "/select/:id",
+  AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+  SeasonController.changeActiveSeason,
+);
 
-    const result = await prisma.season.createMany({
-      data: seasons,
-      skipDuplicates: true,
-    });
-
-    res.status(200).json({
-      success: true,
-      message: "Seasons created successfully",
-      data: result,
-    });
-  } catch (error) {
-    next(error);
-  }
-});
-
-router.get("/",
-    AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
-    SeasonController.getAllSeasons);
-router.get("/active",
-    AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
-    SeasonController.getActiveSeason);
-
-router.patch("/select/:id",
-    AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
-    SeasonController.changeActiveSeason);
-
-
-export default router 
+export default router;

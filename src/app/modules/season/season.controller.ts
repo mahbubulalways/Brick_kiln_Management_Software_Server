@@ -3,62 +3,69 @@ import { prisma } from "../../../helpers/prisma";
 import catchAsync from "../../../utils/catchAsync";
 import { sendResponse } from "../../../utils/sendResponse";
 import { AppError } from "../../errors/ApplicationError";
+import { TAuthUser } from "../../../interface/token";
 
 const getAllSeasons = catchAsync(async (req, res) => {
-    const result = await prisma.season.findMany({
-        select: {
-            id: true,
-            name: true,
-        },
-        orderBy: {
-            startDate: "asc",
-        },
-    });
+  const user = req.user as TAuthUser;
+  const result = await prisma.season.findMany({
+    where: {
+      vataId: user.vataId,
+    },
+    select: {
+      id: true,
+      name: true,
+    },
+    orderBy: {
+      startDate: "asc",
+    },
+  });
 
-    if (!result.length) {
-        return sendResponse(res, {
-            statusCode: 200,
-            success: true,
-            message: "কোনো সিজন পাওয়া যায়নি",
-            data: [],
-        });
-    }
-
-    sendResponse(res, {
-        statusCode: 200,
-        success: true,
-        message: "সকল সিজন সফলভাবে পাওয়া গেছে",
-        data: result,
+  if (!result.length) {
+    return sendResponse(res, {
+      statusCode: 200,
+      success: true,
+      message: "কোনো সিজন পাওয়া যায়নি",
+      data: [],
     });
+  }
+
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "সকল সিজন সফলভাবে পাওয়া গেছে",
+    data: result,
+  });
 });
 
-
-
 const getActiveSeason = catchAsync(async (req, res) => {
-    const result = await prisma.season.findFirst({
-        where: {
-            isActive: true,
-        },
-        select: {
-            id: true,
-            name: true,
-        },
-    });
+  const user = req.user as TAuthUser;
+  const result = await prisma.season.findFirst({
+    where: {
+      isActive: true,
+      vataId: user.vataId,
+    },
+    select: {
+      id: true,
+      name: true,
+    },
+  });
 
-    if (!result) {
-        throw new AppError(StatusCodes.NOT_FOUND, "কোনো সক্রিয় সিজন পাওয়া যায়নি",)
-    }
-    sendResponse(res, {
-        statusCode: 200,
-        success: true,
-        message: "সক্রিয় সিজন সফলভাবে পাওয়া গেছে",
-        data: result,
-    });
+  if (!result) {
+    throw new AppError(
+      StatusCodes.NOT_FOUND,
+      "কোনো সক্রিয় সিজন পাওয়া যায়নি",
+    );
+  }
+  sendResponse(res, {
+    statusCode: 200,
+    success: true,
+    message: "সক্রিয় সিজন সফলভাবে পাওয়া গেছে",
+    data: result,
+  });
 });
 
 const changeActiveSeason = catchAsync(async (req, res) => {
   const { id } = req.params;
-
   const season = await prisma.season.findUnique({
     where: {
       id,
@@ -98,9 +105,8 @@ const changeActiveSeason = catchAsync(async (req, res) => {
   });
 });
 
-
 export const SeasonController = {
-    getActiveSeason,
-    getAllSeasons,
-    changeActiveSeason
-}
+  getActiveSeason,
+  getAllSeasons,
+  changeActiveSeason,
+};

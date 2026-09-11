@@ -651,6 +651,8 @@ model Vata {
   smsWallet                     SmsWallet?
   vataSmsSettings               VataSmsSettings[]
   smsLogs                       SmsLog[]
+  notifications                 Notification[]
+  seasons                       Season[]
 
   @@map("vatainformation")
 }
@@ -714,13 +716,18 @@ enum SubscriptionPaymentStatus {
 }
 
 model Season {
-  id             String           @id @default(uuid())
-  name           String           @unique
-  startDate      DateTime
-  endDate        DateTime
-  isActive       Boolean          @default(false)
-  createdAt      DateTime         @default(now())
-  updatedAt      DateTime         @updatedAt
+  id     String @id @default(uuid())
+  vataId String
+
+  name      String
+  startDate DateTime
+  endDate   DateTime
+  isActive  Boolean  @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  vata           Vata             @relation(fields: [vataId], references: [id], onDelete: Cascade)
   challans       Challan[]
   customerDues   CustomerDue[]
   dueCollections Due_Collection[]
@@ -728,6 +735,9 @@ model Season {
   ledgers        Ledger[]
   rounds         Round[]
   stockBooks     StockBook[]
+
+  @@unique([vataId, name])
+  @@index([vataId, isActive])
 }
 
 // DRIVER
@@ -880,6 +890,25 @@ model Note {
   message   String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+// NOTIFICATION
+enum NotificationType {
+  DUE
+  DELIVERY
+}
+
+model Notification {
+  id        String           @id @default(uuid())
+  title     String
+  message   String
+  path      String
+  type      NotificationType
+  isRead    Boolean          @default(false)
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+  vataId    String
+  vata      Vata             @relation(fields: [vataId], references: [id])
 }
 
 // ======================================ENUMS ======================================

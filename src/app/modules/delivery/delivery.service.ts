@@ -24,7 +24,6 @@ const getNextDeliveryNo = async (user: TAuthUser) => {
       deliveryNo: true,
     },
   });
-  console.log(result);
   return result ? result.deliveryNo + 1 : 1;
 };
 
@@ -141,7 +140,6 @@ const createDeliveryService = async (user: TAuthUser, payload: TDelivery) => {
       const carRent =
         Number(payload?.carRent) || Number(mainInvoiceId?.carRent);
       if (carRent && payload?.carNumber) {
-        console.log("first");
         const car = await tx.vataCar.findFirst({
           where: {
             carNo: payload.carNumber,
