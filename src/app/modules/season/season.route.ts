@@ -7,7 +7,7 @@ import { TAuthUser } from "../../../interface/token";
 
 const router = Router();
 
-router.get(
+router.post(
   "/create",
   AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
   async (req, res, next) => {
@@ -38,6 +38,7 @@ router.get(
         data: result,
       });
     } catch (error) {
+      console.log(error);
       next(error);
     }
   },

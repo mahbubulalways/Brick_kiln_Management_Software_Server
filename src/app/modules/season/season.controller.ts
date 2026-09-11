@@ -66,9 +66,12 @@ const getActiveSeason = catchAsync(async (req, res) => {
 
 const changeActiveSeason = catchAsync(async (req, res) => {
   const { id } = req.params;
-  const season = await prisma.season.findUnique({
+  const user = req.user as TAuthUser;
+
+  const season = await prisma.season.findFirst({
     where: {
       id,
+      vataId: user.vataId,
     },
   });
 
@@ -83,6 +86,9 @@ const changeActiveSeason = catchAsync(async (req, res) => {
 
   await prisma.$transaction([
     prisma.season.updateMany({
+      where: {
+        vataId: user.vataId,
+      },
       data: {
         isActive: false,
       },
@@ -90,7 +96,7 @@ const changeActiveSeason = catchAsync(async (req, res) => {
 
     prisma.season.update({
       where: {
-        id,
+        id: season.id,
       },
       data: {
         isActive: true,
