@@ -94,10 +94,10 @@ const applicationRoutes: IApplicationRoute[] = [
     path: "/system/sms",
     route: smsRateRoutes,
   },
-  // {
-  //   path: "/system/database",
-  //   route: databaseRoutes,
-  // },
+  {
+    path: "/system/database",
+    route: databaseRoutes,
+  },
 ];
 
 applicationRoutes.forEach((route) => router.use(route.path, route.route));
