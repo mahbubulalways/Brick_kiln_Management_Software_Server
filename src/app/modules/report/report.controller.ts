@@ -3,81 +3,82 @@ import catchAsync from "../../../utils/catchAsync";
 import { sendResponse } from "../../../utils/sendResponse";
 import { ReportService } from "./report.service";
 import { TAuthUser } from "../../../interface/token";
+import { parseListQuery } from "../../../utils/parseListQuery";
 
 const getAllCustomertController = catchAsync(async (req, res) => {
-    const user = req.user as TAuthUser
-    const result = await ReportService.getTopSellingAreasService(user);
-    if (!result.length) {
-        sendResponse(res, {
-            statusCode: StatusCodes.OK,
-            success: true,
-            message: "কোনো বিক্রয় তথ্য পাওয়া যায়নি।",
-            data: [],
-        });
-
-        return;
-    }
-
+  const user = req.user as TAuthUser;
+  const result = await ReportService.getTopSellingAreasService(user);
+  if (!result.length) {
     sendResponse(res, {
-        statusCode: StatusCodes.OK,
-        success: true,
-        message: "এলাকাভিত্তিক বিক্রয় তথ্য সফলভাবে পাওয়া গেছে।",
-        data: result,
+      statusCode: StatusCodes.OK,
+      success: true,
+      message: "কোনো বিক্রয় তথ্য পাওয়া যায়নি।",
+      data: [],
     });
-});
 
+    return;
+  }
+
+  sendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: "এলাকাভিত্তিক বিক্রয় তথ্য সফলভাবে পাওয়া গেছে।",
+    data: result,
+  });
+});
 
 const dashboardAllReportController = catchAsync(async (req, res) => {
-    const user = req.user as TAuthUser
-    const seasonId = req.seasonId
-    const result = await ReportService.dashboardAllReportService(user, seasonId);
+  const user = req.user as TAuthUser;
+  const seasonId = req.seasonId;
+  const { date } = await parseListQuery(req.query);
+  const result = await ReportService.dashboardAllReportService(user, seasonId, {
+    date,
+  });
 
-    if (!result) {
-        sendResponse(res, {
-            statusCode: StatusCodes.OK,
-            success: true,
-            message: "কোনো বিক্রয় তথ্য পাওয়া যায়নি।",
-            data: [],
-        });
-
-        return;
-    }
-
+  if (!result) {
     sendResponse(res, {
-        statusCode: StatusCodes.OK,
-        success: true,
-        message: "এলাকাভিত্তিক বিক্রয় তথ্য সফলভাবে পাওয়া গেছে।",
-        data: result,
+      statusCode: StatusCodes.OK,
+      success: true,
+      message: "কোনো বিক্রয় তথ্য পাওয়া যায়নি।",
+      data: [],
     });
-});
 
+    return;
+  }
+
+  sendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: "এলাকাভিত্তিক বিক্রয় তথ্য সফলভাবে পাওয়া গেছে।",
+    data: result,
+  });
+});
 
 const getLoadUnloadReportController = catchAsync(async (req, res) => {
-    const user = req.user as TAuthUser
-    const seasonId =req.seasonId
-    const result = await ReportService.getLoadUnloadReportService(user);
-    if (!result) {
-        sendResponse(res, {
-            statusCode: StatusCodes.OK,
-            success: true,
-            message: "কোনো বিক্রয় তথ্য পাওয়া যায়নি।",
-            data: {},
-        });
-
-        return;
-    }
-
+  const user = req.user as TAuthUser;
+  const seasonId = req.seasonId;
+  const result = await ReportService.getLoadUnloadReportService(user);
+  if (!result) {
     sendResponse(res, {
-        statusCode: StatusCodes.OK,
-        success: true,
-        message: "এলাকাভিত্তিক বিক্রয় তথ্য সফলভাবে পাওয়া গেছে।",
-        data: result,
+      statusCode: StatusCodes.OK,
+      success: true,
+      message: "কোনো বিক্রয় তথ্য পাওয়া যায়নি।",
+      data: {},
     });
+
+    return;
+  }
+
+  sendResponse(res, {
+    statusCode: StatusCodes.OK,
+    success: true,
+    message: "এলাকাভিত্তিক বিক্রয় তথ্য সফলভাবে পাওয়া গেছে।",
+    data: result,
+  });
 });
 
-
 export const ReportController = {
-    getAllCustomertController,
-    dashboardAllReportController,
-    getLoadUnloadReportController
-}
+  getAllCustomertController,
+  dashboardAllReportController,
+  getLoadUnloadReportController,
+};

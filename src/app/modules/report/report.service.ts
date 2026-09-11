@@ -1,5 +1,14 @@
+import {
+  CashWhereInput,
+  ChallanWhereInput,
+  DeliveryWhereInput,
+  Due_CollectionWhereInput,
+  PaymentWhereInput,
+} from "../../../generated/prisma/models";
 import { prisma } from "../../../helpers/prisma";
+import { TQuery } from "../../../interface/query";
 import { TAuthUser } from "../../../interface/token";
+import { getDateRangeDbSearch } from "../../../utils/getDateRangeDbSearch";
 import { ReportUtils } from "./report.utils";
 
 const getTopSellingAreasService = async (user: TAuthUser) => {
@@ -96,9 +105,61 @@ const getTopSellingAreasService = async (user: TAuthUser) => {
 };
 
 // GET ALL REPORT FOR DASHBOARD
-const dashboardAllReportService = async (user: TAuthUser, seasonId: string) => {
+const dashboardAllReportService = async (
+  user: TAuthUser,
+  seasonId: string,
+  query: TQuery,
+) => {
+  const challanWhere: ChallanWhereInput = {
+    isDeleted: false,
+    vataId: user.vataId,
+    seasonId,
+  };
+
+  const paymentWhere: PaymentWhereInput = {
+    isDeleted: false,
+    ledger: { seasonId, vataId: user.vataId },
+  };
+
+  const deuWhere: Due_CollectionWhereInput = {
+    seasonId,
+    customer: {
+      vataId: user.vataId,
+    },
+  };
+
+  const cashExpenseWhere: CashWhereInput = {
+    vataId: user.vataId,
+    seasonId,
+    type: "EXPENSE",
+  };
+  const cashIncomeWhere: CashWhereInput = {
+    vataId: user.vataId,
+    seasonId,
+    type: "INCOME",
+  };
+
+  const deliveryWhere: DeliveryWhereInput = {
+    invoice: {
+      seasonId,
+      vataId: user.vataId,
+    },
+  };
+  console.log(query.date);
+  if (query.date) {
+    const dateRange = getDateRangeDbSearch(query.date);
+    if (dateRange) {
+      challanWhere.challanDate = dateRange;
+      paymentWhere.paymentDate = dateRange;
+      deuWhere.createdAt = dateRange;
+      cashExpenseWhere.createdAt = dateRange;
+      cashIncomeWhere.createdAt = dateRange;
+      deliveryWhere.deliveryDate = dateRange;
+    }
+  }
+
   const challans = await prisma.challan.findMany({
-    where: { isDeleted: false, vataId: user.vataId, seasonId },
+    where: challanWhere,
     select: {
       carRent: true,
       cash: true,
@@ -120,7 +181,7 @@ const dashboardAllReportService = async (user: TAuthUser, seasonId: string) => {
 
   // PAYMENTS
   const payments = await prisma.payment.findMany({
-    where: { isDeleted: false, ledger: { seasonId, vataId: user.vataId } },
+    where: paymentWhere,
     select: {
       payment: true,
       totalBill: true,
@@ -139,12 +200,7 @@ const dashboardAllReportService = async (user: TAuthUser, seasonId: string) => {
 
   // DUE=====================================================================
   const due = await prisma.due_Collection.aggregate({
-    where: {
-      seasonId,
-      customer: {
-        vataId: user.vataId,
-      },
-    },
+    where: deuWhere,
     _sum: {
       collect: true,
     },
@@ -153,21 +209,13 @@ const dashboardAllReportService = async (user: TAuthUser, seasonId: string) => {
   // CASH==================================================
 
   const cashExpense = await prisma.cash.aggregate({
-    where: {
-      vataId: user.vataId,
-      seasonId,
-      type: "EXPENSE",
-    },
+    where: cashExpenseWhere,
     _sum: {
       amount: true,
     },
   });
   const cashIncome = await prisma.cash.aggregate({
-    where: {
-      vataId: user.vataId,
-      seasonId,
-      type: "INCOME",
-    },
+    where: cashIncomeWhere,
     _sum: {
       amount: true,
     },
@@ -177,12 +225,7 @@ const dashboardAllReportService = async (user: TAuthUser, seasonId: string) => {
     Number(cashIncome._sum.amount) - Number(cashExpense._sum.amount);
 
   const delivery = await prisma.delivery.findMany({
-    where: {
-      invoice: {
-        seasonId,
-        vataId: user.vataId,
-      },
-    },
+    where: deliveryWhere,
     select: {
       deliveryReceived: true,
       class: true,
@@ -221,7 +264,6 @@ const dashboardAllReportService = async (user: TAuthUser, seasonId: string) => {
     where: { vataId: user.vataId }, //need to add season id
   });
 
-  //   CLASS
   // CLASS
   const classes = await prisma.classAndRate.findMany({
     where: {
@@ -255,8 +297,6 @@ const dashboardAllReportService = async (user: TAuthUser, seasonId: string) => {
     };
   });
 
-  console.log(allClassDeliveryGraph);
-
   const Informations = {
     challan: {
       summary: challanReport,
@@ -272,6 +312,8 @@ const dashboardAllReportService = async (user: TAuthUser, seasonId: string) => {
 
     delivery: classWiseDelivery,
     stockSummary: resultSummary,
+    sellGraph: allClassGraph,
+    deliveryGraph: allClassDeliveryGraph,
   };
 
   return Informations;

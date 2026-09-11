@@ -8,6 +8,7 @@ const http_status_codes_1 = require("http-status-codes");
 const catchAsync_1 = __importDefault(require("../../../utils/catchAsync"));
 const sendResponse_1 = require("../../../utils/sendResponse");
 const report_service_1 = require("./report.service");
+const parseListQuery_1 = require("../../../utils/parseListQuery");
 const getAllCustomertController = (0, catchAsync_1.default)(async (req, res) => {
     const user = req.user;
     const result = await report_service_1.ReportService.getTopSellingAreasService(user);
@@ -30,7 +31,10 @@ const getAllCustomertController = (0, catchAsync_1.default)(async (req, res) => 
 const dashboardAllReportController = (0, catchAsync_1.default)(async (req, res) => {
     const user = req.user;
     const seasonId = req.seasonId;
-    const result = await report_service_1.ReportService.dashboardAllReportService(user, seasonId);
+    const { date } = await (0, parseListQuery_1.parseListQuery)(req.query);
+    const result = await report_service_1.ReportService.dashboardAllReportService(user, seasonId, {
+        date,
+    });
     if (!result) {
         (0, sendResponse_1.sendResponse)(res, {
             statusCode: http_status_codes_1.StatusCodes.OK,
@@ -70,5 +74,5 @@ const getLoadUnloadReportController = (0, catchAsync_1.default)(async (req, res)
 exports.ReportController = {
     getAllCustomertController,
     dashboardAllReportController,
-    getLoadUnloadReportController
+    getLoadUnloadReportController,
 };

@@ -49,7 +49,7 @@ var __importStar = (this && this.__importStar) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SmsLogScalarFieldEnum = exports.VataSmsSettingsScalarFieldEnum = exports.SmsRechargeHistoryScalarFieldEnum = exports.SmsWalletScalarFieldEnum = exports.SmsSettingScalarFieldEnum = exports.CarIncomeDeliveryScalarFieldEnum = exports.VataCarScalarFieldEnum = exports.DriverScalarFieldEnum = exports.SeasonScalarFieldEnum = exports.SubscriptionPaymentScalarFieldEnum = exports.SubscriptionPlanScalarFieldEnum = exports.VataScalarFieldEnum = exports.WeatherScalarFieldEnum = exports.ContactScalarFieldEnum = exports.ReceivablePayableTransactionScalarFieldEnum = exports.ReceivablePayableScalarFieldEnum = exports.TaskManagerScalarFieldEnum = exports.ProductScalarFieldEnum = exports.CarRentScalarFieldEnum = exports.DocumentScalarFieldEnum = exports.GoodsLossScalarFieldEnum = exports.GoodHistoryLogScalarFieldEnum = exports.GoodsIssueScalarFieldEnum = exports.GoodsStockScalarFieldEnum = exports.GoodsStockCategoryScalarFieldEnum = exports.StockBookScalarFieldEnum = exports.BrickStockSummaryScalarFieldEnum = exports.UnloadItemScalarFieldEnum = exports.UnloadScalarFieldEnum = exports.LoadInfoScalarFieldEnum = exports.RoundScalarFieldEnum = exports.CashScalarFieldEnum = exports.PaymentScalarFieldEnum = exports.LedgerScalarFieldEnum = exports.Due_CollectionScalarFieldEnum = exports.DeliveryScalarFieldEnum = exports.CustomerDueScalarFieldEnum = exports.CustomerScalarFieldEnum = exports.ChallanItemScalarFieldEnum = exports.ChallanScalarFieldEnum = exports.ClassAndRateScalarFieldEnum = exports.LoginHistoryScalarFieldEnum = exports.UserScalarFieldEnum = exports.TransactionIsolationLevel = exports.ModelName = exports.AnyNull = exports.JsonNull = exports.DbNull = exports.NullTypes = exports.Decimal = void 0;
-exports.NullsOrder = exports.QueryMode = exports.SortOrder = void 0;
+exports.NullsOrder = exports.QueryMode = exports.SortOrder = exports.NoteScalarFieldEnum = void 0;
 const runtime = __importStar(require("@prisma/client/runtime/index-browser"));
 exports.Decimal = runtime.Decimal;
 exports.NullTypes = {
@@ -118,7 +118,8 @@ exports.ModelName = {
     SmsWallet: 'SmsWallet',
     SmsRechargeHistory: 'SmsRechargeHistory',
     VataSmsSettings: 'VataSmsSettings',
-    SmsLog: 'SmsLog'
+    SmsLog: 'SmsLog',
+    Note: 'Note'
 };
 /*
  * Enums
@@ -266,6 +267,7 @@ exports.LedgerScalarFieldEnum = {
 };
 exports.PaymentScalarFieldEnum = {
     id: 'id',
+    serial: 'serial',
     quantity: 'quantity',
     cutting: 'cutting',
     payment: 'payment',
@@ -278,6 +280,7 @@ exports.PaymentScalarFieldEnum = {
     paymentDifference: 'paymentDifference',
     paymentType: 'paymentType',
     rate: 'rate',
+    address: 'address',
     totalBill: 'totalBill',
     isDeleted: 'isDeleted',
     paymentDate: 'paymentDate'
@@ -386,6 +389,7 @@ exports.GoodsIssueScalarFieldEnum = {
 exports.GoodHistoryLogScalarFieldEnum = {
     id: 'id',
     type: 'type',
+    description: 'description',
     receiveBy: 'receiveBy',
     quantity: 'quantity',
     returnBy: 'returnBy',
@@ -508,10 +512,17 @@ exports.VataScalarFieldEnum = {
     vataId: 'vataId',
     nameEnglish: 'nameEnglish',
     nameBangla: 'nameBangla',
+    additionalAddress: 'additionalAddress',
+    shortDescription: 'shortDescription',
     address: 'address',
     ownerName: 'ownerName',
     ownerPhoneNumber: 'ownerPhoneNumber',
-    challansPhoneNumber: 'challansPhoneNumber',
+    shortForm: 'shortForm',
+    challanManagerPhoneNumber: 'challanManagerPhoneNumber',
+    challanPersonOneName: 'challanPersonOneName',
+    challanPersonOnePhoneNumber: 'challanPersonOnePhoneNumber',
+    challanPersonTwoName: 'challanPersonTwoName',
+    challanPersonTwoPhoneNumber: 'challanPersonTwoPhoneNumber',
     nextPaymentDate: 'nextPaymentDate',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt',
@@ -640,6 +651,12 @@ exports.SmsLogScalarFieldEnum = {
     sendBy: 'sendBy',
     cost: 'cost',
     sentAt: 'sentAt'
+};
+exports.NoteScalarFieldEnum = {
+    id: 'id',
+    message: 'message',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
 };
 exports.SortOrder = {
     asc: 'asc',

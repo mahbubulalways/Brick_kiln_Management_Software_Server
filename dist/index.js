@@ -34,6 +34,7 @@ const connectDatabaseWithRetry = async () => {
 async function main() {
     try {
         await connectDatabaseWithRetry();
+        // startPaymentReminderCron();
         server = app_1.default.listen(port, () => {
             console.log(`🚀 Application is running on port ${port}`);
         });

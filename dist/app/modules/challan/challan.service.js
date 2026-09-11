@@ -8,9 +8,119 @@ const generateCode_1 = require("../../../utils/generateCode");
 const getDateRangeDbSearch_1 = require("../../../utils/getDateRangeDbSearch");
 const ApplicationError_1 = require("../../errors/ApplicationError");
 const http_status_codes_1 = require("http-status-codes");
-const send_sms_utils_1 = require("../send_sms/send_sms.utils");
+// import { getUserAndPermissionForSms } from "../send_sms/send_sms.utils";
 const formatDate_1 = require("../../../utils/formatDate");
+const send_sms_utils_1 = require("../send_sms/send_sms.utils");
 // CREATE CUSTOMER AND INVOICE AND INVOICE ITEMS
+// const createInvoiceService = async (
+//   user: TAuthUser,
+//   seasonId: string,
+//   customer: Customer,
+//   invoiceItems: ChallanItem[],
+//   invoice: Challan,
+// ) => {
+//   const isSerialExist = await prisma.challan.findFirst({
+//     where: {
+//       vataId: user.vataId,
+//       serial: invoice.serial,
+//     },
+//   });
+//   if (isSerialExist) {
+//     throw new AppError(StatusCodes.CONFLICT, "চালান নম্বর পরিবর্তন করুন");
+//   }
+//   const result = await prisma.$transaction(
+//     async (tx: Prisma.TransactionClient) => {
+//       // CHECK CUSTOMER EXIST OR NOT
+//       let existingCustomer = await tx.customer.findFirst({
+//         where: {
+//           vataId: user.vataId,
+//           phoneNumber: customer.phoneNumber,
+//         },
+//       });
+//       // IF CUSTOMER IS NOT EXIST THEN CREATE NEW
+//       if (!existingCustomer) {
+//         const countCustomer =
+//           (await tx.customer.count({
+//             where: {
+//               vataId: user.vataId,
+//             },
+//           })) + 1;
+//         existingCustomer = await tx.customer.create({
+//           data: {
+//             ...customer,
+//             customerCode: generateCode(countCustomer),
+//             vataId: user.vataId,
+//             nextPaymentDate: invoice.duePaymentDate,
+//           },
+//         });
+//       } else {
+//         // IF CUSTOMER ALREADY EXISTS THEN UPDATE NEXT PAYMENT DATE
+//         existingCustomer = await tx.customer.update({
+//           where: {
+//             id: existingCustomer.id,
+//           },
+//           data: {
+//             nextPaymentDate: invoice.duePaymentDate,
+//           },
+//         });
+//       }
+//       //  CREATE INVOICE
+//       invoice.customerId = existingCustomer.id;
+//       invoice.createdById = user.userId;
+//       const newInvoice = await tx.challan.create({
+//         data: {
+//           ...invoice,
+//           vataId: user.vataId,
+//           seasonId,
+//         },
+//       });
+//       // CREATE CUSTOMER DUE INFO
+//       await tx.customerDue.create({
+//         data: {
+//           dueAmount: Number(invoice.due ?? 0),
+//           paidAmount: Number(invoice.cash ?? 0),
+//           totalAmount: invoice.totalPrice,
+//           challanId: newInvoice.id,
+//           customerId: newInvoice.customerId,
+//           seasonId: seasonId,
+//         },
+//       });
+//       //  FORMAT INVOKE ITEMS AND ADD INVOICE ID
+//       const invokeInvoiceId = invoiceItems.map((it: ChallanItem) => {
+//         return {
+//           class: it.class,
+//           rate: Number(it.rate),
+//           quantity: Number(it.quantity),
+//           price: Number(it.price),
+//           challanId: newInvoice.id,
+//           deliveryDate: invoice.deliveryDate,
+//         };
+//       });
+//       // CREATE ITEMS OF CHALLAN
+//       await tx.challanItem.createMany({
+//         data: invokeInvoiceId,
+//       });
+//       const deliveryDate = formatDate(invoice.deliveryDate);
+//       const clientMessage = `চালান নং: ${newInvoice.serial}, ${invoiceItems
+//         .map((item) => `${item.class}: ${Number(item.quantity)} টি`)
+//         .join(", ")}, ডেলিভারি: ${deliveryDate}`;
+//       const ownerMessage = `নতুন চালান: ${newInvoice.serial}, কাস্টমার: ${existingCustomer.name}, ${invoiceItems
+//         .map((item) => `${item.class}: ${Number(item.quantity)} টি`)
+//         .join(", ")}, ডেলিভারি: ${deliveryDate}`;
+//       // await getUserAndPermissionForSms({
+//       //   tx,
+//       //   clientPhoneNumber: existingCustomer.phoneNumber,
+//       //   from: "NEW_INVOICE",
+//       //   clientMessage,
+//       //   user,
+//       //   sendToOwner: true,
+//       //   ownerMessage,
+//       // });
+//       return newInvoice;
+//     },
+//   );
+//   return result;
+// };
 const createInvoiceService = async (user, seasonId, customer, invoiceItems, invoice) => {
     const isSerialExist = await prisma_1.prisma.challan.findFirst({
         where: {
@@ -22,14 +132,12 @@ const createInvoiceService = async (user, seasonId, customer, invoiceItems, invo
         throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.CONFLICT, "চালান নম্বর পরিবর্তন করুন");
     }
     const result = await prisma_1.prisma.$transaction(async (tx) => {
-        // CHECK CUSTOMER EXIST OR NOT
         let existingCustomer = await tx.customer.findFirst({
             where: {
                 vataId: user.vataId,
                 phoneNumber: customer.phoneNumber,
             },
         });
-        // IF CUSTOMER IS NOT EXIST THEN CREATE NEW
         if (!existingCustomer) {
             const countCustomer = (await tx.customer.count({
                 where: {
@@ -46,7 +154,6 @@ const createInvoiceService = async (user, seasonId, customer, invoiceItems, invo
             });
         }
         else {
-            // IF CUSTOMER ALREADY EXISTS THEN UPDATE NEXT PAYMENT DATE
             existingCustomer = await tx.customer.update({
                 where: {
                     id: existingCustomer.id,
@@ -56,7 +163,6 @@ const createInvoiceService = async (user, seasonId, customer, invoiceItems, invo
                 },
             });
         }
-        //  CREATE INVOICE
         invoice.customerId = existingCustomer.id;
         invoice.createdById = user.userId;
         const newInvoice = await tx.challan.create({
@@ -66,7 +172,6 @@ const createInvoiceService = async (user, seasonId, customer, invoiceItems, invo
                 seasonId,
             },
         });
-        // CREATE CUSTOMER DUE INFO
         await tx.customerDue.create({
             data: {
                 dueAmount: Number(invoice.due ?? 0),
@@ -74,43 +179,38 @@ const createInvoiceService = async (user, seasonId, customer, invoiceItems, invo
                 totalAmount: invoice.totalPrice,
                 challanId: newInvoice.id,
                 customerId: newInvoice.customerId,
-                seasonId: seasonId,
+                seasonId,
             },
         });
-        //  FORMAT INVOKE ITEMS AND ADD INVOICE ID
-        const invokeInvoiceId = invoiceItems.map((it) => {
-            return {
-                class: it.class,
-                rate: Number(it.rate),
-                quantity: Number(it.quantity),
-                price: Number(it.price),
-                challanId: newInvoice.id,
-                deliveryDate: invoice.deliveryDate,
-            };
-        });
-        // CREATE ITEMS OF CHALLAN
+        const invokeInvoiceId = invoiceItems.map((item) => ({
+            class: item.class,
+            rate: Number(item.rate),
+            quantity: Number(item.quantity),
+            price: Number(item.price),
+            challanId: newInvoice.id,
+            deliveryDate: invoice.deliveryDate,
+        }));
         await tx.challanItem.createMany({
             data: invokeInvoiceId,
         });
-        const deliveryDate = (0, formatDate_1.formatDate)(invoice.deliveryDate);
-        const clientMessage = `চালান নং: ${newInvoice.serial}, ${invoiceItems
-            .map((item) => `${item.class}: ${Number(item.quantity)} টি`)
-            .join(", ")}, ডেলিভারি: ${deliveryDate}`;
-        const ownerMessage = `নতুন চালান: ${newInvoice.serial}, কাস্টমার: ${existingCustomer.name}, ${invoiceItems
-            .map((item) => `${item.class}: ${Number(item.quantity)} টি`)
-            .join(", ")}, ডেলিভারি: ${deliveryDate}`;
-        await (0, send_sms_utils_1.getUserAndPermissionForSms)({
-            tx,
-            clientPhoneNumber: existingCustomer.phoneNumber,
-            from: "NEW_INVOICE",
-            clientMessage,
-            user,
-            sendToOwner: true,
-            ownerMessage,
-        });
-        return newInvoice;
+        return {
+            newInvoice,
+            customer: existingCustomer,
+        };
     });
-    return result;
+    const deliveryDate = (0, formatDate_1.formatDate)(invoice.deliveryDate);
+    const itemsMessage = invoiceItems
+        .map((item) => `${item.class}: ${Number(item.quantity)} টি`)
+        .join(", ");
+    const message = `চালান নং: ${result.newInvoice.serial}, ${itemsMessage}, ডেলিভারি: ${deliveryDate}`;
+    await (0, send_sms_utils_1.getUserAndPermissionForSms)({
+        clientPhoneNumber: result.customer.phoneNumber,
+        from: "NEW_INVOICE",
+        user,
+        sendToOwner: true,
+        message,
+    });
+    return result.newInvoice;
 };
 // SEARCH CHALLANS FOR DELIVERY
 const searchChallanForDeliveryService = async (user, query) => {
@@ -203,22 +303,28 @@ const getAllInvoiceService = async (user, seasonId, query) => {
     };
     if (query.search?.trim()) {
         const search = query.search.trim();
-        where.customer = {
-            OR: [
-                {
-                    name: {
-                        contains: search,
-                        mode: "insensitive",
+        const isNumber = !isNaN(Number(search));
+        if (isNumber) {
+            where.serial = Number(search);
+        }
+        else {
+            where.customer = {
+                OR: [
+                    {
+                        name: {
+                            contains: search,
+                            mode: "insensitive",
+                        },
                     },
-                },
-                {
-                    address: {
-                        contains: search,
-                        mode: "insensitive",
+                    {
+                        address: {
+                            contains: search,
+                            mode: "insensitive",
+                        },
                     },
-                },
-            ],
-        };
+                ],
+            };
+        }
     }
     if (query.date) {
         const dateRange = (0, getDateRangeDbSearch_1.getDateRangeDbSearch)(query.date);
@@ -255,6 +361,7 @@ const getAllInvoiceService = async (user, seasonId, query) => {
 // GET ADVANCE INVOICE
 const getAllAdvanceInvoiceService = async (user, seasonId, query) => {
     const { limit, page, skip } = (0, paginationHelper_1.paginationHelper)(query.page, query.limit);
+    console.log(limit);
     const where = {
         vataId: user.vataId,
         isDeleted: false,

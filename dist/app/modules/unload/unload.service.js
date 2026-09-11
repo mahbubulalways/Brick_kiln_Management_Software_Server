@@ -158,8 +158,8 @@ const getAllUnloadService = async (user, seasonId, query) => {
         isDeleted: false,
         round: {
             vataId: user.vataId,
-            seasonId
-        }
+            seasonId,
+        },
     };
     // DATE FILTER
     if (query.date) {
@@ -176,9 +176,9 @@ const getAllUnloadService = async (user, seasonId, query) => {
                     name: {
                         contains: search,
                         mode: "insensitive",
-                    }
-                }
-            }
+                    },
+                },
+            },
         ];
     }
     const [result, total] = await Promise.all([
@@ -191,16 +191,16 @@ const getAllUnloadService = async (user, seasonId, query) => {
                         class: {
                             select: {
                                 className: true,
-                                id: true
-                            }
-                        }
-                    }
-                }
+                                id: true,
+                            },
+                        },
+                    },
+                },
             },
             skip,
-            take: limit
+            take: limit,
         }),
-        prisma_1.prisma.unload.count({ where })
+        prisma_1.prisma.unload.count({ where }),
     ]);
     const meta = (0, createMetaConfig_1.createMetaConfig)({
         limit,
@@ -217,14 +217,14 @@ const getAllUnloadDataNoPaginateService = async (user) => {
     const result = await prisma_1.prisma.unload.findMany({
         where: {
             isDeleted: false,
-            round: { vataId: user.vataId, }
+            round: { vataId: user.vataId },
         },
         select: {
             date: true,
             round: {
                 select: {
-                    name: true
-                }
+                    name: true,
+                },
             },
             items: {
                 select: {
@@ -233,27 +233,32 @@ const getAllUnloadDataNoPaginateService = async (user) => {
                         select: {
                             className: true,
                             id: true,
-                            classType: true
-                        }
-                    }
-                }
-            }
-        }
+                            classType: true,
+                        },
+                    },
+                },
+            },
+        },
     });
     console.log(result);
     return result;
 };
 const deleteUnloadService = async (user, id) => {
-    const isExist = await prisma_1.prisma.unload.findFirst({ where: { id, round: { vataId: user.vataId, } } });
+    const isExist = await prisma_1.prisma.unload.findFirst({
+        where: { id, round: { vataId: user.vataId } },
+    });
     if (!isExist) {
         throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.NOT_FOUND, "আনলোডের তথ্য পাওয়া যায়নি");
     }
-    const result = await prisma_1.prisma.unload.update({ where: { id, round: { vataId: user.vataId, } }, data: { isDeleted: true } });
+    const result = await prisma_1.prisma.unload.update({
+        where: { id, round: { vataId: user.vataId } },
+        data: { isDeleted: true },
+    });
     return result;
 };
 exports.UnloadService = {
     createNewUnloadService,
     getAllUnloadService,
     deleteUnloadService,
-    getAllUnloadDataNoPaginateService
+    getAllUnloadDataNoPaginateService,
 };

@@ -49,23 +49,30 @@ const createNewVataService = async (payload) => {
                 nameEnglish: vataInformation.nameEnglish,
                 nameBangla: vataInformation.nameBangla,
                 address: vataInformation.address,
+                shortDescription: vataInformation.shortDescription || null,
+                additionalAddress: vataInformation.additionalAddress || null,
                 ownerName: vataInformation.ownerName,
                 ownerPhoneNumber: vataInformation.ownerPhoneNumber,
-                challansPhoneNumber: vataInformation.challansPhoneNumber,
                 subscriptionPlanId: vataInformation.subscriptionPlanId,
                 nextPaymentDate: new Date(vataInformation.nextPaymentDate),
                 subdomain: vataInformation.subdomain || subdomain,
                 subscriptionEnd: payload.vata.nextPaymentDate,
-                subscriptionStart: new Date()
+                subscriptionStart: new Date(),
+                challanManagerPhoneNumber: payload?.vata.challanManagerPhoneNumber,
+                challanPersonOneName: payload.vata.challanPersonOneName,
+                challanPersonOnePhoneNumber: payload.vata.challanPersonOnePhoneNumber,
+                challanPersonTwoName: payload.vata.challanPersonTwoPhoneNumber,
+                challanPersonTwoPhoneNumber: payload.vata.challanManagerPhoneNumber,
+                shortForm: payload?.vata.shortForm,
             },
         });
         const planPrice = await tx.subscriptionPlan.findFirst({
             where: {
-                id: vataInformation.subscriptionPlanId
+                id: vataInformation.subscriptionPlanId,
             },
             select: {
-                price: true
-            }
+                price: true,
+            },
         });
         await tx.subscriptionPayment.create({
             data: {
@@ -79,7 +86,7 @@ const createNewVataService = async (payload) => {
                 status: "PAID",
                 vataId: vata.id,
                 subscriptionPlanId: vata.subscriptionPlanId,
-            }
+            },
         });
         await tx.user.create({
             data: {
@@ -87,8 +94,8 @@ const createNewVataService = async (payload) => {
                 username: ownerInformation.username,
                 name: ownerInformation.name,
                 role: "OWNER",
-                vataId: vata.id
-            }
+                vataId: vata.id,
+            },
         });
         return vata;
     });
@@ -98,7 +105,7 @@ const createNewVataService = async (payload) => {
 const getAllVataService = async () => {
     const result = await prisma_1.prisma.vata.findMany({
         where: {
-            status: "ACTIVE"
+            status: "ACTIVE",
         },
         select: {
             vataId: true,
@@ -115,10 +122,10 @@ const getAllVataService = async () => {
             subscriptionPlan: {
                 select: {
                     name: true,
-                    price: true
-                }
-            }
-        }
+                    price: true,
+                },
+            },
+        },
     });
     return result;
 };
@@ -127,8 +134,8 @@ const getAllInactiveVataService = async () => {
     const result = await prisma_1.prisma.vata.findMany({
         where: {
             status: {
-                not: "ACTIVE"
-            }
+                not: "ACTIVE",
+            },
         },
         select: {
             vataId: true,
@@ -145,17 +152,17 @@ const getAllInactiveVataService = async () => {
             subscriptionPlan: {
                 select: {
                     name: true,
-                    price: true
-                }
-            }
-        }
+                    price: true,
+                },
+            },
+        },
     });
     return result;
 };
 // GET SINGLE VATA
 const getSingleVataService = async (id) => {
     const result = await prisma_1.prisma.vata.findFirst({
-        where: { id, },
+        where: { id },
         select: {
             vataId: true,
             id: true,
@@ -172,7 +179,7 @@ const getSingleVataService = async (id) => {
                 select: {
                     name: true,
                     price: true,
-                }
+                },
             },
             subscriptionPayments: {
                 select: {
@@ -186,10 +193,10 @@ const getSingleVataService = async (id) => {
                     startDate: true,
                     status: true,
                     transactionId: true,
-                }
+                },
             },
-            ownerPhoneNumber: true
-        }
+            ownerPhoneNumber: true,
+        },
     });
     return result;
 };
@@ -197,7 +204,7 @@ const getSingleVataService = async (id) => {
 const getSingleVataInformationService = async (id) => {
     const result = await prisma_1.prisma.vata.findFirst({
         where: {
-            id
+            id,
         },
         select: {
             address: true,
@@ -207,7 +214,9 @@ const getSingleVataInformationService = async (id) => {
             challansPhoneNumber: true,
             ownerPhoneNumber: true,
             subdomain: true,
-        }
+            shortDescription: true,
+            additionalAddress: true,
+        },
     });
     console.log(result);
     return result;
@@ -298,5 +307,5 @@ exports.AdminVataService = {
     getAllInactiveVataService,
     getSingleVataInformationService,
     updateVataInfoService,
-    updateVataSubscriptionService
+    updateVataSubscriptionService,
 };

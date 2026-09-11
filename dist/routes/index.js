@@ -42,6 +42,8 @@ const admin_route_1 = __importDefault(require("../app/modules/system_modules/adm
 const vata_route_2 = __importDefault(require("../app/modules/system_modules/vata/vata.route"));
 const subscriptions_route_1 = __importDefault(require("../app/modules/system_modules/subscriptions/subscriptions.route"));
 const sms_rate_router_1 = __importDefault(require("../app/modules/system_modules/sms_rate/sms_rate.router"));
+const database_router_1 = __importDefault(require("../app/modules/system_modules/database/database.router"));
+const note_route_1 = __importDefault(require("../app/modules/note/note.route"));
 const router = (0, express_1.Router)();
 const applicationRoutes = [
     { path: "/class", route: classAndRate_route_1.default },
@@ -77,6 +79,7 @@ const applicationRoutes = [
     { path: "/sms", route: sms_route_1.default },
     { path: "/vata/sms-sittings", route: vata_sms_sittings_route_1.default },
     { path: "/vata/send-sms", route: send_sms_route_1.default },
+    { path: "/note", route: note_route_1.default }, // vata + system
     // ADMIN MODULES
     {
         path: "/system/admin",
@@ -93,6 +96,10 @@ const applicationRoutes = [
     {
         path: "/system/sms",
         route: sms_rate_router_1.default,
+    },
+    {
+        path: "/system/database",
+        route: database_router_1.default,
     },
 ];
 applicationRoutes.forEach((route) => router.use(route.path, route.route));

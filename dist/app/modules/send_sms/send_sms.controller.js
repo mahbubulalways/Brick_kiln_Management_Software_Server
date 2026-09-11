@@ -28,6 +28,27 @@ const getVatasSendMessageController = (0, catchAsync_1.default)(async (req, res)
         });
     }
 });
+const sendMessageToUserController = (0, catchAsync_1.default)(async (req, res) => {
+    const user = req.user;
+    const result = await send_sms_service_1.SendSmsService.sendMessageToUserService();
+    if (!result) {
+        (0, sendResponse_1.sendResponse)(res, {
+            statusCode: http_status_codes_1.StatusCodes.OK,
+            success: true,
+            message: "কোনো SMS পাঠানো হয়নি।",
+            data: [],
+        });
+    }
+    else {
+        (0, sendResponse_1.sendResponse)(res, {
+            statusCode: http_status_codes_1.StatusCodes.OK,
+            success: true,
+            message: "SMS বার্তাগুলো সফলভাবে পাঠানো হয়েছে।",
+            data: result,
+        });
+    }
+});
 exports.SmsSendController = {
     getVatasSendMessageController,
+    sendMessageToUserController,
 };

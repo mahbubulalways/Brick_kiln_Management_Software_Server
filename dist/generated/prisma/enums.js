@@ -20,7 +20,9 @@ exports.LoadType = {
 };
 exports.GoodHistoryType = {
     ISSUE: 'ISSUE',
-    RETURN: 'RETURN'
+    RETURN: 'RETURN',
+    LOST: 'LOST',
+    DEMAGE: 'DEMAGE'
 };
 exports.GoodLossType = {
     DAMAGED: 'DAMAGED',

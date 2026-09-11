@@ -53,7 +53,9 @@ const createInvoiceController = (0, catchAsync_1.default)(async (req, res) => {
 const searchChallanForDeliveryController = (0, catchAsync_1.default)(async (req, res) => {
     const user = req.user;
     const { search } = await (0, parseListQuery_1.parseListQuery)(req.query);
-    const result = await challan_service_1.InvoiceService.searchChallanForDeliveryService(user, { search });
+    const result = await challan_service_1.InvoiceService.searchChallanForDeliveryService(user, {
+        search,
+    });
     if (!result) {
         return (0, sendResponse_1.sendResponse)(res, {
             message: "কোনো চ্যালান পাওয়া যায়নি।",
@@ -76,7 +78,12 @@ const getAllInvoiceController = (0, catchAsync_1.default)(async (req, res) => {
     const user = req.user;
     const seasonId = req.seasonId;
     const { limit, page, search, date } = await (0, parseListQuery_1.parseListQuery)(req.query);
-    const result = await challan_service_1.InvoiceService.getAllInvoiceService(user, seasonId, { limit, page, search, date });
+    const result = await challan_service_1.InvoiceService.getAllInvoiceService(user, seasonId, {
+        limit,
+        page,
+        search,
+        date,
+    });
     if (!result?.data.length) {
         (0, sendResponse_1.sendResponse)(res, {
             message: "চ্যালান পাওয়া যায়নি।",
@@ -103,7 +110,7 @@ const getAllAdvanceInvoiceController = (0, catchAsync_1.default)(async (req, res
         limit,
         page,
         search,
-        date
+        date,
     });
     if (!result?.data.length) {
         (0, sendResponse_1.sendResponse)(res, {
@@ -206,7 +213,12 @@ const getItemsWithInvoiceController = (0, catchAsync_1.default)(async (req, res)
     const seasonId = req.seasonId;
     const result = await challan_service_1.InvoiceService.getItemsWithInvoiceService(user, seasonId, { date, search });
     if (!result?.length) {
-        throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.BAD_REQUEST, "চ্যালান পাওয়া যায়নি।");
+        (0, sendResponse_1.sendResponse)(res, {
+            message: "চ্যালান পাওয়া যায়নি।",
+            statusCode: http_status_codes_1.StatusCodes.OK,
+            success: true,
+            data: [],
+        });
     }
     else {
         (0, sendResponse_1.sendResponse)(res, {
@@ -263,5 +275,5 @@ exports.InvoiceController = {
     updateInvoiceDeliveryDateController,
     updateInvoiceItemDeliveryDateController,
     getAllAdvanceInvoiceController,
-    searchChallanForDeliveryController
+    searchChallanForDeliveryController,
 };

@@ -13,7 +13,7 @@ const getNextDeliveryNo = async (user) => {
         where: {
             invoice: {
                 vataId: user.vataId,
-            }
+            },
         },
         orderBy: {
             deliveryNo: "desc",
@@ -22,6 +22,7 @@ const getNextDeliveryNo = async (user) => {
             deliveryNo: true,
         },
     });
+    console.log(result);
     return result ? result.deliveryNo + 1 : 1;
 };
 // CREATE DELIVERY
@@ -29,17 +30,24 @@ const createDeliveryService = async (user, payload) => {
     const isDeliveryNoExist = await prisma_1.prisma.delivery.findFirst({
         where: {
             deliveryNo: Number(payload?.deliveryNo),
+            invoice: {
+                vataId: user.vataId,
+            },
+        },
+        include: {
+            invoice: true,
         },
     });
     if (isDeliveryNoExist?.id) {
         throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.CONFLICT, "এই ডেলিভারি নম্বর ইতিমধ্যে আছে");
     }
-    // // HERE COME SERIAL ID AS INVOICE ID 
+    // // HERE COME SERIAL ID AS INVOICE ID
     const mainInvoiceId = await prisma_1.prisma.challan.findFirst({
         where: {
-            serial: Number(payload.invoiceId), vataId: user.vataId
+            serial: Number(payload.invoiceId),
+            vataId: user.vataId,
         },
-        select: { id: true, carRent: true, seasonId: true }
+        select: { id: true, carRent: true, seasonId: true },
     });
     const checkStockQuantity = await (0, delivery_utils_1.getStockByClass)(user, mainInvoiceId?.seasonId, payload.items.class);
     if (checkStockQuantity < payload.items.todaysDelivery) {
@@ -69,7 +77,7 @@ const createDeliveryService = async (user, payload) => {
         carRent: Number(payload.carRent),
         deliveryById: user.userId,
         driverId: payload.driverId,
-        lastDelivered: totalDelivered
+        lastDelivered: totalDelivered,
     };
     const result = await prisma_1.prisma.$transaction(async (tx) => {
         const createDelivery = await tx.delivery.create({
@@ -86,7 +94,7 @@ const createDeliveryService = async (user, payload) => {
                 carRent: data.carRent,
                 deliveryById: data.deliveryById,
                 driverId: data.driverId,
-                lastDelivered: totalDelivered
+                lastDelivered: totalDelivered,
             },
         });
         if (data?.deliveryRemaining) {
@@ -115,11 +123,11 @@ const createDeliveryService = async (user, payload) => {
             const car = await tx.vataCar.findFirst({
                 where: {
                     carNo: payload.carNumber,
-                    vataId: user.vataId
+                    vataId: user.vataId,
                 },
                 select: {
-                    id: true
-                }
+                    id: true,
+                },
             });
             if (!car) {
                 throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.NOT_FOUND, "এই গাড়িটি পাওয়া যায়নি");
@@ -130,7 +138,7 @@ const createDeliveryService = async (user, payload) => {
                     carId: car?.id,
                     deliveryId: createDelivery?.id,
                     driverId: payload.driverId,
-                }
+                },
             });
         }
         return createDelivery;
@@ -179,9 +187,7 @@ const getDeliveryThatGoTodayService = async (user, seasonId, query) => {
             },
         ];
     }
-    const dateRange = query.date
-        ? (0, getDateRangeDbSearch_1.getDateRangeDbSearch)(query.date)
-        : undefined;
+    const dateRange = query.date ? (0, getDateRangeDbSearch_1.getDateRangeDbSearch)(query.date) : undefined;
     if (query.date) {
         if (dateRange) {
             where.items = {
@@ -210,13 +216,15 @@ const getDeliveryThatGoTodayService = async (user, seasonId, query) => {
             },
             orderBy: {
                 deliveryDate: "asc",
-            }, skip,
-            take: limit
+            },
+            skip,
+            take: limit,
         }),
-        prisma_1.prisma.challan.count({ where })
+        prisma_1.prisma.challan.count({ where }),
     ]);
     // Filter out challans with no items
-    const filteredResult = result.filter((challan) => challan.items.length > 0)
+    const filteredResult = result
+        .filter((challan) => challan.items.length > 0)
         .filter((challan) => challan.items.some((item) => Number(item.delivered) < Number(item.quantity)));
     const meta = (0, createMetaConfig_1.createMetaConfig)({
         limit: limit,
@@ -235,8 +243,8 @@ const getTodaysDeliveryThatDone = async (user, seasonId, query) => {
         isDeleted: false,
         invoice: {
             vataId: user.vataId,
-            seasonId
-        }
+            seasonId,
+        },
     };
     // Create start and end of day boundaries
     if (query.date) {
@@ -257,12 +265,15 @@ const getTodaysDeliveryThatDone = async (user, seasonId, query) => {
                 },
                 driver: {
                     select: {
-                        name: true
-                    }
-                }
-            }, skip, take: limit, orderBy: { createdAt: "desc" }
+                        name: true,
+                    },
+                },
+            },
+            skip,
+            take: limit,
+            orderBy: { createdAt: "desc" },
         }),
-        prisma_1.prisma.delivery.count({ where })
+        prisma_1.prisma.delivery.count({ where }),
     ]);
     const meta = (0, createMetaConfig_1.createMetaConfig)({
         limit: limit,
@@ -280,12 +291,10 @@ const getAllDeliveryListService = async (user, seasonId, query) => {
     const where = {
         isDeleted: false,
         vataId: user.vataId,
-        seasonId
+        seasonId,
     };
     // Date range
-    const dateRange = query.date
-        ? (0, getDateRangeDbSearch_1.getDateRangeDbSearch)(query.date)
-        : undefined;
+    const dateRange = query.date ? (0, getDateRangeDbSearch_1.getDateRangeDbSearch)(query.date) : undefined;
     // Filter challan by item delivery date
     if (dateRange) {
         where.items = {
@@ -408,34 +417,42 @@ const getAllDeliveryListService = async (user, seasonId, query) => {
 };
 const getSingleDeliveryService = async (id) => {
     const result = await prisma_1.prisma.delivery.findFirst({
-        where: { id }, include: {
+        where: { id },
+        include: {
             invoice: {
                 select: {
                     id: true,
                     serial: true,
                     challanDate: true,
                     deliveryDate: true,
+                    totalPrice: true,
+                    items: {
+                        select: {
+                            rate: true,
+                            price: true,
+                        },
+                    },
                     customer: {
                         select: {
                             name: true,
                             phoneNumber: true,
-                            address: true
-                        }
-                    }
-                }
+                            address: true,
+                        },
+                    },
+                },
             },
             driver: {
                 select: {
                     name: true,
-                    PhoneNumber: true
-                }
+                    PhoneNumber: true,
+                },
             },
             deliveryBy: {
                 select: {
-                    name: true
-                }
+                    name: true,
+                },
             },
-        }
+        },
     });
     return result;
 };

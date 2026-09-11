@@ -19,7 +19,7 @@ const createLedgerService = async (user, seasonId, data) => {
             name: data.name,
             vataId: user.vataId,
             isDeleted: false,
-            seasonId
+            seasonId,
         },
     });
     if (isExist) {
@@ -29,11 +29,11 @@ const createLedgerService = async (user, seasonId, data) => {
         data: {
             ...data,
             serial: Number(data.serial),
-            quantity: Number(data.quantity),
-            rate: Number(data.rate),
+            quantity: Number(data.quantity || 0),
+            rate: Number(data.rate || 0),
             vataId: user.vataId,
-            seasonId
-        }
+            seasonId,
+        },
     });
     return result;
 };
@@ -44,7 +44,7 @@ const getLedgerOptionService = async (user, seasonId) => {
             parentId: null,
             isDeleted: false,
             vataId: user.vataId,
-            seasonId
+            seasonId,
         },
         select: {
             id: true,
@@ -63,7 +63,7 @@ const getAllLedgerWithChildrenService = async (user, seasonId) => {
             parentId: null,
             isDeleted: false,
             vataId: user.vataId,
-            seasonId
+            seasonId,
         },
         select: {
             id: true,
@@ -78,12 +78,12 @@ const getAllLedgerWithChildrenService = async (user, seasonId) => {
 };
 // GET ALL LEDGERS WITH PAGINATION
 const getAllLedgerWithChildrenPaginationService = async (user, seasonId, query) => {
-    const { limit, page, skip, } = (0, paginationHelper_1.paginationHelper)(query.page, query.limit);
+    const { limit, page, skip } = (0, paginationHelper_1.paginationHelper)(query.page, query.limit);
     const where = {
         vataId: user.vataId,
         isDeleted: false,
-        seasonId
-        // parentId: null, 
+        seasonId,
+        // parentId: null,
     };
     if (query.search?.trim()) {
         const search = query.search.trim();
@@ -92,7 +92,7 @@ const getAllLedgerWithChildrenPaginationService = async (user, seasonId, query) 
                 name: {
                     contains: search,
                     mode: "insensitive",
-                }
+                },
             },
         ];
     }
@@ -108,8 +108,8 @@ const getAllLedgerWithChildrenPaginationService = async (user, seasonId, query) 
                 serial: true,
                 parent: {
                     select: {
-                        name: true
-                    }
+                        name: true,
+                    },
                 },
                 children: {
                     select: {
@@ -118,7 +118,7 @@ const getAllLedgerWithChildrenPaginationService = async (user, seasonId, query) 
                         rate: true,
                         quantity: true,
                         serial: true,
-                    }
+                    },
                 },
             },
             skip,
@@ -127,7 +127,7 @@ const getAllLedgerWithChildrenPaginationService = async (user, seasonId, query) 
                 createdAt: "asc",
             },
         }),
-        prisma_1.prisma.ledger.count({ where })
+        prisma_1.prisma.ledger.count({ where }),
     ]);
     const meta = (0, createMetaConfig_1.createMetaConfig)({
         limit: limit,
@@ -145,7 +145,7 @@ const getAllLedgerWithAmountService = async (user, seasonId) => {
         where: {
             isDeleted: false,
             seasonId,
-            vataId: user.vataId
+            vataId: user.vataId,
         },
         include: {
             payments: {
@@ -220,7 +220,10 @@ const getAllLedgerWithAmountService = async (user, seasonId) => {
 // GET DETAILS
 const getDetailsLedgerService = async (user, seasonId, id, query) => {
     const { limit, page, skip } = (0, paginationHelper_1.paginationHelper)(query.page, query.limit);
-    const where = { vataId: user.vataId, isDeleted: false };
+    const where = {
+        vataId: user.vataId,
+        isDeleted: false,
+    };
     // Create start and end of day boundaries
     if (query.date) {
         const dateRange = (0, getDateRangeDbSearch_1.getDateRangeDbSearch)(query.date);
@@ -228,7 +231,10 @@ const getDetailsLedgerService = async (user, seasonId, id, query) => {
             where.paymentDate = dateRange;
         }
     }
-    const ledger = await prisma_1.prisma.ledger.findUnique({ where: { id, vataId: user.vataId, seasonId }, select: { name: true, id: true, parentId: true } });
+    const ledger = await prisma_1.prisma.ledger.findUnique({
+        where: { id, vataId: user.vataId, seasonId },
+        select: { name: true, id: true, parentId: true },
+    });
     if (ledger?.name) {
         where.ledger = {
             name: ledger.name,
@@ -239,12 +245,12 @@ const getDetailsLedgerService = async (user, seasonId, id, query) => {
     }
     const [payment, total] = await Promise.all([
         prisma_1.prisma.payment.findMany({ where }),
-        prisma_1.prisma.payment.count({ where })
+        prisma_1.prisma.payment.count({ where }),
     ]);
     const format = {
         ledger: ledger?.name,
         id: ledger?.id,
-        data: payment
+        data: payment,
     };
     const meta = (0, createMetaConfig_1.createMetaConfig)({
         limit: limit,
@@ -256,16 +262,17 @@ const getDetailsLedgerService = async (user, seasonId, id, query) => {
         data: format,
     };
 };
-// const GET SINGLE 
+// const GET SINGLE
 const getSingleLedgerService = async (user, id) => {
     const result = await prisma_1.prisma.ledger.findFirst({
-        where: { id, vataId: user.vataId }, select: {
+        where: { id, vataId: user.vataId },
+        select: {
             serial: true,
             name: true,
             parentId: true,
             rate: true,
-            quantity: true
-        }
+            quantity: true,
+        },
     });
     return result;
 };
@@ -274,7 +281,7 @@ const updateLedgerService = async (user, id, data) => {
     const isExist = await prisma_1.prisma.ledger.findUnique({
         where: {
             id,
-            vataId: user.vataId
+            vataId: user.vataId,
         },
     });
     if (!isExist) {
@@ -283,7 +290,7 @@ const updateLedgerService = async (user, id, data) => {
     const result = await prisma_1.prisma.ledger.update({
         where: {
             id,
-            vataId: user.vataId
+            vataId: user.vataId,
         },
         data: {
             quantity: Number(data.quantity),
@@ -297,7 +304,7 @@ const deleteLedgerService = async (user, id) => {
     const isExist = await prisma_1.prisma.ledger.findUnique({
         where: {
             id,
-            vataId: user.vataId
+            vataId: user.vataId,
         },
     });
     if (!isExist) {
@@ -306,7 +313,7 @@ const deleteLedgerService = async (user, id) => {
     const result = await prisma_1.prisma.ledger.update({
         where: {
             id,
-            vataId: user.vataId
+            vataId: user.vataId,
         },
         data: {
             isDeleted: true,
@@ -324,5 +331,5 @@ exports.LedgerService = {
     getAllLedgerWithChildrenPaginationService,
     getSingleLedgerService,
     updateLedgerService,
-    deleteLedgerService
+    deleteLedgerService,
 };

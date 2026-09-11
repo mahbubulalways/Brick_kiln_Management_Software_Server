@@ -40,6 +40,7 @@ import adminVataRoutes from "../app/modules/system_modules/vata/vata.route";
 import subscriptionRoutes from "../app/modules/system_modules/subscriptions/subscriptions.route";
 import smsRateRoutes from "../app/modules/system_modules/sms_rate/sms_rate.router";
 import databaseRoutes from "../app/modules/system_modules/database/database.router";
+import noteRoutes from "../app/modules/note/note.route";
 
 const router = Router();
 const applicationRoutes: IApplicationRoute[] = [
@@ -76,6 +77,7 @@ const applicationRoutes: IApplicationRoute[] = [
   { path: "/sms", route: smsRouter },
   { path: "/vata/sms-sittings", route: vataSMsSettingRouter },
   { path: "/vata/send-sms", route: sendSmsRoute },
+  { path: "/note", route: noteRoutes }, // vata + system
 
   // ADMIN MODULES
   {

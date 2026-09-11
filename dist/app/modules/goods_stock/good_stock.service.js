@@ -18,7 +18,7 @@ const createGoodStockService = async (req) => {
             image: file?.filename || null,
             warranty: body.warranty || null,
             vataId: user.vataId,
-        }
+        },
     });
     return result;
 };
@@ -64,7 +64,7 @@ const getAllGoodStockService = async (user) => {
     });
     return data;
 };
-// GET SINGLE GOOD 
+// GET SINGLE GOOD
 const getSingleGoodStockService = async (user, id) => {
     const result = await prisma_1.prisma.goodsStock.findFirst({
         where: {
@@ -118,9 +118,7 @@ const getSingleGoodStockService = async (user, id) => {
     }
     const issueQuantity = result.goodsIssues.reduce((sum, issue) => sum + Number(issue.quantity || 0), 0);
     const lossQuantity = result.goodsLosses.reduce((sum, loss) => sum + Number(loss.quantity || 0), 0);
-    const currentStock = Number(result.quantity || 0) -
-        issueQuantity -
-        lossQuantity;
+    const currentStock = Number(result.quantity || 0) - issueQuantity - lossQuantity;
     return {
         ...result,
         currentStock: Math.max(currentStock, 0),
@@ -144,7 +142,7 @@ const getSingleGoodStockInfoForUpdateService = async (user, id) => {
             category: {
                 select: {
                     name: true,
-                    id: true
+                    id: true,
                 },
             },
         },
@@ -208,10 +206,10 @@ const getDemageGoodService = async (user) => {
             quantity: true,
             good: {
                 select: {
-                    name: true
-                }
-            }
-        }
+                    name: true,
+                },
+            },
+        },
     });
     return result;
 };
@@ -230,10 +228,10 @@ const getLostGoodService = async (user) => {
             quantity: true,
             good: {
                 select: {
-                    name: true
-                }
-            }
-        }
+                    name: true,
+                },
+            },
+        },
     });
     return result;
 };
@@ -242,55 +240,70 @@ const getSingleGoodLossService = async (user, id) => {
     const result = await prisma_1.prisma.goodsLoss.findFirst({
         where: {
             good: {
-                vataId: user.vataId
+                vataId: user.vataId,
             },
-            id
+            id,
         },
         select: {
             id: true,
             good: {
-                select: { name: true }
+                select: { name: true },
             },
             lossAmount: true,
             quantity: true,
-            type: true
-        }
+            type: true,
+        },
     });
     return result;
 };
 // GET SINGLE GOODS LOSSS
 const updateGoodLossService = async (user, id, payload) => {
     const quantity = Number(payload.quantity);
-    const goodsLoss = await prisma_1.prisma.goodsLoss.findFirst({
-        where: {
-            id,
-            good: {
-                vataId: user.vataId,
+    const result = await prisma_1.prisma.$transaction(async (tx) => {
+        const goodsLoss = await tx.goodsLoss.findFirst({
+            where: {
+                id,
+                good: {
+                    vataId: user.vataId,
+                },
             },
-        },
-        select: {
-            quantity: true,
+            select: {
+                quantity: true,
+                type: true,
+                goodId: true,
+            },
+        });
+        if (!goodsLoss) {
+            throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.NOT_FOUND, "মালামালের তথ্য পাওয়া যায়নি।");
         }
-    });
-    if (!goodsLoss) {
-        throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.NOT_FOUND, "Goods loss পাওয়া যায়নি।");
-    }
-    if (quantity === Number(goodsLoss.quantity)) {
-        const res = await prisma_1.prisma.goodsLoss.delete({
+        await tx.goodHistoryLog.create({
+            data: {
+                date: new Date(),
+                quantity,
+                type: goodsLoss.type === "LOST" ? "LOST" : "DEMAGE",
+                goodId: goodsLoss.goodId,
+                description: goodsLoss.type === "LOST"
+                    ? "হারানো মালামাল পাওয়া"
+                    : "নষ্ট মালামাল মেরামত",
+            },
+        });
+        if (quantity === Number(goodsLoss.quantity)) {
+            const res = await tx.goodsLoss.delete({
+                where: {
+                    id,
+                },
+            });
+            return res;
+        }
+        const res = await tx.goodsLoss.update({
             where: {
                 id,
             },
+            data: {
+                quantity,
+            },
         });
-        console.log(res);
         return res;
-    }
-    const result = await prisma_1.prisma.goodsLoss.update({
-        where: {
-            id,
-        },
-        data: {
-            quantity,
-        },
     });
     return result;
 };
@@ -299,8 +312,12 @@ const deleteGoodStockService = async (user, id) => {
     const result = await prisma_1.prisma.$transaction(async (tx) => {
         const issue = await tx.goodsIssue.deleteMany({ where: { goodId: id } });
         const goodLoss = await tx.goodsLoss.deleteMany({ where: { goodId: id } });
-        const history = await tx.goodHistoryLog.deleteMany({ where: { goodId: id } });
-        const deletGood = await tx.goodsStock.delete({ where: { id, vataId: user.vataId } });
+        const history = await tx.goodHistoryLog.deleteMany({
+            where: { goodId: id },
+        });
+        const deletGood = await tx.goodsStock.delete({
+            where: { id, vataId: user.vataId },
+        });
         return deletGood;
     });
     return result;
@@ -314,7 +331,7 @@ const updateGoodStockService = async (req) => {
     const result = await prisma_1.prisma.goodsStock.update({
         where: {
             vataId: user.vataId,
-            id
+            id,
         },
         data: {
             name: body.name,
@@ -324,7 +341,7 @@ const updateGoodStockService = async (req) => {
             categoryId: body.categoryId,
             image: file?.filename || null,
             warranty: body.warranty || null,
-        }
+        },
     });
     return result;
 };
@@ -339,5 +356,5 @@ exports.GoodStockService = {
     deleteGoodStockService,
     getSingleGoodStockService,
     getSingleGoodStockInfoForUpdateService,
-    updateGoodStockService
+    updateGoodStockService,
 };
