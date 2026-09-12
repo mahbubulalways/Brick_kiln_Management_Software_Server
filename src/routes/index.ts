@@ -36,6 +36,8 @@ import sendSmsRoute from "../app/modules/send_sms/send_sms.route";
 import notificationRoute from "../app/modules/notification/notification.route";
 import faqRoute from "../app/modules/system_modules/faq/faq.route";
 import aboutUsRoute from "../app/modules/system_modules/about_us/about_us.route";
+import helpRoute from "../app/modules/system_modules/helpline/helpline.route";
+import youtubeRoute from "../app/modules/system_modules/youtube/youtube.route";
 
 // ADMIN MODULES
 import adminRoutes from "../app/modules/system_modules/admin/admin.route";
@@ -112,6 +114,14 @@ const applicationRoutes: IApplicationRoute[] = [
   {
     path: "/system/about",
     route: aboutUsRoute,
+  },
+  {
+    path: "/system/helpline",
+    route: helpRoute,
+  },
+  {
+    path: "/system/youtube-link",
+    route: youtubeRoute,
   },
 ];
 

@@ -372,6 +372,7 @@ model GoodsStockCategory {
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
   vataId      String
+  isDeleted   Boolean      @default(false)
   vata        Vata         @relation(fields: [vataId], references: [id])
   goodsStocks GoodsStock[]
 }
@@ -926,6 +927,21 @@ model Faq {
 model AboutUs {
   id          String @id @default(uuid())
   description String
+}
+
+// HELP LINE
+model HelpLine {
+  id          String @id @default(uuid())
+  phoneNumber String
+  website     String
+  email       String
+}
+
+// YT LINK
+
+model YoutubeLink {
+  id   String @id @default(uuid())
+  link String
 }
 
 // ======================================ENUMS ======================================

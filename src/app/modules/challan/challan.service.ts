@@ -146,6 +146,53 @@ const createInvoiceService = async (
   invoiceItems: ChallanItem[],
   invoice: Challan,
 ) => {
+  // CHALLAN LIMIT
+
+  // const plan = await prisma.vata.findFirst({
+  //   where: {
+  //     id: user.vataId,
+  //   },
+  //   select: {
+  //     nameBangla: true,
+  //     subscriptionPlan: {
+  //       select: {
+  //         name: true,
+  //         maxInvoices: true,
+  //       },
+  //     },
+  //   },
+  // });
+
+  // if (!plan?.subscriptionPlan) {
+  //   throw new AppError(
+  //     StatusCodes.BAD_REQUEST,
+  //     "আপনার সাবস্ক্রিপশন প্ল্যান পাওয়া যায়নি।",
+  //   );
+  // }
+
+  // const now = new Date();
+  // const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+  // const monthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+  // const monthlyInvoiceCount = await prisma.challan.count({
+  //   where: {
+  //     vataId: user.vataId,
+  //     createdAt: {
+  //       gte: monthStart,
+  //       lt: monthEnd,
+  //     },
+  //   },
+  // });
+
+  // const maxInvoices = Number(plan.subscriptionPlan.maxInvoices ?? 0);
+  // if (maxInvoices > 0 && monthlyInvoiceCount >= maxInvoices) {
+  //   throw new AppError(
+  //     StatusCodes.BAD_REQUEST,
+  //     "আপনার এই মাসের চালান তৈরির লিমিট শেষ হয়ে গেছে।",
+  //   );
+  // }
+
+  // LIMIT END
+
   const isSerialExist = await prisma.challan.findFirst({
     where: {
       vataId: user.vataId,

@@ -18,11 +18,11 @@ const getSingleCustomerService = async (user, id) => {
             phoneNumber: true,
             id: true,
             customerCode: true,
-        }
+        },
     });
     return result;
 };
-// UPDATE 
+// UPDATE
 const updateCustomerService = async (user, id, data) => {
     const exist = await getSingleCustomerService(user, id);
     if (!exist?.id) {
@@ -184,6 +184,11 @@ const getAllCustomerService = async (user, seasonId, query) => {
                         seasonId,
                     },
                     include: {
+                        season: {
+                            select: {
+                                name: true,
+                            },
+                        },
                         items: {
                             where: {
                                 isDeleted: false,
@@ -291,21 +296,23 @@ const getAllCustomerService = async (user, seasonId, query) => {
 const getSingleCustomerInformationService = async (user, seasonId, id) => {
     const findCustomerid = await prisma_1.prisma.customer.findFirst({
         where: {
-            vataId: user.vataId, customerCode: id
-        }, select: { id: true }
+            vataId: user.vataId,
+            customerCode: id,
+        },
+        select: { id: true },
     });
     const [customer, previousDues, previousCollections] = await Promise.all([
         prisma_1.prisma.customer.findMany({
             where: {
                 isDeleted: false,
                 vataId: user.vataId,
-                customerCode: id
+                customerCode: id,
             },
             include: {
                 challans: {
                     where: {
                         isDeleted: false,
-                        seasonId
+                        seasonId,
                     },
                     include: {
                         items: {
@@ -347,7 +354,7 @@ const getSingleCustomerInformationService = async (user, seasonId, id) => {
                         createdAt: "desc",
                     },
                 },
-            }
+            },
         }),
         // FIND CUSTOMER DUE
         prisma_1.prisma.customerDue.findMany({
@@ -497,12 +504,11 @@ const getSingleCustomerInformationService = async (user, seasonId, id) => {
 // GET CUSTOMER CHALLANS
 const getCustomerAllChallanService = async (user, seasonId, id, query) => {
     const { limit, page, skip } = (0, paginationHelper_1.paginationHelper)(query.page, query.limit);
-    console.log(seasonId);
     const where = {
         seasonId,
         vataId: user.vataId,
         customerId: id,
-        isDeleted: false
+        isDeleted: false,
     };
     // Create start and end of day boundaries
     if (query.date) {
@@ -514,18 +520,24 @@ const getCustomerAllChallanService = async (user, seasonId, id, query) => {
     const [result, total] = await Promise.all([
         prisma_1.prisma.challan.findMany({
             where,
-            include: { items: true },
+            include: {
+                items: true,
+                season: {
+                    select: {
+                        name: true,
+                    },
+                },
+            },
             skip,
-            take: limit
+            take: limit,
         }),
-        prisma_1.prisma.challan.count({ where })
+        prisma_1.prisma.challan.count({ where }),
     ]);
     const meta = (0, createMetaConfig_1.createMetaConfig)({
         limit: limit,
         page: page,
         totalData: total,
     });
-    console.log(result);
     return {
         meta,
         data: result,
@@ -544,8 +556,8 @@ const getCustomerAllDeliveryService = async (user, seasonId, id, query) => {
         isDeleted: false,
         invoice: {
             vataId: user.vataId,
-            seasonId
-        }
+            seasonId,
+        },
     };
     if (query.date) {
         const dateRange = (0, getDateRangeDbSearch_1.getDateRangeDbSearch)(query.date);
@@ -561,6 +573,11 @@ const getCustomerAllDeliveryService = async (user, seasonId, id, query) => {
             include: {
                 invoice: {
                     select: {
+                        season: {
+                            select: {
+                                name: true,
+                            },
+                        },
                         id: true,
                         serial: true,
                         customer: {
@@ -589,8 +606,10 @@ const getCustomerAllDeliveryService = async (user, seasonId, id, query) => {
 const getCustomerAllDuesService = async (user, seasonId, id, query) => {
     const { limit, page, skip } = (0, paginationHelper_1.paginationHelper)(query.page, query.limit);
     const where = {
-        customerId: id, isDeleted: false, customer: { vataId: user.vataId },
-        seasonId
+        customerId: id,
+        isDeleted: false,
+        customer: { vataId: user.vataId },
+        seasonId,
     };
     // Create start and end of day boundaries
     if (query.date) {
@@ -603,17 +622,22 @@ const getCustomerAllDuesService = async (user, seasonId, id, query) => {
         prisma_1.prisma.due_Collection.findMany({
             where,
             include: {
+                season: {
+                    select: {
+                        name: true,
+                    },
+                },
                 customer: {
                     select: {
-                        customerCode: true
-                    }
-                }
+                        customerCode: true,
+                    },
+                },
             },
             skip,
             take: limit,
-            orderBy: { createdAt: "asc" }
+            orderBy: { createdAt: "asc" },
         }),
-        prisma_1.prisma.due_Collection.count({ where })
+        prisma_1.prisma.due_Collection.count({ where }),
     ]);
     const meta = (0, createMetaConfig_1.createMetaConfig)({
         limit: limit,
@@ -625,7 +649,7 @@ const getCustomerAllDuesService = async (user, seasonId, id, query) => {
         data: result,
     };
 };
-// GET OLD CUSTOMERS 
+// GET OLD CUSTOMERS
 const getOldCustomerService = async (user, search) => {
     console.log(search);
     const result = await prisma_1.prisma.customer.findMany({
@@ -663,7 +687,7 @@ const getOldCustomerService = async (user, search) => {
             phoneNumber: true,
             address: true,
             id: true,
-            customerCode: true
+            customerCode: true,
         },
     });
     return result;

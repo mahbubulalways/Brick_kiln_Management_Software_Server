@@ -7,30 +7,35 @@ const router = Router();
 router.post(
   "/create",
   AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
-  GoodCategoryController.createGoodStockController
+  GoodCategoryController.createGoodStockController,
 );
 
 router.get(
   "/all",
   AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
-  GoodCategoryController.getAllGoodCategoryController
+  GoodCategoryController.getAllGoodCategoryController,
 );
 router.get(
   "/options",
   AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
-  GoodCategoryController.getGoodCategoryOptionsController
+  GoodCategoryController.getGoodCategoryOptionsController,
 );
 
 router.get(
   "/single/:id",
   AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
-  GoodCategoryController.getSingleGoodCategoryController
+  GoodCategoryController.getSingleGoodCategoryController,
 );
 
 router.patch(
   "/update/:id",
   AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
-  GoodCategoryController.updateGoodCategoryController
+  GoodCategoryController.updateGoodCategoryController,
+);
+router.patch(
+  "/delete/:id",
+  AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+  GoodCategoryController.deleteGoodCategoryController,
 );
 
 export default router;
