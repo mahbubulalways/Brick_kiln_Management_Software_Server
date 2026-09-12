@@ -17,9 +17,9 @@ router.get(api_endpoints_1.API_ENDPOINTS.INVOICE.INVOICE_SERIAL, (0, AuthGuard_1
 // SEARCH
 router.get(api_endpoints_1.API_ENDPOINTS.INVOICE.SEARCH_CHALLAN, (0, AuthGuard_1.default)(enums_1.UserRole.OWNER, enums_1.UserRole.ADMIN, enums_1.UserRole.MANAGER), challan_controller_1.InvoiceController.searchChallanForDeliveryController);
 // GET ALL INVOICE
-router.get(api_endpoints_1.API_ENDPOINTS.INVOICE.GET_ALL_INVOICE, ActiveSeasonGuard_1.default, (0, AuthGuard_1.default)(enums_1.UserRole.OWNER, enums_1.UserRole.ADMIN, enums_1.UserRole.MANAGER), challan_controller_1.InvoiceController.getAllInvoiceController);
+router.get(api_endpoints_1.API_ENDPOINTS.INVOICE.GET_ALL_INVOICE, (0, AuthGuard_1.default)(enums_1.UserRole.OWNER, enums_1.UserRole.ADMIN, enums_1.UserRole.MANAGER), ActiveSeasonGuard_1.default, challan_controller_1.InvoiceController.getAllInvoiceController);
 // GET ALL ADVANCE INVOICE
-router.get(api_endpoints_1.API_ENDPOINTS.INVOICE.GET_ADVANCE_INVOICE, ActiveSeasonGuard_1.default, (0, AuthGuard_1.default)(enums_1.UserRole.OWNER, enums_1.UserRole.ADMIN, enums_1.UserRole.MANAGER), challan_controller_1.InvoiceController.getAllAdvanceInvoiceController);
+router.get(api_endpoints_1.API_ENDPOINTS.INVOICE.GET_ADVANCE_INVOICE, (0, AuthGuard_1.default)(enums_1.UserRole.OWNER, enums_1.UserRole.ADMIN, enums_1.UserRole.MANAGER), ActiveSeasonGuard_1.default, challan_controller_1.InvoiceController.getAllAdvanceInvoiceController);
 // GET ITEMS WITH INVOICE
 router.get(api_endpoints_1.API_ENDPOINTS.INVOICE.GET_ITEMS_WITH_INVOICE, ActiveSeasonGuard_1.default, (0, AuthGuard_1.default)(enums_1.UserRole.OWNER, enums_1.UserRole.ADMIN, enums_1.UserRole.MANAGER), challan_controller_1.InvoiceController.getItemsWithInvoiceController);
 // GET SINGLE INVOICE

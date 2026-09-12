@@ -4,8 +4,13 @@ const ApplicationError_1 = require("../errors/ApplicationError");
 const prisma_1 = require("../../helpers/prisma");
 const ActiveSeasonGuard = async (req, res, next) => {
     try {
+        const user = req.user;
+        if (!user?.role) {
+            throw new ApplicationError_1.AppError(401, "User role not found");
+        }
         const activeSeason = await prisma_1.prisma.season.findFirst({
             where: {
+                vataId: user?.vataId,
                 isActive: true,
             },
             select: {

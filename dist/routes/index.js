@@ -37,6 +37,9 @@ const vata_car_route_1 = __importDefault(require("../app/modules/vata_car/vata_c
 const sms_route_1 = __importDefault(require("../app/modules/sms/sms.route"));
 const vata_sms_sittings_route_1 = __importDefault(require("../app/modules/vata_sms_sittings/vata_sms_sittings.route"));
 const send_sms_route_1 = __importDefault(require("../app/modules/send_sms/send_sms.route"));
+const notification_route_1 = __importDefault(require("../app/modules/notification/notification.route"));
+const faq_route_1 = __importDefault(require("../app/modules/system_modules/faq/faq.route"));
+const about_us_route_1 = __importDefault(require("../app/modules/system_modules/about_us/about_us.route"));
 // ADMIN MODULES
 const admin_route_1 = __importDefault(require("../app/modules/system_modules/admin/admin.route"));
 const vata_route_2 = __importDefault(require("../app/modules/system_modules/vata/vata.route"));
@@ -80,6 +83,8 @@ const applicationRoutes = [
     { path: "/vata/sms-sittings", route: vata_sms_sittings_route_1.default },
     { path: "/vata/send-sms", route: send_sms_route_1.default },
     { path: "/note", route: note_route_1.default }, // vata + system
+    { path: "/notification", route: notification_route_1.default },
+    { path: "/faq", route: notification_route_1.default },
     // ADMIN MODULES
     {
         path: "/system/admin",
@@ -100,6 +105,14 @@ const applicationRoutes = [
     {
         path: "/system/database",
         route: database_router_1.default,
+    },
+    {
+        path: "/system/faq",
+        route: faq_route_1.default,
+    },
+    {
+        path: "/system/about",
+        route: about_us_route_1.default,
     },
 ];
 applicationRoutes.forEach((route) => router.use(route.path, route.route));

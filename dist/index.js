@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const app_1 = __importDefault(require("./app"));
 const config_1 = require("./config");
 const prisma_1 = require("./helpers/prisma");
+const notificationCorn_1 = __importDefault(require("./app/corn/notificationCorn"));
 let server;
 const port = config_1.Config.PORT;
 const RETRY_DELAY = 5000;
@@ -35,6 +36,7 @@ async function main() {
     try {
         await connectDatabaseWithRetry();
         // startPaymentReminderCron();
+        (0, notificationCorn_1.default)();
         server = app_1.default.listen(port, () => {
             console.log(`🚀 Application is running on port ${port}`);
         });

@@ -735,6 +735,7 @@ model Season {
   ledgers        Ledger[]
   rounds         Round[]
   stockBooks     StockBook[]
+  notifications  Notification[]
 
   @@unique([vataId, name])
   @@index([vataId, isActive])
@@ -909,6 +910,22 @@ model Notification {
   updatedAt DateTime         @updatedAt
   vataId    String
   vata      Vata             @relation(fields: [vataId], references: [id])
+  seasonId  String
+  season    Season           @relation(fields: [seasonId], references: [id])
+}
+
+// FAQ ADMIN PART
+model Faq {
+  id          String   @id @default(uuid())
+  title       String
+  description String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model AboutUs {
+  id          String @id @default(uuid())
+  description String
 }
 
 // ======================================ENUMS ======================================

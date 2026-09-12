@@ -10,7 +10,11 @@ const catchAsync_1 = __importDefault(require("../../../utils/catchAsync"));
 const sendResponse_1 = require("../../../utils/sendResponse");
 const ApplicationError_1 = require("../../errors/ApplicationError");
 const getAllSeasons = (0, catchAsync_1.default)(async (req, res) => {
+    const user = req.user;
     const result = await prisma_1.prisma.season.findMany({
+        where: {
+            vataId: user.vataId,
+        },
         select: {
             id: true,
             name: true,
@@ -35,9 +39,11 @@ const getAllSeasons = (0, catchAsync_1.default)(async (req, res) => {
     });
 });
 const getActiveSeason = (0, catchAsync_1.default)(async (req, res) => {
+    const user = req.user;
     const result = await prisma_1.prisma.season.findFirst({
         where: {
             isActive: true,
+            vataId: user.vataId,
         },
         select: {
             id: true,
@@ -56,9 +62,11 @@ const getActiveSeason = (0, catchAsync_1.default)(async (req, res) => {
 });
 const changeActiveSeason = (0, catchAsync_1.default)(async (req, res) => {
     const { id } = req.params;
-    const season = await prisma_1.prisma.season.findUnique({
+    const user = req.user;
+    const season = await prisma_1.prisma.season.findFirst({
         where: {
             id,
+            vataId: user.vataId,
         },
     });
     if (!season) {
@@ -71,13 +79,16 @@ const changeActiveSeason = (0, catchAsync_1.default)(async (req, res) => {
     }
     await prisma_1.prisma.$transaction([
         prisma_1.prisma.season.updateMany({
+            where: {
+                vataId: user.vataId,
+            },
             data: {
                 isActive: false,
             },
         }),
         prisma_1.prisma.season.update({
             where: {
-                id,
+                id: season.id,
             },
             data: {
                 isActive: true,
@@ -93,5 +104,5 @@ const changeActiveSeason = (0, catchAsync_1.default)(async (req, res) => {
 exports.SeasonController = {
     getActiveSeason,
     getAllSeasons,
-    changeActiveSeason
+    changeActiveSeason,
 };

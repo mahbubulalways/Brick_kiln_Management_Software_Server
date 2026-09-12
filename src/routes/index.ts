@@ -33,6 +33,9 @@ import vatacarRouter from "../app/modules/vata_car/vata_car.route";
 import smsRouter from "../app/modules/sms/sms.route";
 import vataSMsSettingRouter from "../app/modules/vata_sms_sittings/vata_sms_sittings.route";
 import sendSmsRoute from "../app/modules/send_sms/send_sms.route";
+import notificationRoute from "../app/modules/notification/notification.route";
+import faqRoute from "../app/modules/system_modules/faq/faq.route";
+import aboutUsRoute from "../app/modules/system_modules/about_us/about_us.route";
 
 // ADMIN MODULES
 import adminRoutes from "../app/modules/system_modules/admin/admin.route";
@@ -78,6 +81,8 @@ const applicationRoutes: IApplicationRoute[] = [
   { path: "/vata/sms-sittings", route: vataSMsSettingRouter },
   { path: "/vata/send-sms", route: sendSmsRoute },
   { path: "/note", route: noteRoutes }, // vata + system
+  { path: "/notification", route: notificationRoute },
+  { path: "/faq", route: notificationRoute },
 
   // ADMIN MODULES
   {
@@ -99,6 +104,14 @@ const applicationRoutes: IApplicationRoute[] = [
   {
     path: "/system/database",
     route: databaseRoutes,
+  },
+  {
+    path: "/system/faq",
+    route: faqRoute,
+  },
+  {
+    path: "/system/about",
+    route: aboutUsRoute,
   },
 ];
 

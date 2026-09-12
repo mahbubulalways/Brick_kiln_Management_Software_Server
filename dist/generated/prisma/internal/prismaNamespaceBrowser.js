@@ -49,7 +49,7 @@ var __importStar = (this && this.__importStar) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SmsLogScalarFieldEnum = exports.VataSmsSettingsScalarFieldEnum = exports.SmsRechargeHistoryScalarFieldEnum = exports.SmsWalletScalarFieldEnum = exports.SmsSettingScalarFieldEnum = exports.CarIncomeDeliveryScalarFieldEnum = exports.VataCarScalarFieldEnum = exports.DriverScalarFieldEnum = exports.SeasonScalarFieldEnum = exports.SubscriptionPaymentScalarFieldEnum = exports.SubscriptionPlanScalarFieldEnum = exports.VataScalarFieldEnum = exports.WeatherScalarFieldEnum = exports.ContactScalarFieldEnum = exports.ReceivablePayableTransactionScalarFieldEnum = exports.ReceivablePayableScalarFieldEnum = exports.TaskManagerScalarFieldEnum = exports.ProductScalarFieldEnum = exports.CarRentScalarFieldEnum = exports.DocumentScalarFieldEnum = exports.GoodsLossScalarFieldEnum = exports.GoodHistoryLogScalarFieldEnum = exports.GoodsIssueScalarFieldEnum = exports.GoodsStockScalarFieldEnum = exports.GoodsStockCategoryScalarFieldEnum = exports.StockBookScalarFieldEnum = exports.BrickStockSummaryScalarFieldEnum = exports.UnloadItemScalarFieldEnum = exports.UnloadScalarFieldEnum = exports.LoadInfoScalarFieldEnum = exports.RoundScalarFieldEnum = exports.CashScalarFieldEnum = exports.PaymentScalarFieldEnum = exports.LedgerScalarFieldEnum = exports.Due_CollectionScalarFieldEnum = exports.DeliveryScalarFieldEnum = exports.CustomerDueScalarFieldEnum = exports.CustomerScalarFieldEnum = exports.ChallanItemScalarFieldEnum = exports.ChallanScalarFieldEnum = exports.ClassAndRateScalarFieldEnum = exports.LoginHistoryScalarFieldEnum = exports.UserScalarFieldEnum = exports.TransactionIsolationLevel = exports.ModelName = exports.AnyNull = exports.JsonNull = exports.DbNull = exports.NullTypes = exports.Decimal = void 0;
-exports.NullsOrder = exports.QueryMode = exports.SortOrder = exports.NoteScalarFieldEnum = void 0;
+exports.NullsOrder = exports.QueryMode = exports.SortOrder = exports.AboutUsScalarFieldEnum = exports.FaqScalarFieldEnum = exports.NotificationScalarFieldEnum = exports.NoteScalarFieldEnum = void 0;
 const runtime = __importStar(require("@prisma/client/runtime/index-browser"));
 exports.Decimal = runtime.Decimal;
 exports.NullTypes = {
@@ -119,7 +119,10 @@ exports.ModelName = {
     SmsRechargeHistory: 'SmsRechargeHistory',
     VataSmsSettings: 'VataSmsSettings',
     SmsLog: 'SmsLog',
-    Note: 'Note'
+    Note: 'Note',
+    Notification: 'Notification',
+    Faq: 'Faq',
+    AboutUs: 'AboutUs'
 };
 /*
  * Enums
@@ -566,6 +569,7 @@ exports.SubscriptionPaymentScalarFieldEnum = {
 };
 exports.SeasonScalarFieldEnum = {
     id: 'id',
+    vataId: 'vataId',
     name: 'name',
     startDate: 'startDate',
     endDate: 'endDate',
@@ -657,6 +661,29 @@ exports.NoteScalarFieldEnum = {
     message: 'message',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
+};
+exports.NotificationScalarFieldEnum = {
+    id: 'id',
+    title: 'title',
+    message: 'message',
+    path: 'path',
+    type: 'type',
+    isRead: 'isRead',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt',
+    vataId: 'vataId',
+    seasonId: 'seasonId'
+};
+exports.FaqScalarFieldEnum = {
+    id: 'id',
+    title: 'title',
+    description: 'description',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+};
+exports.AboutUsScalarFieldEnum = {
+    id: 'id',
+    description: 'description'
 };
 exports.SortOrder = {
     asc: 'asc',
