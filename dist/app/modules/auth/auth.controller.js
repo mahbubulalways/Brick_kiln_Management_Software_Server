@@ -43,7 +43,6 @@ const logoutController = (0, catchAsync_1.default)(async (req, res) => {
     if (!result?.id) {
         throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.BAD_REQUEST, "লগআউট করা সম্ভব হয়নি। অনুগ্রহ করে আবার চেষ্টা করুন।");
     }
-    // Clear authentication cookies
     res.clearCookie("accessToken");
     res.clearCookie("refreshToken");
     (0, sendResponse_1.sendResponse)(res, {
@@ -69,5 +68,5 @@ const changePasswordController = (0, catchAsync_1.default)(async (req, res) => {
 exports.AuthController = {
     loginUserToSystemController,
     logoutController,
-    changePasswordController
+    changePasswordController,
 };

@@ -15,10 +15,7 @@ const userData = {
   password: "12345678",
 };
 
-const loginUserToSystemService = async (
-  payload: IAuth,
-  ip: string,
-) => {
+const loginUserToSystemService = async (payload: IAuth, ip: string) => {
   const user = await prisma.user.findUnique({
     where: {
       username: payload.username,
@@ -64,7 +61,7 @@ const loginUserToSystemService = async (
     username: user.username,
     userId: user.id,
     role: user.role,
-    vataId: user.vataId
+    vataId: user.vataId,
   };
 
   // Access token
@@ -87,15 +84,21 @@ const loginUserToSystemService = async (
   };
 };
 
-
 // LOGOUT
 
-const logoutUserService = async (userAuth: TAuthUser, username: string, ip: string, payload: { device: string, browser: string }) => {
-
+const logoutUserService = async (
+  userAuth: TAuthUser,
+  username: string,
+  ip: string,
+  payload: {
+    device: string;
+    browser: string;
+  },
+) => {
   const user = await prisma.user.findUnique({
     where: {
       username,
-      vataId: userAuth.vataId
+      vataId: userAuth.vataId,
     },
   });
 
@@ -106,24 +109,22 @@ const logoutUserService = async (userAuth: TAuthUser, username: string, ip: stri
     );
   }
 
-  if (user.role === "SUPER_ADMIN" || user.role === "SYSTEM_ADMIN") {
-    return {
-      id: true
-    }
+  if (user.role !== "SUPER_ADMIN" && user.role !== "SYSTEM_ADMIN") {
+    await prisma.loginHistory.create({
+      data: {
+        type: "Logout",
+        device: payload?.device || "Unknown",
+        browser: payload?.browser || "Unknown",
+        ipAddress: ip || "Unknown",
+        userId: user.id,
+      },
+    });
   }
 
-  const result = await prisma.loginHistory.create({
-    data: {
-      type: "Logout",
-      device: payload?.device || "Unknown",
-      browser: payload?.browser || "Unknown",
-      ipAddress: ip || "Unknown",
-      userId: user.id,
-    },
-  });
-  return result
-}
-
+  return {
+    id: user.id,
+  };
+};
 
 // CHANGE PASSWORD
 const changePasswordServie = async (
@@ -141,10 +142,7 @@ const changePasswordServie = async (
   });
 
   if (!mainUser) {
-    throw new AppError(
-      StatusCodes.NOT_FOUND,
-      "ব্যবহারকারী খুঁজে পাওয়া যায়নি।",
-    );
+    throw new AppError(StatusCodes.NOT_FOUND, "ব্যবহারকারী খুঁজে পাওয়া যায়নি।");
   }
 
   const matchPassword = await bcryptHelper.comparePassword(
@@ -153,15 +151,10 @@ const changePasswordServie = async (
   );
 
   if (!matchPassword) {
-    throw new AppError(
-      StatusCodes.BAD_REQUEST,
-      "পুরাতন পাসওয়ার্ড সঠিক নয়।",
-    );
+    throw new AppError(StatusCodes.BAD_REQUEST, "পুরাতন পাসওয়ার্ড সঠিক নয়।");
   }
 
-  const hashedPassword = await bcryptHelper.hashPassword(
-    payload.newPassword,
-  );
+  const hashedPassword = await bcryptHelper.hashPassword(payload.newPassword);
 
   const result = await prisma.user.update({
     where: {
@@ -178,5 +171,5 @@ const changePasswordServie = async (
 export const AuthService = {
   loginUserToSystemService,
   logoutUserService,
-  changePasswordServie
+  changePasswordServie,
 };

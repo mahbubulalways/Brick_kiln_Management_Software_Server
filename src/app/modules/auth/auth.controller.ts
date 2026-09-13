@@ -9,10 +9,7 @@ const loginUserToSystemController = catchAsync(async (req, res) => {
   const body = req.body;
   const ipAddress = req.ip as string;
 
-  const result = await AuthService.loginUserToSystemService(
-    body,
-    ipAddress,
-  );
+  const result = await AuthService.loginUserToSystemService(body, ipAddress);
 
   if (!result?.accessToken) {
     throw new AppError(
@@ -39,20 +36,25 @@ const loginUserToSystemController = catchAsync(async (req, res) => {
   }
 });
 
-
 const logoutController = catchAsync(async (req, res) => {
-  const body = req.body
+  const body = req.body;
   const ipAddress = req.ip as string;
-  const username = req.user.username
-  const user = req.user as TAuthUser
-  const result = await AuthService.logoutUserService(user, username, ipAddress, body)
+  const username = req.user.username;
+  const user = req.user as TAuthUser;
+  const result = await AuthService.logoutUserService(
+    user,
+    username,
+    ipAddress,
+    body,
+  );
+
   if (!result?.id) {
     throw new AppError(
       StatusCodes.BAD_REQUEST,
       "লগআউট করা সম্ভব হয়নি। অনুগ্রহ করে আবার চেষ্টা করুন।",
     );
   }
-  // Clear authentication cookies
+
   res.clearCookie("accessToken");
   res.clearCookie("refreshToken");
 
@@ -62,7 +64,6 @@ const logoutController = catchAsync(async (req, res) => {
     message: "আপনি সফলভাবে লগআউট করেছেন।",
   });
 });
-
 
 // CHANGE PASS
 
@@ -87,5 +88,5 @@ const changePasswordController = catchAsync(async (req, res) => {
 export const AuthController = {
   loginUserToSystemController,
   logoutController,
-  changePasswordController
+  changePasswordController,
 };

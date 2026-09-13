@@ -17,19 +17,12 @@ app.use(express_1.default.json());
 app.set("trust proxy", true);
 app.use((0, cors_1.default)({
     origin: (origin, callback) => {
-        // origin না থাকলে allow
         if (!origin) {
             return callback(null, true);
         }
-        // Localhost এবং যেকোনো localhost subdomain
         const isLocalhost = /^http:\/\/([a-zA-Z0-9-]+\.)?localhost:3000$/.test(origin);
-        // Production এবং যেকোনো production subdomain
-        const isProduction = /^https:\/\/([a-zA-Z0-9-]+\.)?itvata\.com$/.test(origin);
-        // Vercel frontend
-        const isVercel = origin === "https://itvata.vercel.app";
-        if (isLocalhost ||
-            isProduction ||
-            isVercel) {
+        const isProduction = /^https:\/\/([a-zA-Z0-9-]+\.)?evatabd\.com$/.test(origin);
+        if (isLocalhost || isProduction) {
             return callback(null, true);
         }
         return callback(new Error("Not allowed by CORS"));

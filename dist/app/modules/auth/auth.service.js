@@ -45,7 +45,7 @@ const loginUserToSystemService = async (payload, ip) => {
         username: user.username,
         userId: user.id,
         role: user.role,
-        vataId: user.vataId
+        vataId: user.vataId,
     };
     // Access token
     const accessToken = await auth_utils_1.jwtHelper.generateToken(tokenInfo, config_1.Config.ACCESS_TOKEN_SECRET, "5D");
@@ -61,27 +61,26 @@ const logoutUserService = async (userAuth, username, ip, payload) => {
     const user = await prisma_1.prisma.user.findUnique({
         where: {
             username,
-            vataId: userAuth.vataId
+            vataId: userAuth.vataId,
         },
     });
     if (!user) {
         throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.NOT_FOUND, "প্রদত্ত তথ্যের সাথে কোনো অ্যাকাউন্ট পাওয়া যায়নি।");
     }
-    if (user.role === "SUPER_ADMIN" || user.role === "SYSTEM_ADMIN") {
-        return {
-            id: true
-        };
+    if (user.role !== "SUPER_ADMIN" && user.role !== "SYSTEM_ADMIN") {
+        await prisma_1.prisma.loginHistory.create({
+            data: {
+                type: "Logout",
+                device: payload?.device || "Unknown",
+                browser: payload?.browser || "Unknown",
+                ipAddress: ip || "Unknown",
+                userId: user.id,
+            },
+        });
     }
-    const result = await prisma_1.prisma.loginHistory.create({
-        data: {
-            type: "Logout",
-            device: payload?.device || "Unknown",
-            browser: payload?.browser || "Unknown",
-            ipAddress: ip || "Unknown",
-            userId: user.id,
-        },
-    });
-    return result;
+    return {
+        id: user.id,
+    };
 };
 // CHANGE PASSWORD
 const changePasswordServie = async (user, payload) => {
@@ -112,5 +111,5 @@ const changePasswordServie = async (user, payload) => {
 exports.AuthService = {
     loginUserToSystemService,
     logoutUserService,
-    changePasswordServie
+    changePasswordServie,
 };

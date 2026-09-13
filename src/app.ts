@@ -14,47 +14,31 @@ const app: Application = express();
 app.use(express.json());
 app.set("trust proxy", true);
 
-
 app.use(
-    cors({
-        origin: (origin, callback) => {
-            // origin না থাকলে allow
-            if (!origin) {
-                return callback(null, true);
-            }
+  cors({
+    origin: (origin, callback) => {
+      if (!origin) {
+        return callback(null, true);
+      }
 
-            // Localhost এবং যেকোনো localhost subdomain
-            const isLocalhost =
-                /^http:\/\/([a-zA-Z0-9-]+\.)?localhost:3000$/.test(
-                    origin
-                );
+      const isLocalhost = /^http:\/\/([a-zA-Z0-9-]+\.)?localhost:3000$/.test(
+        origin,
+      );
 
-            // Production এবং যেকোনো production subdomain
-            const isProduction =
-                /^https:\/\/([a-zA-Z0-9-]+\.)?itvata\.com$/.test(
-                    origin
-                );
+      const isProduction = /^https:\/\/([a-zA-Z0-9-]+\.)?evatabd\.com$/.test(
+        origin,
+      );
 
-            // Vercel frontend
-            const isVercel =
-                origin === "https://itvata.vercel.app";
+      if (isLocalhost || isProduction) {
+        return callback(null, true);
+      }
 
-            if (
-                isLocalhost ||
-                isProduction ||
-                isVercel
-            ) {
-                return callback(null, true);
-            }
-
-            return callback(
-                new Error("Not allowed by CORS")
-            );
-        },
-
-        credentials: true,
-    })
+      return callback(new Error("Not allowed by CORS"));
+    },
+    credentials: true,
+  }),
 );
+
 app.use(cookieParser());
 
 // Serve static files from root/uploads
@@ -63,23 +47,19 @@ app.use("/api/v1/uploads", express.static(path.join(process.cwd(), "uploads")));
 app.use("/api/v1", applicationRoutes);
 
 app.get("/", (req: Request, res: Response) => {
-    res.json({
-        status: StatusCodes.OK,
-        success: true,
-        message: "Server is under construction!",
-    });
+  res.json({
+    status: StatusCodes.OK,
+    success: true,
+    message: "Server is under construction!",
+  });
 });
 
-
 app.get("/sms", async (req: Request, res: Response) => {
-    const result = await sendSms(
-        "01407128177",
-        "Test SMS from MRAM API"
-    );
+  const result = await sendSms("01407128177", "Test SMS from MRAM API");
 
-    res.send(result)
+  res.send(result);
 
-    console.log("SMS Response:", result);
+  console.log("SMS Response:", result);
 });
 
 app.use(globalErrorHandler);
