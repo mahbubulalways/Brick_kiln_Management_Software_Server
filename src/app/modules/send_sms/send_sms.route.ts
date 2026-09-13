@@ -10,9 +10,10 @@ router.get(
   AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
   SmsSendController.getVatasSendMessageController,
 );
-router.get(
+
+router.post(
   "/send",
-  // AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+  AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
   SmsSendController.sendMessageToUserController,
 );
 

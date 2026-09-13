@@ -3,6 +3,7 @@ import catchAsync from "../../../utils/catchAsync";
 import { sendResponse } from "../../../utils/sendResponse";
 import { SendSmsService } from "./send_sms.service";
 import { TAuthUser } from "../../../interface/token";
+import { AppError } from "../../errors/ApplicationError";
 
 const getVatasSendMessageController = catchAsync(async (req, res) => {
   const user = req.user as TAuthUser;
@@ -26,16 +27,11 @@ const getVatasSendMessageController = catchAsync(async (req, res) => {
 });
 
 const sendMessageToUserController = catchAsync(async (req, res) => {
+  const body = req.body;
   const user = req.user as TAuthUser;
-  const result = await SendSmsService.sendMessageToUserService();
-
+  const result = await SendSmsService.sendMessageToUserService(user, body);
   if (!result) {
-    sendResponse(res, {
-      statusCode: StatusCodes.OK,
-      success: true,
-      message: "কোনো SMS পাঠানো হয়নি।",
-      data: [],
-    });
+    throw new AppError(StatusCodes.BAD_REQUEST, "SMS পাঠানো যায়নি।");
   } else {
     sendResponse(res, {
       statusCode: StatusCodes.OK,

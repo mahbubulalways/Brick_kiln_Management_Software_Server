@@ -5,6 +5,7 @@ import { Config } from "./config";
 import { prisma } from "./helpers/prisma";
 import { startPaymentReminderCron } from "./app/corn/paymentReminder.cron";
 import notificationCron from "./app/corn/notificationCorn";
+import databaseBackupCron from "./app/corn/databaseBackupCorn";
 
 let server: Server;
 
@@ -45,6 +46,7 @@ async function main() {
     await connectDatabaseWithRetry();
     // startPaymentReminderCron();
     notificationCron();
+    databaseBackupCron();
     server = app.listen(port, () => {
       console.log(`🚀 Application is running on port ${port}`);
     });

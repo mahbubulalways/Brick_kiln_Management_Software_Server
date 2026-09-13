@@ -944,6 +944,30 @@ model YoutubeLink {
   link String
 }
 
+// Database 
+enum DatabaseBackupType {
+  MANUAL
+  AUTO
+}
+
+model DatabaseBackupPermission {
+  id   String             @id @default(uuid())
+  type DatabaseBackupType
+}
+
+model DatabaseBackup {
+  id             String             @id @default(uuid())
+  fileName       String
+  filePath       String
+  fileSize       BigInt
+  type           DatabaseBackupType
+  tableCount     Int                @default(0)
+  totalRowCount  BigInt             @default(0)
+  tableRowCounts Json?
+
+  createdAt DateTime @default(now())
+}
+
 // ======================================ENUMS ======================================
 
 enum UserRole {

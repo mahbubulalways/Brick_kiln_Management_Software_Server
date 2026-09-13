@@ -42,6 +42,7 @@ const generateDailyNotifications = async () => {
             where: {
                 vataId: vata.id,
                 isDeleted: false,
+                nextPaymentDate: dateRange,
             },
             select: {
                 id: true,
@@ -81,7 +82,7 @@ const generateDailyNotifications = async () => {
                 title: `${customer.name}-এর আজ টাকা দেওয়ার তারিখ`,
                 message: `কাস্টমার: ${customer.name}। আজ টাকা দেওয়ার তারিখ। বাকি: ${remainingDue} টাকা। সিজন: ${activeSeason.name}।`,
                 type: enums_1.NotificationType.DUE,
-                path: "/dashboard/due-collection",
+                path: "/dashboard/today-will-pay",
                 seasonId,
             });
         }
@@ -137,7 +138,7 @@ const generateDailyNotifications = async () => {
                 title: `${challan.customer.name}-এর আজ ডেলিভারি আছে`,
                 message: `কাস্টমার: ${challan.customer.name}। ডেলিভারি: ${deliveryMessage}। সিজন: ${activeSeason.name}।`,
                 type: enums_1.NotificationType.DELIVERY,
-                path: "/dashboard/todays-delivery",
+                path: "/dashboard/delivery-today",
                 seasonId,
             });
         }
@@ -166,6 +167,9 @@ const getAllNotification = async (user, seasonId, query) => {
             where: { vataId: user.vataId, seasonId },
             skip,
             take: limit,
+            orderBy: {
+                createdAt: "desc",
+            },
         }),
         prisma_1.prisma.notification.count({
             where: { vataId: user.vataId, seasonId },

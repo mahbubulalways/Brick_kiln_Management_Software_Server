@@ -40,6 +40,8 @@ const send_sms_route_1 = __importDefault(require("../app/modules/send_sms/send_s
 const notification_route_1 = __importDefault(require("../app/modules/notification/notification.route"));
 const faq_route_1 = __importDefault(require("../app/modules/system_modules/faq/faq.route"));
 const about_us_route_1 = __importDefault(require("../app/modules/system_modules/about_us/about_us.route"));
+const helpline_route_1 = __importDefault(require("../app/modules/system_modules/helpline/helpline.route"));
+const youtube_route_1 = __importDefault(require("../app/modules/system_modules/youtube/youtube.route"));
 // ADMIN MODULES
 const admin_route_1 = __importDefault(require("../app/modules/system_modules/admin/admin.route"));
 const vata_route_2 = __importDefault(require("../app/modules/system_modules/vata/vata.route"));
@@ -113,6 +115,14 @@ const applicationRoutes = [
     {
         path: "/system/about",
         route: about_us_route_1.default,
+    },
+    {
+        path: "/system/helpline",
+        route: helpline_route_1.default,
+    },
+    {
+        path: "/system/youtube-link",
+        route: youtube_route_1.default,
     },
 ];
 applicationRoutes.forEach((route) => router.use(route.path, route.route));

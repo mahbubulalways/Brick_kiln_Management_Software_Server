@@ -13,5 +13,7 @@ router.post("/create", (0, AuthGuard_1.default)(enums_1.UserRole.OWNER, enums_1.
 // GET CAR
 router.get("/all", (0, AuthGuard_1.default)(enums_1.UserRole.OWNER, enums_1.UserRole.ADMIN, enums_1.UserRole.MANAGER), vata_car_controller_1.VataCarController.getAllCarController);
 // GET CAR
+router.get("/history", (0, AuthGuard_1.default)(enums_1.UserRole.OWNER, enums_1.UserRole.ADMIN, enums_1.UserRole.MANAGER), vata_car_controller_1.VataCarController.getCarIncomeHistoryController);
+// GET CAR
 router.get("/single/income/:id", (0, AuthGuard_1.default)(enums_1.UserRole.OWNER, enums_1.UserRole.ADMIN, enums_1.UserRole.MANAGER), vata_car_controller_1.VataCarController.getSingleCarDeliveryIncomController);
 exports.default = router;

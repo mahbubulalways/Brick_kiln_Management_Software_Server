@@ -43,7 +43,7 @@ const updateFolderController = (0, catchAsync_1.default)(async (req, res) => {
 const getAllDocumentsController = (0, catchAsync_1.default)(async (req, res) => {
     const user = req.user;
     const result = await document_service_1.DocumentService.getAllDocumentsService(user);
-    if (!result.length) {
+    if (!result.documents.length) {
         (0, sendResponse_1.sendResponse)(res, {
             statusCode: http_status_codes_1.StatusCodes.OK,
             success: true,
@@ -156,5 +156,5 @@ exports.DocumentController = {
     deleteDocumentController,
     updateFolderController,
     getSingleFolderController,
-    deleteFolderController
+    deleteFolderController,
 };

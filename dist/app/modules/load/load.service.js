@@ -41,16 +41,15 @@ const createLoadInfoService = async (user, seasonId, payload) => {
             },
         });
         if (!brickSummary) {
-            brickSummary =
-                await tx.brickStockSummary.create({
-                    data: {
-                        vataId: user.vataId,
-                        rawBrick: 0,
-                        fieldBrick: 0,
-                        stockBrick: 0,
-                        chulliBrick: 0,
-                    },
-                });
+            brickSummary = await tx.brickStockSummary.create({
+                data: {
+                    vataId: user.vataId,
+                    rawBrick: 0,
+                    fieldBrick: 0,
+                    stockBrick: 0,
+                    chulliBrick: 0,
+                },
+            });
         }
         // LOAD CREATE
         const load = await tx.loadInfo.create({
@@ -82,8 +81,8 @@ const createLoadInfoService = async (user, seasonId, payload) => {
                 },
                 data: {
                     rawBrick: { decrement: quantity },
-                    fieldBrick: { increment: quantity }
-                }
+                    fieldBrick: { increment: quantity },
+                },
             });
         }
         else if (payload.loadType === client_1.LoadType.FIELD_TO_CHULLI) {
@@ -93,8 +92,8 @@ const createLoadInfoService = async (user, seasonId, payload) => {
                 },
                 data: {
                     fieldBrick: { decrement: quantity },
-                    chulliBrick: { increment: quantity }
-                }
+                    chulliBrick: { increment: quantity },
+                },
             });
         }
         else if (payload.loadType === client_1.LoadType.STOCK_TO_CHULLI) {
@@ -104,8 +103,8 @@ const createLoadInfoService = async (user, seasonId, payload) => {
                 },
                 data: {
                     stockBrick: { decrement: quantity },
-                    chulliBrick: { increment: quantity }
-                }
+                    chulliBrick: { increment: quantity },
+                },
             });
         }
         else if (payload.loadType === client_1.LoadType.FIELD_TO_STOCK) {
@@ -115,8 +114,8 @@ const createLoadInfoService = async (user, seasonId, payload) => {
                 },
                 data: {
                     fieldBrick: { decrement: quantity },
-                    stockBrick: { increment: quantity }
-                }
+                    stockBrick: { increment: quantity },
+                },
             });
         }
         return load;
@@ -128,7 +127,7 @@ const getAllLoadInfoService = async (user, seasonId, query) => {
     const { limit, page, skip } = (0, paginationHelper_1.paginationHelper)(query.page, query.limit);
     const where = {
         isDeleted: false,
-        round: { vataId: user.vataId, seasonId }
+        round: { vataId: user.vataId, seasonId },
     };
     // DATE FILTER
     if (query.date) {
@@ -184,8 +183,8 @@ const getSingleLoadInfoService = async (user, id) => {
             id,
             isDeleted: false,
             round: {
-                vataId: user.vataId
-            }
+                vataId: user.vataId,
+            },
         },
         include: {
             round: true,
@@ -277,10 +276,28 @@ const deleteLoadInfoService = async (user, id) => {
         where: {
             id,
             round: {
-                vataId: user.vataId
-            }
+                vataId: user.vataId,
+            },
         },
     });
+};
+// LOAD REPORT
+const getLoadReportService = async (user, query) => {
+    const where = { round: { vataId: user.vataId } };
+    if (query.date) {
+        const dateRange = (0, getDateRangeDbSearch_1.getDateRangeDbSearch)(query.date);
+        if (dateRange) {
+            where.date = dateRange;
+        }
+    }
+    const result = await prisma_1.prisma.loadInfo.findMany({
+        where,
+        select: {
+            loadType: true,
+            quantity: true,
+        },
+    });
+    return result;
 };
 exports.LoadInfoService = {
     createLoadInfoService,
@@ -288,4 +305,5 @@ exports.LoadInfoService = {
     getSingleLoadInfoService,
     updateLoadInfoService,
     deleteLoadInfoService,
+    getLoadReportService,
 };

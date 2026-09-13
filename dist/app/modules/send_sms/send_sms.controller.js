@@ -8,6 +8,7 @@ const http_status_codes_1 = require("http-status-codes");
 const catchAsync_1 = __importDefault(require("../../../utils/catchAsync"));
 const sendResponse_1 = require("../../../utils/sendResponse");
 const send_sms_service_1 = require("./send_sms.service");
+const ApplicationError_1 = require("../../errors/ApplicationError");
 const getVatasSendMessageController = (0, catchAsync_1.default)(async (req, res) => {
     const user = req.user;
     const result = await send_sms_service_1.SendSmsService.getVatasSendMessageService(user);
@@ -29,15 +30,11 @@ const getVatasSendMessageController = (0, catchAsync_1.default)(async (req, res)
     }
 });
 const sendMessageToUserController = (0, catchAsync_1.default)(async (req, res) => {
+    const body = req.body;
     const user = req.user;
-    const result = await send_sms_service_1.SendSmsService.sendMessageToUserService();
+    const result = await send_sms_service_1.SendSmsService.sendMessageToUserService(user, body);
     if (!result) {
-        (0, sendResponse_1.sendResponse)(res, {
-            statusCode: http_status_codes_1.StatusCodes.OK,
-            success: true,
-            message: "কোনো SMS পাঠানো হয়নি।",
-            data: [],
-        });
+        throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.BAD_REQUEST, "SMS পাঠানো যায়নি।");
     }
     else {
         (0, sendResponse_1.sendResponse)(res, {

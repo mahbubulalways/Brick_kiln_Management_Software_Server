@@ -59,7 +59,8 @@ const collectDueService = async (user, seasonId, payload) => {
             where: {
                 customerCode: payload.customerId,
                 vataId: user.vataId,
-            }, select: { id: true }
+            },
+            select: { id: true },
         });
         const result = await tx.due_Collection.create({
             data: {
@@ -68,7 +69,7 @@ const collectDueService = async (user, seasonId, payload) => {
                 collect: Number(payload.collect),
                 newDue: Number(payload.newDue),
                 nextDate: payload.nextDate,
-                seasonId
+                seasonId,
             },
         });
         await tx.customer.update({
@@ -77,8 +78,8 @@ const collectDueService = async (user, seasonId, payload) => {
                 vataId_customerCode: {
                     customerCode: payload.customerId,
                     vataId: user.vataId,
-                }
-            }
+                },
+            },
         });
         return result;
     });
@@ -163,20 +164,20 @@ const todayPayDueService = async (user, seasonId, query) => {
         isDeleted: false,
         challans: {
             every: {
-                seasonId
-            }
+                seasonId,
+            },
         },
         dueCollections: {
             every: {
                 seasonId,
-                isDeleted: false
-            }
+                isDeleted: false,
+            },
         },
         customerDues: {
             every: {
-                seasonId
-            }
-        }
+                seasonId,
+            },
+        },
     };
     if (query.search?.trim()) {
         const search = query.search.trim();
@@ -185,7 +186,7 @@ const todayPayDueService = async (user, seasonId, query) => {
                 customerCode: {
                     contains: search,
                     mode: "insensitive",
-                }
+                },
             },
             {
                 name: {
@@ -203,7 +204,6 @@ const todayPayDueService = async (user, seasonId, query) => {
     }
     if (query.date) {
         const dateRange = (0, getDateRangeDbSearch_1.getDateRangeDbSearch)(query.date);
-        console.log(dateRange);
         if (dateRange) {
             where.nextPaymentDate = dateRange;
         }
@@ -233,8 +233,8 @@ const todayPayDueService = async (user, seasonId, query) => {
                         dueAmount: true,
                     },
                     orderBy: {
-                        createdAt: "desc"
-                    }
+                        createdAt: "desc",
+                    },
                 },
                 dueCollections: {
                     select: {
@@ -285,8 +285,8 @@ const getTodaysDuePaidService = async (user, seasonId, query) => {
         isDeleted: false,
         seasonId,
         customer: {
-            vataId: user.vataId
-        }
+            vataId: user.vataId,
+        },
     };
     if (query.date) {
         const dateRange = (0, getDateRangeDbSearch_1.getDateRangeDbSearch)(query.date);
@@ -300,8 +300,8 @@ const getTodaysDuePaidService = async (user, seasonId, query) => {
             include: {
                 customer: true,
                 season: {
-                    select: { name: true }
-                }
+                    select: { name: true },
+                },
             },
             orderBy: {
                 createdAt: "desc",
@@ -369,7 +369,7 @@ const getAllDueListService = async (user, seasonId, query) => {
             include: {
                 challans: {
                     where: {
-                        isDeleted: false
+                        isDeleted: false,
                     },
                     select: {
                         note: true,
@@ -388,19 +388,19 @@ const getAllDueListService = async (user, seasonId, query) => {
                 },
                 customerDues: {
                     where: {
-                        seasonId
+                        seasonId,
                     },
                     select: {
                         dueAmount: true,
                     },
                     orderBy: {
-                        createdAt: "desc"
-                    }
+                        createdAt: "desc",
+                    },
                 },
                 dueCollections: {
                     where: {
                         isDeleted: false,
-                        seasonId
+                        seasonId,
                     },
                     select: {
                         due: true,
@@ -421,7 +421,8 @@ const getAllDueListService = async (user, seasonId, query) => {
             where,
         }),
     ]);
-    const formattedData = result.map((customer) => {
+    const formattedData = result
+        .map((customer) => {
         const totalQuantity = customer.challans.reduce((sum, challan) => sum +
             challan.items.reduce((itemSum, item) => itemSum + Number(item.quantity || 0), 0), 0);
         const totalDelivered = customer.challans.reduce((sum, challan) => sum +
@@ -445,8 +446,8 @@ const getAllDueListService = async (user, seasonId, query) => {
             season: customer.challans[0]?.season.name,
             note: customer?.note,
         };
-    }).filter((customer) => customer.remainingDue > 0);
-    ;
+    })
+        .filter((customer) => customer.remainingDue > 0);
     const meta = (0, createMetaConfig_1.createMetaConfig)({
         limit,
         page,
@@ -462,9 +463,10 @@ const getSingleDueCollectionService = async (user, id) => {
     const result = await prisma_1.prisma.due_Collection.findFirst({
         where: { id, isDeleted: false, customer: { vataId: user.vataId } },
         include: {
-            customer: true, season: {
-                select: { name: true }
-            }
+            customer: true,
+            season: {
+                select: { name: true },
+            },
         },
     });
     return result;
@@ -484,9 +486,9 @@ const updateDueCollectionService = async (id, payload) => {
                 ...data,
                 customer: {
                     update: {
-                        nextPaymentDate: data.nextDate
-                    }
-                }
+                        nextPaymentDate: data.nextDate,
+                    },
+                },
             },
             where: { id },
         });
@@ -496,23 +498,24 @@ const updateDueCollectionService = async (id, payload) => {
 };
 const getSingleDueCollectionDateService = async (user, id) => {
     return await prisma_1.prisma.customer.findFirst({
-        where: { customerCode: id, vataId: user.vataId, }, select: { nextPaymentDate: true, id: true }
+        where: { customerCode: id, vataId: user.vataId },
+        select: { nextPaymentDate: true, id: true },
     });
 };
-// UPDATE DUE COLLECTION DATE 
+// UPDATE DUE COLLECTION DATE
 const updateDueCollectionDateService = async (user, id, info) => {
     const due = await prisma_1.prisma.customer.findFirst({
         where: { customerCode: id, vataId: user.vataId },
         select: {
             id: true,
-        }
+        },
     });
     if (!due) {
         throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.NOT_FOUND, "বাকি পাওয়া যায়নি।");
     }
     const result = await prisma_1.prisma.customer.update({
-        data: { nextPaymentDate: info.date, note: info.note, },
-        where: { id: due?.id, vataId: user.vataId }
+        data: { nextPaymentDate: info.date, note: info.note },
+        where: { id: due?.id, vataId: user.vataId },
     });
     return result;
 };

@@ -61,7 +61,7 @@ const sendSmsToPhoneNumbers = async (phoneNumber, message) => {
         const response = await axios_1.default.get(config_1.Config.MRAM_BASE_URL, {
             params: {
                 api_key: config_1.Config.MRAM_API_KEY,
-                type: "text",
+                type: "unicode",
                 contacts: contract,
                 senderid: config_1.Config.MRAM_SENDER_ID,
                 msg: message,

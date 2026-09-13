@@ -6,31 +6,33 @@ const createGoodCategoryService = async (user, payload) => {
     const result = await prisma_1.prisma.goodsStockCategory.create({
         data: {
             ...payload,
-            vataId: user.vataId
-        }
+            vataId: user.vataId,
+        },
     });
     return result;
 };
 const getGoodCategoryService = async (user) => {
     const result = await prisma_1.prisma.goodsStockCategory.findMany({
         where: {
-            vataId: user.vataId
+            vataId: user.vataId,
+            isDeleted: false,
         },
         include: {
-            _count: { select: { goodsStocks: true } }
-        }
+            _count: { select: { goodsStocks: true } },
+        },
     });
     return result;
 };
 const getGoodCategoryOptionsService = async (user) => {
     const result = await prisma_1.prisma.goodsStockCategory.findMany({
         where: {
-            vataId: user.vataId
+            vataId: user.vataId,
+            isDeleted: false,
         },
         select: {
             name: true,
-            id: true
-        }
+            id: true,
+        },
     });
     return result;
 };
@@ -38,8 +40,8 @@ const getSingleGoodCategoryService = async (user, id) => {
     const result = await prisma_1.prisma.goodsStockCategory.findFirst({
         where: {
             vataId: user.vataId,
-            id
-        }
+            id,
+        },
     });
     return result;
 };
@@ -47,11 +49,11 @@ const updateGoodCategoryService = async (user, id, payload) => {
     const result = await prisma_1.prisma.goodsStockCategory.update({
         where: {
             vataId: user.vataId,
-            id
+            id,
         },
         data: {
-            ...payload
-        }
+            ...payload,
+        },
     });
     return result;
 };
@@ -59,9 +61,11 @@ const deleteGoodCategoryService = async (user, id) => {
     const result = await prisma_1.prisma.goodsStockCategory.update({
         where: {
             vataId: user.vataId,
-            id
+            id,
         },
-        data: {}
+        data: {
+            isDeleted: true,
+        },
     });
     return result;
 };
@@ -71,5 +75,5 @@ exports.GoodsCategoryService = {
     getSingleGoodCategoryService,
     updateGoodCategoryService,
     deleteGoodCategoryService,
-    getGoodCategoryOptionsService
+    getGoodCategoryOptionsService,
 };

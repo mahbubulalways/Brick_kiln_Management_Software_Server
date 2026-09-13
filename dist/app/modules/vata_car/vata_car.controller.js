@@ -61,8 +61,31 @@ const getSingleCarDeliveryIncomController = (0, catchAsync_1.default)(async (req
         throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.NOT_FOUND, "গাড়ির ডেলিভারি আয়ের কোনো তথ্য পাওয়া যায়নি");
     }
 });
+// CAR INCOME
+// ALL CAR
+const getCarIncomeHistoryController = (0, catchAsync_1.default)(async (req, res) => {
+    const user = req.user;
+    const result = await vata_car_service_1.VataCarService.getAllCarIncomeHistory(user);
+    if (result.length) {
+        (0, sendResponse_1.sendResponse)(res, {
+            statusCode: http_status_codes_1.StatusCodes.OK,
+            success: true,
+            message: "সকল গাড়ি সফলভাবে পাওয়া গেছে",
+            data: result,
+        });
+    }
+    else {
+        (0, sendResponse_1.sendResponse)(res, {
+            statusCode: http_status_codes_1.StatusCodes.OK,
+            success: true,
+            message: "কোনো গাড়ি পাওয়া যায়নি",
+            data: [],
+        });
+    }
+});
 exports.VataCarController = {
     createNewVataCarController,
     getAllCarController,
-    getSingleCarDeliveryIncomController
+    getSingleCarDeliveryIncomController,
+    getCarIncomeHistoryController,
 };

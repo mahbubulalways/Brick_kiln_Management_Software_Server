@@ -8,10 +8,7 @@ import { StatusCodes } from "http-status-codes";
 // NEW CAR
 const createNewVataCarController = catchAsync(async (req, res) => {
   const user = req.user as TAuthUser;
-  const result = await VataCarService.createNewVataACarService(
-    user,
-    req.body
-  );
+  const result = await VataCarService.createNewVataACarService(user, req.body);
   if (result) {
     sendResponse(res, {
       statusCode: 201,
@@ -19,7 +16,7 @@ const createNewVataCarController = catchAsync(async (req, res) => {
       message: "গাড়ি সফলভাবে তৈরি হয়েছে",
     });
   } else {
-    throw new AppError(StatusCodes.BAD_REQUEST, "গাড়ি তৈরি করা যায়নি")
+    throw new AppError(StatusCodes.BAD_REQUEST, "গাড়ি তৈরি করা যায়নি");
   }
 });
 
@@ -49,7 +46,7 @@ const getSingleCarDeliveryIncomController = catchAsync(async (req, res) => {
   const user = req.user as TAuthUser;
   const result = await VataCarService.singleCarDeliveryIncomeService(
     user,
-    req.params.id
+    req.params.id,
   );
   if (result) {
     sendResponse(res, {
@@ -61,13 +58,37 @@ const getSingleCarDeliveryIncomController = catchAsync(async (req, res) => {
   } else {
     throw new AppError(
       StatusCodes.NOT_FOUND,
-      "গাড়ির ডেলিভারি আয়ের কোনো তথ্য পাওয়া যায়নি"
+      "গাড়ির ডেলিভারি আয়ের কোনো তথ্য পাওয়া যায়নি",
     );
+  }
+});
+
+// CAR INCOME
+
+// ALL CAR
+const getCarIncomeHistoryController = catchAsync(async (req, res) => {
+  const user = req.user as TAuthUser;
+  const result = await VataCarService.getAllCarIncomeHistory(user);
+  if (result.length) {
+    sendResponse(res, {
+      statusCode: StatusCodes.OK,
+      success: true,
+      message: "সকল গাড়ি সফলভাবে পাওয়া গেছে",
+      data: result,
+    });
+  } else {
+    sendResponse(res, {
+      statusCode: StatusCodes.OK,
+      success: true,
+      message: "কোনো গাড়ি পাওয়া যায়নি",
+      data: [],
+    });
   }
 });
 
 export const VataCarController = {
   createNewVataCarController,
   getAllCarController,
-  getSingleCarDeliveryIncomController
-}
+  getSingleCarDeliveryIncomController,
+  getCarIncomeHistoryController,
+};

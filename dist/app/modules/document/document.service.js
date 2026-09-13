@@ -14,8 +14,8 @@ const createFolderService = async (user, payload) => {
         where: {
             name: payload.name,
             type: "FOLDER",
-            vataId: user.vataId
-        }
+            vataId: user.vataId,
+        },
     });
     if (isExist?.id) {
         throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.CONFLICT, "এই নামে একটি ফোল্ডার ইতোমধ্যে রয়েছে।");
@@ -27,7 +27,9 @@ const createFolderService = async (user, payload) => {
 };
 // UPDATE FOLDER NAME
 const updateFolderNameService = async (user, id, payload) => {
-    const exist = await prisma_1.prisma.document.findFirst({ where: { id, vataId: user.vataId } });
+    const exist = await prisma_1.prisma.document.findFirst({
+        where: { id, vataId: user.vataId },
+    });
     if (!exist?.id) {
         throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.NOT_FOUND, "কোনো ডকুমেন্ট পাওয়া যায়নি।");
     }
@@ -36,19 +38,53 @@ const updateFolderNameService = async (user, id, payload) => {
 };
 // GET ROOT FOLDERS + ROOT FILES
 const getAllDocumentsService = async (user) => {
-    const result = await prisma_1.prisma.document.findMany({
-        where: {
-            parentId: null,
-            vataId: user.vataId
+    const [result, storage, vata] = await Promise.all([
+        prisma_1.prisma.document.findMany({
+            where: {
+                parentId: null,
+                vataId: user.vataId,
+            },
+            orderBy: {
+                createdAt: "desc",
+            },
+        }),
+        prisma_1.prisma.document.aggregate({
+            where: {
+                vataId: user.vataId,
+                type: "FILE",
+            },
+            _sum: {
+                size: true,
+            },
+        }),
+        prisma_1.prisma.vata.findFirst({
+            where: {
+                vataId: user.vataId,
+            },
+            select: {
+                subscriptionPlan: {
+                    select: {
+                        maxStorage: true,
+                    },
+                },
+            },
+        }),
+    ]);
+    const totalStorageBytes = Number(storage._sum.size ?? 0);
+    const usedStorageGB = totalStorageBytes / (1024 * 1024 * 1024);
+    const maxStorageGB = Number(vata?.subscriptionPlan?.maxStorage ?? 0);
+    const remainingStorageGB = Math.max(maxStorageGB - usedStorageGB, 0);
+    return {
+        documents: result.map((item) => ({
+            ...item,
+            size: item.size ? Number(item.size) : null,
+        })),
+        storage: {
+            usedGB: Number(usedStorageGB.toFixed(2)),
+            limitGB: maxStorageGB,
+            remainingGB: Number(remainingStorageGB.toFixed(2)),
         },
-        orderBy: {
-            createdAt: "desc",
-        },
-    });
-    return result.map((item) => ({
-        ...item,
-        size: item.size ? Number(item.size) : null,
-    }));
+    };
 };
 // GET SINGLE FOLDER
 const getSingleFolderService = async (user, id) => {
@@ -56,7 +92,7 @@ const getSingleFolderService = async (user, id) => {
         where: {
             id,
             type: "FOLDER",
-            vataId: user.vataId
+            vataId: user.vataId,
         },
         select: {
             id: true,
@@ -70,10 +106,11 @@ const getSingleDocumentService = async (user, id) => {
         where: {
             id: id,
             vataId: user.vataId,
-            type: "FOLDER"
-        }, include: {
-            children: true
-        }
+            type: "FOLDER",
+        },
+        include: {
+            children: true,
+        },
     });
     if (!result) {
         return;
@@ -82,49 +119,93 @@ const getSingleDocumentService = async (user, id) => {
         ...result,
         children: result.children.map((child) => ({
             ...child,
-            size: child.size !== null
-                ? Number(child.size)
-                : null,
+            size: child.size !== null ? Number(child.size) : null,
         })),
     };
 };
-// const upload 
+// const upload
 const uploadDocumentService = async (user, req) => {
+    const plan = await prisma_1.prisma.vata.findFirst({
+        where: {
+            id: user.vataId,
+        },
+        select: {
+            nameBangla: true,
+            subscriptionPlan: {
+                select: {
+                    name: true,
+                    maxStorage: true,
+                },
+            },
+        },
+    });
     const parentId = req.body.parentId;
     const file = req.file;
     if (!file) {
         throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.BAD_REQUEST, "কোনো ফাইল নির্বাচন করা হয়নি।");
     }
-    // Check parent folder
+    const removeUploadedFile = async () => {
+        if (file.path) {
+            try {
+                await promises_1.default.unlink(file.path);
+            }
+            catch (error) {
+                console.error("Temporary file delete failed:", error);
+            }
+        }
+    };
+    if (!plan?.subscriptionPlan?.name) {
+        await removeUploadedFile();
+        throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.BAD_REQUEST, "আপনার স্টোরেজ প্ল্যান পাওয়া যায়নি।");
+    }
     if (parentId) {
         const parentFolder = await prisma_1.prisma.document.findFirst({
             where: {
                 id: parentId,
                 type: "FOLDER",
-                vataId: user.vataId
+                vataId: user.vataId,
             },
         });
         if (!parentFolder) {
+            await removeUploadedFile();
             throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.NOT_FOUND, "ফোল্ডারটি পাওয়া যায়নি।");
         }
     }
-    // Same name check inside same folder
     const isExist = await prisma_1.prisma.document.findFirst({
         where: {
             name: file.filename,
             parentId: parentId ?? null,
-            vataId: user.vataId
+            vataId: user.vataId,
         },
     });
     if (isExist) {
+        await removeUploadedFile();
         throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.CONFLICT, "এই নামে একটি ফাইল ইতোমধ্যে রয়েছে।");
+    }
+    const storage = await prisma_1.prisma.document.aggregate({
+        where: {
+            vataId: user.vataId,
+            type: "FILE",
+        },
+        _sum: {
+            size: true,
+        },
+    });
+    const maxStorageGB = Number(plan.subscriptionPlan.maxStorage);
+    const maxStorageBytes = maxStorageGB * 1024 * 1024 * 1024;
+    const usedStorageBytes = Number(storage._sum.size ?? 0);
+    const newFileSizeBytes = Number(file.size);
+    const totalStorageBytes = usedStorageBytes + newFileSizeBytes;
+    if (totalStorageBytes > maxStorageBytes) {
+        await removeUploadedFile();
+        throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.BAD_REQUEST, "আপনার স্টোরেজ লিমিট শেষ হয়ে গেছে। নতুন ফাইল আপলোড করার জন্য পর্যাপ্ত স্টোরেজ নেই।");
     }
     const fileUrl = "";
     const fileKey = "";
     const extension = file.filename.includes(".")
         ? file.filename.split(".").pop()
         : "";
-    const result = await prisma_1.prisma.document.create({
+    await prisma_1.prisma.document.create({
         data: {
             name: file.filename,
             type: "FILE",
@@ -144,7 +225,7 @@ const deleteDocumentService = async (user, id) => {
     const document = await prisma_1.prisma.document.findUnique({
         where: {
             id,
-            vataId: user.vataId
+            vataId: user.vataId,
         },
     });
     if (!document) {
@@ -169,7 +250,7 @@ const deleteDocumentService = async (user, id) => {
     await prisma_1.prisma.document.delete({
         where: {
             id,
-            vataId: user.vataId
+            vataId: user.vataId,
         },
     });
     return true;
@@ -181,7 +262,7 @@ const deleteFolderService = async (user, id) => {
         where: {
             id,
             type: "FOLDER",
-            vataId: user.vataId
+            vataId: user.vataId,
         },
     });
     if (!folder) {
@@ -194,7 +275,7 @@ const deleteFolderService = async (user, id) => {
         const children = await prisma_1.prisma.document.findMany({
             where: {
                 parentId,
-                vataId: user.vataId
+                vataId: user.vataId,
             },
         });
         let allChildren = [];
@@ -203,10 +284,7 @@ const deleteFolderService = async (user, id) => {
             // যদি folder হয় তাহলে তার children-ও বের করবে
             if (child.type === "FOLDER") {
                 const nestedChildren = await getAllChildren(child.id);
-                allChildren = [
-                    ...allChildren,
-                    ...nestedChildren,
-                ];
+                allChildren = [...allChildren, ...nestedChildren];
             }
         }
         return allChildren;
@@ -239,7 +317,7 @@ const deleteFolderService = async (user, id) => {
                 id: {
                     in: children.map((item) => item.id),
                 },
-                vataId: user.vataId
+                vataId: user.vataId,
             },
         });
     }
@@ -247,7 +325,7 @@ const deleteFolderService = async (user, id) => {
     await prisma_1.prisma.document.delete({
         where: {
             id,
-            vataId: user.vataId
+            vataId: user.vataId,
         },
     });
     return true;
@@ -260,5 +338,5 @@ exports.DocumentService = {
     deleteDocumentService,
     updateFolderNameService,
     getSingleFolderService,
-    deleteFolderService
+    deleteFolderService,
 };
