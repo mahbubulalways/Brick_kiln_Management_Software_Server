@@ -308,6 +308,8 @@ const updateLedgerService = async (user, id, data) => {
             vataId: user.vataId,
         },
         data: {
+            ...data,
+            serial: Number(data.serial),
             quantity: Number(data.quantity),
             rate: Number(data.rate),
         },
