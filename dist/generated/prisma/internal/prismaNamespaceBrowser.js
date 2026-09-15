@@ -178,7 +178,6 @@ exports.ChallanScalarFieldEnum = {
     note: 'note',
     productPrice: 'productPrice',
     discount: 'discount',
-    carRent: 'carRent',
     totalPrice: 'totalPrice',
     cash: 'cash',
     due: 'due',
@@ -270,7 +269,9 @@ exports.LedgerScalarFieldEnum = {
     quantity: 'quantity',
     isDeleted: 'isDeleted',
     vataId: 'vataId',
-    seasonId: 'seasonId'
+    seasonId: 'seasonId',
+    phoneNumber: 'phoneNumber',
+    startDate: 'startDate'
 };
 exports.PaymentScalarFieldEnum = {
     id: 'id',

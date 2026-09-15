@@ -588,6 +588,11 @@ const getCustomerAllDeliveryService = async (user, seasonId, id, query) => {
                         },
                     },
                 },
+                driver: {
+                    select: {
+                        name: true,
+                    },
+                },
             },
         }),
         prisma_1.prisma.delivery.count({ where }),

@@ -1,25 +1,25 @@
 "use strict";
-// FOR CHALLAN 
+// FOR CHALLAN
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ReportUtils = void 0;
 const calculateDashboardReport = (challans) => {
     return challans.reduce((acc, challan) => {
-        const carRent = Number(challan.carRent || 0);
+        // const carRent = Number(challan.carRent || 0);
         const cash = Number(challan.cash || 0);
         const discount = Number(challan.discount || 0);
         const due = Number(challan.due || 0);
         return {
-            totalSale: acc.totalSale + cash + due + carRent,
+            totalSale: acc.totalSale + cash + due, //carRent,
             discount: acc.discount + discount,
-            carRent: acc.carRent + carRent,
-            totalSaleWithRent: acc.totalSaleWithRent + cash + due + carRent,
-            cash: acc.cash + cash + carRent,
+            // carRent: acc.carRent + carRent,
+            totalSaleWithRent: acc.totalSaleWithRent + cash + due, // carRent,
+            cash: acc.cash + cash, //+carRent,
             due: acc.due + due,
         };
     }, {
         totalSale: 0,
         discount: 0,
-        carRent: 0,
+        // carRent: 0,
         totalSaleWithRent: 0,
         cash: 0,
         due: 0,
@@ -81,5 +81,5 @@ const calculatePaymentReport = (payments) => {
 exports.ReportUtils = {
     calculateDashboardReport,
     calculateClassWiseReport,
-    calculatePaymentReport
+    calculatePaymentReport,
 };

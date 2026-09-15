@@ -7,8 +7,9 @@ const express_1 = require("express");
 const AuthGuard_1 = __importDefault(require("../../middlewares/AuthGuard"));
 const enums_1 = require("../../../generated/prisma/enums");
 const sms_controller_1 = require("./sms.controller");
+const SubscriptionGuard_1 = __importDefault(require("../../middlewares/SubscriptionGuard"));
 const router = (0, express_1.Router)();
-router.post("/purchase", (0, AuthGuard_1.default)(enums_1.UserRole.OWNER, enums_1.UserRole.ADMIN, enums_1.UserRole.MANAGER), sms_controller_1.SmsController.purchaseManualSmsController);
+router.post("/purchase", (0, AuthGuard_1.default)(enums_1.UserRole.OWNER, enums_1.UserRole.ADMIN, enums_1.UserRole.MANAGER), SubscriptionGuard_1.default, sms_controller_1.SmsController.purchaseManualSmsController);
 router.get("/vata", (0, AuthGuard_1.default)(enums_1.UserRole.OWNER, enums_1.UserRole.ADMIN, enums_1.UserRole.MANAGER), sms_controller_1.SmsController.getMyVatarSmsReportController);
 router.get("/purchase-history", (0, AuthGuard_1.default)(enums_1.UserRole.OWNER, enums_1.UserRole.ADMIN, enums_1.UserRole.MANAGER), sms_controller_1.SmsController.getSmspurchaseHistroyController);
 // ADMIN

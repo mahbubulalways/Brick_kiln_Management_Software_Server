@@ -30,7 +30,7 @@ router.post("/create", (0, AuthGuard_1.default)(enums_1.UserRole.OWNER, enums_1.
         });
         res.status(200).json({
             success: true,
-            message: "Seasons created successfully",
+            message: "সিজন সফলভাবে তৈরি হয়েছে",
             data: result,
         });
     }

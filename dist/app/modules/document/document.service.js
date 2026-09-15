@@ -59,7 +59,7 @@ const getAllDocumentsService = async (user) => {
         }),
         prisma_1.prisma.vata.findFirst({
             where: {
-                vataId: user.vataId,
+                id: user.vataId,
             },
             select: {
                 subscriptionPlan: {

@@ -606,7 +606,6 @@ const getItemsWithInvoiceService = async (user, seasonId, query) => {
             challan: {
                 select: {
                     id: true,
-                    carRent: true,
                     due: true,
                     serial: true,
                     productPrice: true,

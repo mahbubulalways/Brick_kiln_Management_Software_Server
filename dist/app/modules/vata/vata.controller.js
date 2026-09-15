@@ -71,9 +71,21 @@ const getMyVataNavbarFeaturesController = (0, catchAsync_1.default)(async (req, 
         throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.NOT_FOUND, "ভাটার তথ্য পাওয়া যায়নি");
     }
 });
+// VATA SUBSCRIPTION STATUS
+const getVataExpirityController = (0, catchAsync_1.default)(async (req, res) => {
+    const user = req.user;
+    const result = await vata_service_1.VataService.getVataExpirityService(user);
+    (0, sendResponse_1.sendResponse)(res, {
+        statusCode: 200,
+        success: true,
+        message: "সাবস্ক্রিপশনের তথ্য সফলভাবে পাওয়া গেছে",
+        data: result,
+    });
+});
 exports.VataController = {
     checkSubdomainExistController,
     getVataInformationController,
     getMyVataInformationController,
-    getMyVataNavbarFeaturesController
+    getMyVataNavbarFeaturesController,
+    getVataExpirityController,
 };

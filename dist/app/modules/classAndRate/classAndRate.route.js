@@ -10,15 +10,16 @@ const validateRequest_1 = __importDefault(require("../../middlewares/validateReq
 const classAndRate_validation_1 = require("./classAndRate.validation");
 const AuthGuard_1 = __importDefault(require("../../middlewares/AuthGuard"));
 const enums_1 = require("../../../generated/prisma/enums");
+const SubscriptionGuard_1 = __importDefault(require("../../middlewares/SubscriptionGuard"));
 const router = (0, express_1.Router)();
 // POST A CLASS AND RATE
-router.post(api_endpoints_1.API_ENDPOINTS.CLASS_AND_RATE.CREATE, (0, AuthGuard_1.default)(enums_1.UserRole.OWNER, enums_1.UserRole.ADMIN, enums_1.UserRole.MANAGER), (0, validateRequest_1.default)(classAndRate_validation_1.CLASS_AND_RATE_VALIDATION), classAndRateRoute_controller_1.ClassAndRateController.createClassAndRateController);
+router.post(api_endpoints_1.API_ENDPOINTS.CLASS_AND_RATE.CREATE, (0, AuthGuard_1.default)(enums_1.UserRole.OWNER, enums_1.UserRole.ADMIN, enums_1.UserRole.MANAGER), SubscriptionGuard_1.default, (0, validateRequest_1.default)(classAndRate_validation_1.CLASS_AND_RATE_VALIDATION), classAndRateRoute_controller_1.ClassAndRateController.createClassAndRateController);
 // GET ALL CLASS AND RATE
 router.get(api_endpoints_1.API_ENDPOINTS.CLASS_AND_RATE.GET_ALL_ClASS, (0, AuthGuard_1.default)(enums_1.UserRole.OWNER, enums_1.UserRole.ADMIN, enums_1.UserRole.MANAGER), classAndRateRoute_controller_1.ClassAndRateController.getClassAndRateController);
 // GET ALL CLASS AND RATE OPTIONS
 router.get(api_endpoints_1.API_ENDPOINTS.CLASS_AND_RATE.OPTIONS, (0, AuthGuard_1.default)(enums_1.UserRole.OWNER, enums_1.UserRole.ADMIN, enums_1.UserRole.MANAGER), classAndRateRoute_controller_1.ClassAndRateController.getClassAndRateOptionsController);
 // GET SINGLE CLASS AND RATE BY ID
 router.get(api_endpoints_1.API_ENDPOINTS.CLASS_AND_RATE.GET_CLASS_BY_ID, (0, AuthGuard_1.default)(enums_1.UserRole.OWNER, enums_1.UserRole.ADMIN, enums_1.UserRole.MANAGER), classAndRateRoute_controller_1.ClassAndRateController.getSingleClassAndRateController);
-router.patch(api_endpoints_1.API_ENDPOINTS.CLASS_AND_RATE.UPDATE_CLASS_BY_ID, (0, AuthGuard_1.default)(enums_1.UserRole.OWNER, enums_1.UserRole.ADMIN, enums_1.UserRole.MANAGER), classAndRateRoute_controller_1.ClassAndRateController.updateClassAndRateController);
-router.delete(api_endpoints_1.API_ENDPOINTS.CLASS_AND_RATE.DELETE, (0, AuthGuard_1.default)(enums_1.UserRole.OWNER, enums_1.UserRole.ADMIN, enums_1.UserRole.MANAGER), classAndRateRoute_controller_1.ClassAndRateController.deleteClassAndRateController);
+router.patch(api_endpoints_1.API_ENDPOINTS.CLASS_AND_RATE.UPDATE_CLASS_BY_ID, (0, AuthGuard_1.default)(enums_1.UserRole.OWNER, enums_1.UserRole.ADMIN, enums_1.UserRole.MANAGER), SubscriptionGuard_1.default, classAndRateRoute_controller_1.ClassAndRateController.updateClassAndRateController);
+router.delete(api_endpoints_1.API_ENDPOINTS.CLASS_AND_RATE.DELETE, (0, AuthGuard_1.default)(enums_1.UserRole.OWNER, enums_1.UserRole.ADMIN, enums_1.UserRole.MANAGER), SubscriptionGuard_1.default, classAndRateRoute_controller_1.ClassAndRateController.deleteClassAndRateController);
 exports.default = router;

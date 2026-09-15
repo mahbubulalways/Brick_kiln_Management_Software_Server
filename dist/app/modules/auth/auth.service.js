@@ -7,6 +7,7 @@ const ApplicationError_1 = require("../../errors/ApplicationError");
 const bcryptHelper_1 = require("../../../helpers/bcryptHelper");
 const auth_utils_1 = require("./auth.utils");
 const prisma_1 = require("../../../helpers/prisma");
+const enums_1 = require("../../../generated/prisma/enums");
 const userData = {
     name: "Mahbubul Hasan",
     username: "mahbub",
@@ -18,12 +19,22 @@ const loginUserToSystemService = async (payload, ip) => {
         where: {
             username: payload.username,
         },
+        include: {
+            vata: {
+                select: {
+                    status: true,
+                },
+            },
+        },
     });
     // const u = await UserService.createUserServie(userData)
     // console.log(u)
     // User not found
     if (!user) {
         throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.NOT_FOUND, "প্রদত্ত তথ্যের সাথে কোনো অ্যাকাউন্ট পাওয়া যায়নি।");
+    }
+    if (user.vata?.status !== enums_1.VataStatus.ACTIVE) {
+        throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.FORBIDDEN, "আপনার ভাটা অ্যাকাউন্টটি বর্তমানে নিষ্ক্রিয় রয়েছে।");
     }
     // Password validation
     const isPasswordMatched = await bcryptHelper_1.bcryptHelper.comparePassword(payload.password, user.password);
@@ -48,7 +59,7 @@ const loginUserToSystemService = async (payload, ip) => {
         vataId: user.vataId,
     };
     // Access token
-    const accessToken = await auth_utils_1.jwtHelper.generateToken(tokenInfo, config_1.Config.ACCESS_TOKEN_SECRET, "5D");
+    const accessToken = await auth_utils_1.jwtHelper.generateToken(tokenInfo, config_1.Config.ACCESS_TOKEN_SECRET, "7D");
     // Refresh token
     const refreshToken = await auth_utils_1.jwtHelper.generateToken(tokenInfo, config_1.Config.REFRESH_TOKEN_SECRET, "30D");
     return {
