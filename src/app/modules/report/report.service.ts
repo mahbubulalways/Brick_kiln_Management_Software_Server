@@ -104,6 +104,14 @@ const getTopSellingAreasService = async (user: TAuthUser) => {
   return result;
 };
 
+// LOAD UNLOAD
+const getLoadUnloadReportService = async (user: TAuthUser) => {
+  const result = await prisma.brickStockSummary.findFirst({
+    where: { vataId: user.vataId }, //need to add season id
+  });
+  return result;
+};
+
 // GET ALL REPORT FOR DASHBOARD
 const dashboardAllReportService = async (
   user: TAuthUser,
@@ -319,34 +327,15 @@ const dashboardAllReportService = async (
   return Informations;
 };
 
-// LOAD UNLOAD
-const getLoadUnloadReportService = async (user: TAuthUser) => {
-  const result = await prisma.brickStockSummary.findFirst({
-    where: { vataId: user.vataId }, //need to add season id
-  });
-  return result;
-};
-
 // GET OWNER REPORT
 const getReportForOwnerService = async (
   user: TAuthUser,
   seasonId: string,
   query: TQuery,
 ) => {
-  const challanCountCondition: ChallanWhereInput = {
-    vataId: user.vataId,
-    isDeleted: false,
-  };
-  if (query.date) {
-    const dateRange = getDateRangeDbSearch(query.date);
-    if (dateRange) {
-      challanCountCondition.challanDate = dateRange;
-    }
-  }
-  const challanCount = await prisma.challan.findMany({
-    where: challanCountCondition,
-    select: {},
-  });
+  const result = dashboardAllReportService(user, seasonId, query);
+
+  const response = {};
 };
 
 export const ReportService = {

@@ -4,7 +4,7 @@ type TDashboardReport = {
   totalSale: number;
   discount: number;
   // carRent: number;
-  totalSaleWithRent: number;
+  // totalSaleWithRent: number;
   cash: number;
   due: number;
 };
@@ -30,7 +30,7 @@ const calculateDashboardReport = (
         totalSale: acc.totalSale + cash + due, //carRent,
         discount: acc.discount + discount,
         // carRent: acc.carRent + carRent,
-        totalSaleWithRent: acc.totalSaleWithRent + cash + due, // carRent,
+        // totalSaleWithRent: acc.totalSaleWithRent + cash + due, // carRent,
         cash: acc.cash + cash, //+carRent,
         due: acc.due + due,
       };
@@ -39,7 +39,7 @@ const calculateDashboardReport = (
       totalSale: 0,
       discount: 0,
       // carRent: 0,
-      totalSaleWithRent: 0,
+      // totalSaleWithRent: 0,
       cash: 0,
       due: 0,
     },
