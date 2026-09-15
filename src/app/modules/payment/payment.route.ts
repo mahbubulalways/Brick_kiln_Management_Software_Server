@@ -4,6 +4,7 @@ import { PaymentController } from "./payment.controller";
 import AuthGuard from "../../middlewares/AuthGuard";
 import { UserRole } from "../../../generated/prisma/enums";
 import ActiveSeasonGuard from "../../middlewares/ActiveSeasonGuard";
+import SubscriptionGuard from "../../middlewares/SubscriptionGuard";
 
 const router = Router();
 
@@ -11,37 +12,48 @@ const router = Router();
 router.post(
   "/create",
   AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
-   ActiveSeasonGuard,
+  ActiveSeasonGuard,
+  SubscriptionGuard,
   fileUploader.upload.single("file"),
   PaymentController.createPaymentController,
 );
 // GET ALL PAYMENT
-router.get("/all",
+router.get(
+  "/all",
   AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
-   ActiveSeasonGuard,
-  PaymentController.getAllPaymentController);
+  ActiveSeasonGuard,
+  PaymentController.getAllPaymentController,
+);
 
 // GET PAYMENT REPORT
-router.get("/report/:date",
+router.get(
+  "/report/:date",
   AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
-   ActiveSeasonGuard,
-  PaymentController.paymentReportViaGroupController);
+  ActiveSeasonGuard,
+  PaymentController.paymentReportViaGroupController,
+);
 
 // GET SINGLE PAYMENT
-router.get("/single/:id",
+router.get(
+  "/single/:id",
   AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
-  PaymentController.getSinglePaymentController);
+  PaymentController.getSinglePaymentController,
+);
 
-router.patch("/update/:id",
+router.patch(
+  "/update/:id",
   AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+  SubscriptionGuard,
   fileUploader.upload.single("file"),
-  PaymentController.updatePaymentController);
+  PaymentController.updatePaymentController,
+);
 
 //  DELETE PAYMENT
 router.patch(
   "/delete/:id",
   AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
-  PaymentController.deletePaymentController
+  SubscriptionGuard,
+  PaymentController.deletePaymentController,
 );
 
 export default router;

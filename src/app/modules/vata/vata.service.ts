@@ -89,9 +89,38 @@ const getMyVataNavbarFeaturesService = async (user: TAuthUser) => {
   return result;
 };
 
+// CHECK VATA EXPIRITY
+const getVataExpirityService = async (user: TAuthUser) => {
+  const result = await prisma.vata.findFirst({
+    where: {
+      id: user.vataId,
+    },
+    select: {
+      subscriptionEnd: true,
+    },
+  });
+
+  if (!result) {
+    throw new AppError(StatusCodes.NOT_FOUND, "ভাটা পাওয়া যায়নি");
+  }
+
+  if (!result.subscriptionEnd) {
+    return {
+      isExpired: true,
+    };
+  }
+
+  const isExpired = new Date(result.subscriptionEnd).getTime() < Date.now();
+
+  return {
+    isExpired,
+  };
+};
+
 export const VataService = {
   checkSubdomainExistService,
   getVataInformationService,
   getMyVataInformationService,
   getMyVataNavbarFeaturesService,
+  getVataExpirityService,
 };

@@ -34,7 +34,7 @@ const createLedgerService = async (
       "এই নামে একটি লেজার বা লেজার গ্রুপ ইতোমধ্যে রয়েছে।",
     );
   }
-
+  console.log(data);
   const result = await prisma.ledger.create({
     data: {
       ...data,
@@ -117,6 +117,12 @@ const getAllLedgerWithChildrenPaginationService = async (
           mode: "insensitive",
         },
       },
+      {
+        phoneNumber: {
+          contains: search,
+          mode: "insensitive",
+        },
+      },
     ];
   }
 
@@ -128,11 +134,15 @@ const getAllLedgerWithChildrenPaginationService = async (
         name: true,
         parentId: true,
         rate: true,
+        phoneNumber: true,
+        startDate: true,
         quantity: true,
         serial: true,
         parent: {
           select: {
             name: true,
+            phoneNumber: true,
+            startDate: true,
           },
         },
         children: {
@@ -142,6 +152,8 @@ const getAllLedgerWithChildrenPaginationService = async (
             rate: true,
             quantity: true,
             serial: true,
+            phoneNumber: true,
+            startDate: true,
           },
         },
       },
@@ -328,6 +340,8 @@ const getSingleLedgerService = async (user: TAuthUser, id: string) => {
       parentId: true,
       rate: true,
       quantity: true,
+      phoneNumber: true,
+      startDate: true,
     },
   });
 

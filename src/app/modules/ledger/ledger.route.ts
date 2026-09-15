@@ -3,80 +3,84 @@ import { LedgerController } from "./ledger.controller";
 import AuthGuard from "../../middlewares/AuthGuard";
 import { UserRole } from "../../../generated/prisma/enums";
 import ActiveSeasonGuard from "../../middlewares/ActiveSeasonGuard";
+import SubscriptionGuard from "../../middlewares/SubscriptionGuard";
 
 const router = Router();
 
 router.get(
-    "/count",
-    AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
-    LedgerController.getLedgerCountController
+  "/count",
+  AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+  LedgerController.getLedgerCountController,
 );
 // ==================== LEDGER OPTIONS ====================
 router.get(
-    "/options",
-    AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
-    ActiveSeasonGuard,
-    LedgerController.getLedgerOptionController
+  "/options",
+  AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+  ActiveSeasonGuard,
+  LedgerController.getLedgerOptionController,
 );
 
 // ==================== GET ALL LEDGER ====================
 router.get(
-    "/all",
-    AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
-    ActiveSeasonGuard,
-    LedgerController.getAllLedgerWithController
+  "/all",
+  AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+  ActiveSeasonGuard,
+  LedgerController.getAllLedgerWithController,
 );
 
 // ==================== GET ALL LEDGERS WITH CHILDREN & PAGINATION ====================
 router.get(
-    "/all-ledgers",
-    AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
-    ActiveSeasonGuard,
-    LedgerController.getAllLedgerWithChildrenPaginationController
+  "/all-ledgers",
+  AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+  ActiveSeasonGuard,
+  LedgerController.getAllLedgerWithChildrenPaginationController,
 );
 
 // ==================== GET LEDGER WITH AMOUNT ====================
 router.get(
-    "/all-amount",
-    AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
-    ActiveSeasonGuard,
-    LedgerController.getLedgerWithAmountController
+  "/all-amount",
+  AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+  ActiveSeasonGuard,
+  LedgerController.getLedgerWithAmountController,
 );
 
 // ==================== CREATE LEDGER ====================
 router.post(
-    "/create",
-    AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
-    ActiveSeasonGuard,
-    LedgerController.createLedgerController
+  "/create",
+  AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+  SubscriptionGuard,
+  ActiveSeasonGuard,
+  LedgerController.createLedgerController,
 );
 
 // ==================== GET LEDGER DETAILS ====================
 router.get(
-    "/details/:id",
-    AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
-    ActiveSeasonGuard,
-    LedgerController.getLedgerDetailsController
+  "/details/:id",
+  AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+  ActiveSeasonGuard,
+  LedgerController.getLedgerDetailsController,
 );
 
 // ==================== GET SINGLE LEDGER ====================
 router.get(
-    "/single/:id",
-    AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
-    LedgerController.getSingleLedgerController
+  "/single/:id",
+  AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+  LedgerController.getSingleLedgerController,
 );
 
 // ==================== UPDATE LEDGER ====================
 router.patch(
-    "/update/:id",
-    AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
-    LedgerController.updateLedgerController
+  "/update/:id",
+  AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+  SubscriptionGuard,
+  LedgerController.updateLedgerController,
 );
 
 // ==================== DELETE LEDGER ====================
 router.delete(
-    "/delete/:id",
-    AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
-    LedgerController.deleteLedgerController
+  "/delete/:id",
+  AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+  SubscriptionGuard,
+  LedgerController.deleteLedgerController,
 );
 export default router;

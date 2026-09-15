@@ -3,26 +3,31 @@ import { VataController } from "./vata.controller";
 import AuthGuard from "../../middlewares/AuthGuard";
 import { UserRole } from "../../../generated/prisma/enums";
 
-const router = Router()
-
-
-router.get(
-    '/info',
-    AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
-    VataController.getVataInformationController
-)
+const router = Router();
 
 router.get(
-    '/me',
-    AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
-    VataController.getMyVataInformationController
-)
+  "/info",
+  AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+  VataController.getVataInformationController,
+);
+
 router.get(
-    '/nav',
-    AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
-    VataController.getMyVataNavbarFeaturesController
-)
+  "/me",
+  AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+  VataController.getMyVataInformationController,
+);
+router.get(
+  "/nav",
+  AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+  VataController.getMyVataNavbarFeaturesController,
+);
 
-router.get('/verify-domain/:id', VataController.checkSubdomainExistController)
+router.get(
+  "/subscription-status",
+  AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+  VataController.getVataExpirityController,
+);
 
-export default router
+router.get("/verify-domain/:id", VataController.checkSubdomainExistController);
+
+export default router;

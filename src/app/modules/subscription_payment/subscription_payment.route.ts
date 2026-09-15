@@ -3,15 +3,13 @@ import AuthGuard from "../../middlewares/AuthGuard";
 import { UserRole } from "../../../generated/prisma/enums";
 import { SubscriptionPaymentController } from "./subscription_payment.controller";
 
-
-
 const router = Router();
 
 // CREATE NEW SUBSCRIPTION PAYMENT
 router.post(
   "/create",
   AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
-  SubscriptionPaymentController.createNewSubscriptionPaymentController
+  SubscriptionPaymentController.createNewSubscriptionPaymentController,
 );
 
 // GET ALL PENDING SUBSCRIPTION PAYMENT
@@ -19,7 +17,7 @@ router.post(
 router.get(
   "/pending",
   AuthGuard(UserRole.SUPER_ADMIN, UserRole.SYSTEM_ADMIN),
-  SubscriptionPaymentController.getAllSubscriptionPaymentController
+  SubscriptionPaymentController.getAllSubscriptionPaymentController,
 );
 
 // GET ALL PAID SUBSCRIPTION PAYMENT
@@ -27,7 +25,7 @@ router.get(
 router.get(
   "/paid",
   AuthGuard(UserRole.SUPER_ADMIN, UserRole.SYSTEM_ADMIN),
-  SubscriptionPaymentController.getAllPaidSubscriptionController
+  SubscriptionPaymentController.getAllPaidSubscriptionController,
 );
 
 // GET OTHER SUBSCRIPTION PAYMENT
@@ -35,14 +33,14 @@ router.get(
 router.get(
   "/other",
   AuthGuard(UserRole.SUPER_ADMIN, UserRole.SYSTEM_ADMIN),
-  SubscriptionPaymentController.getOtherSubscriptionController
+  SubscriptionPaymentController.getOtherSubscriptionController,
 );
 
 // GET VATA SUBSCRIPTION PAYMENT HISTORY
 router.get(
   "/history",
   AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
-  SubscriptionPaymentController.getVataSubscriptionPaymentHistoryController
+  SubscriptionPaymentController.getVataSubscriptionPaymentHistoryController,
 );
 
 // UPDATE SUBSCRIPTION PAYMENT STATUS
@@ -50,7 +48,7 @@ router.get(
 router.patch(
   "/update-status/:id",
   AuthGuard(UserRole.SUPER_ADMIN, UserRole.SYSTEM_ADMIN),
-  SubscriptionPaymentController.updateSubscriptionPaymentControllerStatus
+  SubscriptionPaymentController.updateSubscriptionPaymentControllerStatus,
 );
 
 export default router;

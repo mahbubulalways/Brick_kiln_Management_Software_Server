@@ -7,6 +7,7 @@ import { jwtHelper } from "./auth.utils";
 import { prisma } from "../../../helpers/prisma";
 import { UserService } from "../user/user.service";
 import { TAuthUser } from "../../../interface/token";
+import { VataStatus } from "../../../generated/prisma/enums";
 
 const userData = {
   name: "Mahbubul Hasan",
@@ -20,6 +21,13 @@ const loginUserToSystemService = async (payload: IAuth, ip: string) => {
     where: {
       username: payload.username,
     },
+    include: {
+      vata: {
+        select: {
+          status: true,
+        },
+      },
+    },
   });
   // const u = await UserService.createUserServie(userData)
   // console.log(u)
@@ -29,6 +37,13 @@ const loginUserToSystemService = async (payload: IAuth, ip: string) => {
     throw new AppError(
       StatusCodes.NOT_FOUND,
       "প্রদত্ত তথ্যের সাথে কোনো অ্যাকাউন্ট পাওয়া যায়নি।",
+    );
+  }
+
+  if (user.vata?.status !== VataStatus.ACTIVE) {
+    throw new AppError(
+      StatusCodes.FORBIDDEN,
+      "আপনার ভাটা অ্যাকাউন্টটি বর্তমানে নিষ্ক্রিয় রয়েছে।",
     );
   }
 
@@ -68,7 +83,7 @@ const loginUserToSystemService = async (payload: IAuth, ip: string) => {
   const accessToken = await jwtHelper.generateToken(
     tokenInfo,
     Config.ACCESS_TOKEN_SECRET as string,
-    "5D",
+    "7D",
   );
 
   // Refresh token

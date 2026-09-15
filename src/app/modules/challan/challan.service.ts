@@ -718,7 +718,6 @@ const getItemsWithInvoiceService = async (
       challan: {
         select: {
           id: true,
-          carRent: true,
           due: true,
           serial: true,
           productPrice: true,

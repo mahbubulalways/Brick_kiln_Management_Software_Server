@@ -70,7 +70,7 @@ const getAllDocumentsService = async (user: TAuthUser) => {
 
     prisma.vata.findFirst({
       where: {
-        vataId: user.vataId,
+        id: user.vataId,
       },
       select: {
         subscriptionPlan: {

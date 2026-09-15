@@ -34,7 +34,7 @@ router.post(
 
       res.status(200).json({
         success: true,
-        message: "Seasons created successfully",
+        message: "সিজন সফলভাবে তৈরি হয়েছে",
         data: result,
       });
     } catch (error) {

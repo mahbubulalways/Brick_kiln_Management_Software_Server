@@ -3,6 +3,7 @@ import { LoadInfoController } from "./load.controller";
 import { UserRole } from "../../../generated/prisma/enums";
 import AuthGuard from "../../middlewares/AuthGuard";
 import ActiveSeasonGuard from "../../middlewares/ActiveSeasonGuard";
+import SubscriptionGuard from "../../middlewares/SubscriptionGuard";
 
 const router = express.Router();
 
@@ -10,6 +11,7 @@ const router = express.Router();
 router.post(
   "/create",
   AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+  SubscriptionGuard,
   ActiveSeasonGuard,
   LoadInfoController.createLoadInfoController,
 );
@@ -40,6 +42,7 @@ router.get(
 router.patch(
   "/update/:id",
   AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+  SubscriptionGuard,
   ActiveSeasonGuard,
   LoadInfoController.updateLoadInfoController,
 );
@@ -48,6 +51,7 @@ router.patch(
 router.delete(
   "/delete/:id",
   AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+  SubscriptionGuard,
   LoadInfoController.deleteLoadInfoController,
 );
 

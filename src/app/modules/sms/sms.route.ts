@@ -2,12 +2,14 @@ import { Router } from "express";
 import AuthGuard from "../../middlewares/AuthGuard";
 import { UserRole } from "../../../generated/prisma/enums";
 import { SmsController } from "./sms.controller";
+import SubscriptionGuard from "../../middlewares/SubscriptionGuard";
 
 const router = Router();
 
 router.post(
   "/purchase",
   AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+  SubscriptionGuard,
   SmsController.purchaseManualSmsController,
 );
 
@@ -16,6 +18,7 @@ router.get(
   AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
   SmsController.getMyVatarSmsReportController,
 );
+
 router.get(
   "/purchase-history",
   AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),

@@ -2,28 +2,40 @@ import { Router } from "express";
 import { ReceivablePayableController } from "./receivable_payable.controller";
 import AuthGuard from "../../middlewares/AuthGuard";
 import { UserRole } from "../../../generated/prisma/enums";
+import SubscriptionGuard from "../../middlewares/SubscriptionGuard";
 
-const router = Router()
+const router = Router();
 
-router.post("/create",
-    AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
-    ReceivablePayableController.createReceivablePayableController)
+router.post(
+  "/create",
+  AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+  SubscriptionGuard,
+  ReceivablePayableController.createReceivablePayableController,
+);
 
-router.get("/all",
-    AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+router.get(
+  "/all",
+  AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+  ReceivablePayableController.getAllReceivablePayableController,
+);
 
-    ReceivablePayableController.getAllReceivablePayableController)
+router.get(
+  "/single/:id",
+  AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+  ReceivablePayableController.getSingleReceivablePayableController,
+);
 
-router.get("/single/:id",
-    AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
-    ReceivablePayableController.getSingleReceivablePayableController)
+router.get(
+  "/amount/:id",
+  AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+  ReceivablePayableController.getCurrentAmountController,
+);
 
-router.get("/amount/:id",
-    AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
-    ReceivablePayableController.getCurrentAmountController)
+router.post(
+  "/transaction/:id",
+  AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+  SubscriptionGuard,
+  ReceivablePayableController.createTransactionController,
+);
 
-router.post("/transaction/:id",
-    AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
-    ReceivablePayableController.createTransactionController)
-
-export default router
+export default router;

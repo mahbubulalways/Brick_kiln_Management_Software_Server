@@ -3,6 +3,7 @@ import { CashController } from "./cash.controller";
 import AuthGuard from "../../middlewares/AuthGuard";
 import { UserRole } from "../../../generated/prisma/enums";
 import ActiveSeasonGuard from "../../middlewares/ActiveSeasonGuard";
+import SubscriptionGuard from "../../middlewares/SubscriptionGuard";
 
 const router = Router();
 
@@ -10,8 +11,9 @@ const router = Router();
 router.post(
   "/create",
   AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+  SubscriptionGuard,
   ActiveSeasonGuard,
-  CashController.createCash
+  CashController.createCash,
 );
 
 // GET ALL CASH
@@ -19,7 +21,7 @@ router.get(
   "/all",
   AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
   ActiveSeasonGuard,
-  CashController.getAllCash
+  CashController.getAllCash,
 );
 
 // GET CASH REPORT
@@ -27,28 +29,30 @@ router.get(
   "/report",
   AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
   ActiveSeasonGuard,
-  CashController.getAllCashReport
+  CashController.getAllCashReport,
 );
 
 // GET SINGLE CASH
 router.get(
   "/single/:id",
   AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
-  CashController.getSingleCash
+  CashController.getSingleCash,
 );
 
 // UPDATE CASH
 router.patch(
   "/update/:id",
   AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
-  CashController.updateCash
+  SubscriptionGuard,
+  CashController.updateCash,
 );
 
 // DELETE CASH
 router.delete(
   "/delete/:id",
   AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
-  CashController.deleteCash
+  SubscriptionGuard,
+  CashController.deleteCash,
 );
 
 export default router;

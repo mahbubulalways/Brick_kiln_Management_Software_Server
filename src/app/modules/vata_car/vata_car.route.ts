@@ -2,6 +2,7 @@ import { Router } from "express";
 import { VataCarController } from "./vata_car.controller";
 import AuthGuard from "../../middlewares/AuthGuard";
 import { UserRole } from "../../../generated/prisma/enums";
+import SubscriptionGuard from "../../middlewares/SubscriptionGuard";
 
 const router = Router();
 
@@ -9,6 +10,7 @@ const router = Router();
 router.post(
   "/create",
   AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+  SubscriptionGuard,
   VataCarController.createNewVataCarController,
 );
 

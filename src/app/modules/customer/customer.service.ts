@@ -698,6 +698,11 @@ const getCustomerAllDeliveryService = async (
             },
           },
         },
+        driver: {
+          select: {
+            name: true,
+          },
+        },
       },
     }),
     prisma.delivery.count({ where }),

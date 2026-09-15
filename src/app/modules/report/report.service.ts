@@ -161,7 +161,7 @@ const dashboardAllReportService = async (
   const challans = await prisma.challan.findMany({
     where: challanWhere,
     select: {
-      carRent: true,
+      // carRent: true,
       cash: true,
       discount: true,
       due: true,
@@ -325,6 +325,28 @@ const getLoadUnloadReportService = async (user: TAuthUser) => {
     where: { vataId: user.vataId }, //need to add season id
   });
   return result;
+};
+
+// GET OWNER REPORT
+const getReportForOwnerService = async (
+  user: TAuthUser,
+  seasonId: string,
+  query: TQuery,
+) => {
+  const challanCountCondition: ChallanWhereInput = {
+    vataId: user.vataId,
+    isDeleted: false,
+  };
+  if (query.date) {
+    const dateRange = getDateRangeDbSearch(query.date);
+    if (dateRange) {
+      challanCountCondition.challanDate = dateRange;
+    }
+  }
+  const challanCount = await prisma.challan.findMany({
+    where: challanCountCondition,
+    select: {},
+  });
 };
 
 export const ReportService = {

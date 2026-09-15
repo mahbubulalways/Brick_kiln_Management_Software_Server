@@ -70,7 +70,7 @@ model Challan {
   note           String?
   productPrice   Float
   discount       Float?
-  carRent        Float?
+  // carRent        Float?
   totalPrice     Float
   cash           Float?
   due            Float?
@@ -204,22 +204,24 @@ model Due_Collection {
 }
 
 model Ledger {
-  id        String    @id @default(uuid())
-  name      String
-  serial    Int
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  parentId  String?
-  rate      Float?    @default(0)
-  quantity  Float?    @default(0)
-  isDeleted Boolean   @default(false)
-  vataId    String
-  seasonId  String
-  season    Season    @relation(fields: [seasonId], references: [id])
-  parent    Ledger?   @relation("LedgerHierarchy", fields: [parentId], references: [id])
-  children  Ledger[]  @relation("LedgerHierarchy")
-  vata      Vata      @relation(fields: [vataId], references: [id])
-  payments  Payment[]
+  id          String    @id @default(uuid())
+  name        String
+  serial      Int
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  parentId    String?
+  rate        Float?    @default(0)
+  quantity    Float?    @default(0)
+  isDeleted   Boolean   @default(false)
+  vataId      String
+  seasonId    String
+  phoneNumber String?
+  startDate   String?
+  season      Season    @relation(fields: [seasonId], references: [id])
+  parent      Ledger?   @relation("LedgerHierarchy", fields: [parentId], references: [id])
+  children    Ledger[]  @relation("LedgerHierarchy")
+  vata        Vata      @relation(fields: [vataId], references: [id])
+  payments    Payment[]
 
   @@unique([vataId, serial, name, seasonId])
 }

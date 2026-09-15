@@ -4,12 +4,14 @@ import { InvoiceController } from "./challan.controller";
 import { UserRole } from "../../../generated/prisma/enums";
 import AuthGuard from "../../middlewares/AuthGuard";
 import ActiveSeasonGuard from "../../middlewares/ActiveSeasonGuard";
+import SubscriptionGuard from "../../middlewares/SubscriptionGuard";
 
 const router = Router();
 // CREATE INVOICE
 router.post(
   API_ENDPOINTS.INVOICE.CREATE_INVOICE,
   AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+  SubscriptionGuard,
   ActiveSeasonGuard,
   InvoiceController.createInvoiceController,
 );
@@ -70,6 +72,7 @@ router.get(
 router.patch(
   API_ENDPOINTS.INVOICE.UPDATE_INVOICE,
   AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+  SubscriptionGuard,
   InvoiceController.updateInvoiceController,
 );
 
@@ -77,6 +80,7 @@ router.patch(
 router.patch(
   API_ENDPOINTS.INVOICE.UPDATE_INVOICE_DELIVERY_DATE,
   AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+  SubscriptionGuard,
   InvoiceController.updateInvoiceDeliveryDateController,
 );
 
@@ -84,6 +88,7 @@ router.patch(
 router.patch(
   API_ENDPOINTS.INVOICE.UPDATE_INVOICE_ITEM_DELIVERY_DATE,
   AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+  SubscriptionGuard,
   InvoiceController.updateInvoiceItemDeliveryDateController,
 );
 
@@ -91,6 +96,7 @@ router.patch(
 router.patch(
   API_ENDPOINTS.INVOICE.DELETE_INVOICE,
   AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+  SubscriptionGuard,
   InvoiceController.deleteInvoiceController,
 );
 
