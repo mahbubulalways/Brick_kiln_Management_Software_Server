@@ -5,6 +5,7 @@ const http_status_codes_1 = require("http-status-codes");
 const prisma_1 = require("../../../../helpers/prisma");
 const ApplicationError_1 = require("../../../errors/ApplicationError");
 const bcryptHelper_1 = require("../../../../helpers/bcryptHelper");
+const season_service_1 = require("../../season/season.service");
 // CREATE NEW VATA
 const createNewVataService = async (payload) => {
     const vataInformation = payload.vata;
@@ -99,6 +100,7 @@ const createNewVataService = async (payload) => {
         });
         return vata;
     });
+    await (0, season_service_1.createVataSeasonService)(result?.id);
     return result;
 };
 // GET ALL VATA
@@ -218,7 +220,6 @@ const getSingleVataInformationService = async (id) => {
             additionalAddress: true,
         },
     });
-    console.log(result);
     return result;
 };
 // UPDATE VATA INFO

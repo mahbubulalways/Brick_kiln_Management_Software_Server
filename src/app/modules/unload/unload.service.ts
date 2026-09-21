@@ -290,7 +290,7 @@ const getAllUnloadDataNoPaginateService = async (user: TAuthUser) => {
       },
     },
   });
-  console.log(result);
+
   return result;
 };
 

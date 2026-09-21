@@ -15,7 +15,7 @@ const createPaymentService = async (req: Request, user: TAuthUser) => {
   const file = req?.file as IUploadFile;
   const body = JSON.parse(req.body.data) as IPayment;
   const ledgerId = await prisma.ledger.findFirst({
-    where: { name: body.ledger, vataId: user.vataId },
+    where: { name: body.ledger, vataId: user.vataId, isDeleted: false },
     select: { id: true },
   });
   if (!ledgerId) {

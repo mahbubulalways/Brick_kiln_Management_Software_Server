@@ -28,12 +28,13 @@ const loginUserToSystemService = async (payload, ip) => {
         },
     });
     // const u = await UserService.createUserServie(userData)
-    // console.log(u)
     // User not found
     if (!user) {
         throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.NOT_FOUND, "প্রদত্ত তথ্যের সাথে কোনো অ্যাকাউন্ট পাওয়া যায়নি।");
     }
-    if (user.vata?.status !== enums_1.VataStatus.ACTIVE) {
+    if (user.role !== enums_1.UserRole.SUPER_ADMIN &&
+        user.role !== enums_1.UserRole.SYSTEM_ADMIN &&
+        user.vata?.status !== enums_1.VataStatus.ACTIVE) {
         throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.FORBIDDEN, "আপনার ভাটা অ্যাকাউন্টটি বর্তমানে নিষ্ক্রিয় রয়েছে।");
     }
     // Password validation

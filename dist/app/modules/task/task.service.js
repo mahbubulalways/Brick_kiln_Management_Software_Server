@@ -10,8 +10,8 @@ const createTaskService = async (user, payload) => {
     const result = await prisma_1.prisma.taskManager.create({
         data: {
             ...payload,
-            vataId: user.vataId
-        }
+            vataId: user.vataId,
+        },
     });
     return result;
 };
@@ -55,7 +55,6 @@ const getCompleteTasksService = async (user, query) => {
         status: "COMPLETE",
         vataId: user.vataId,
     };
-    console.log(query.date);
     if (query.date) {
         const dateRange = (0, getDateRangeDbSearch_1.getDateRangeDbSearch)(query.date);
         if (dateRange) {

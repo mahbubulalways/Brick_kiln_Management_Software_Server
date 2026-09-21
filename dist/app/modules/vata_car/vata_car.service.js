@@ -23,7 +23,6 @@ const getAllVataACarService = async (user) => {
 };
 // GET SINGLE CAR AND DETAILS
 const singleCarDeliveryIncomeService = async (user, id) => {
-    console.log(id);
     const result = await prisma_1.prisma.vataCar.findFirst({
         where: { vataId: user.vataId, id },
         select: {

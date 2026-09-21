@@ -49,8 +49,8 @@ router.get(
 // GET ITEMS WITH INVOICE
 router.get(
   API_ENDPOINTS.INVOICE.GET_ITEMS_WITH_INVOICE,
-  ActiveSeasonGuard,
   AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+  ActiveSeasonGuard,
   InvoiceController.getItemsWithInvoiceController,
 );
 

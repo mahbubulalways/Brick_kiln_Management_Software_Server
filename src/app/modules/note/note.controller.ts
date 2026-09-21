@@ -5,7 +5,6 @@ import { AppError } from "../../errors/ApplicationError";
 import { NoteService } from "./note.service";
 
 const createNote = catchAsync(async (req, res) => {
-  console.log(req.body);
   const result = await NoteService.createNoteService(req.body);
 
   if (!result) {

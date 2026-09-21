@@ -20,7 +20,7 @@ export const uploadBackupToGoogleDrive = async (
   fileName: string,
 ) => {
   console.log(process.env.GOOGLE_PRIVATE_KEY);
-  console.log("KEYyyyyyyyyyyyyyyyyyyy");
+
   try {
     const folderId = process.env.GOOGLE_DRIVE_BACKUP_FOLDER_ID;
 

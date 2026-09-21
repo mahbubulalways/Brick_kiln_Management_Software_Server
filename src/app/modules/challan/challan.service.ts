@@ -476,7 +476,6 @@ const getAllAdvanceInvoiceService = async (
   query: TQuery,
 ) => {
   const { limit, page, skip } = paginationHelper(query.page, query.limit);
-  console.log(limit);
   const where: Prisma.ChallanWhereInput = {
     vataId: user.vataId,
     isDeleted: false,

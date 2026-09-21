@@ -25,7 +25,6 @@ const createLedgerService = async (user, seasonId, data) => {
     if (isExist) {
         throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.CONFLICT, "এই নামে একটি লেজার বা লেজার গ্রুপ ইতোমধ্যে রয়েছে।");
     }
-    console.log(data);
     const result = await prisma_1.prisma.ledger.create({
         data: {
             ...data,
@@ -69,7 +68,12 @@ const getAllLedgerWithChildrenService = async (user, seasonId) => {
         select: {
             id: true,
             name: true,
-            children: { select: { name: true, id: true } },
+            children: {
+                where: {
+                    isDeleted: false,
+                },
+                select: { name: true, id: true },
+            },
         },
         orderBy: {
             createdAt: "asc",

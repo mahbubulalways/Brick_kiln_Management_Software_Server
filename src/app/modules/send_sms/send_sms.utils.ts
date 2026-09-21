@@ -110,9 +110,6 @@ export const getUserAndPermissionForSms = async ({
   }
 
   const response = await sendSmsToPhoneNumbers(phoneNumbers, message);
-
-  console.log(response?.data);
-
   if (!response) {
     await prisma.smsLog.createMany({
       data: phoneNumbers.map((phoneNumber) => ({

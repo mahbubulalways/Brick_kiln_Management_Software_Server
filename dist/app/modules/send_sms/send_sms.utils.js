@@ -75,7 +75,6 @@ const getUserAndPermissionForSms = async ({ clientPhoneNumber, message, sendToOw
         return;
     }
     const response = await (0, smsService_1.sendSmsToPhoneNumbers)(phoneNumbers, message);
-    console.log(response?.data);
     if (!response) {
         await prisma_1.prisma.smsLog.createMany({
             data: phoneNumbers.map((phoneNumber) => ({

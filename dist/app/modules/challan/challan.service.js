@@ -402,7 +402,6 @@ const getAllInvoiceService = async (user, seasonId, query) => {
 // GET ADVANCE INVOICE
 const getAllAdvanceInvoiceService = async (user, seasonId, query) => {
     const { limit, page, skip } = (0, paginationHelper_1.paginationHelper)(query.page, query.limit);
-    console.log(limit);
     const where = {
         vataId: user.vataId,
         isDeleted: false,

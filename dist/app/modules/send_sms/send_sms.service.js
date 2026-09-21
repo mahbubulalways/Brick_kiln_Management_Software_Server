@@ -17,7 +17,6 @@ const sendMessageToUserService = async (user, payload) => {
             vataId: user.vataId,
         },
     });
-    console.log(messageEquity);
     if (!messageEquity) {
         throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.BAD_REQUEST, "আপনার SMS Wallet পাওয়া যায়নি।");
     }
@@ -54,7 +53,6 @@ const sendMessageToUserService = async (user, payload) => {
             vataId: user.vataId,
         },
     });
-    console.log(result);
     await prisma_1.prisma.smsWallet.update({
         where: {
             vataId: user.vataId,

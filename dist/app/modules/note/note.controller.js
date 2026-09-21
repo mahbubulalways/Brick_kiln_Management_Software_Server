@@ -10,7 +10,6 @@ const sendResponse_1 = require("../../../utils/sendResponse");
 const ApplicationError_1 = require("../../errors/ApplicationError");
 const note_service_1 = require("./note.service");
 const createNote = (0, catchAsync_1.default)(async (req, res) => {
-    console.log(req.body);
     const result = await note_service_1.NoteService.createNoteService(req.body);
     if (!result) {
         throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.BAD_REQUEST, "নোট তৈরি বা আপডেট করা যায়নি");

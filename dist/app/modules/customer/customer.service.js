@@ -656,7 +656,6 @@ const getCustomerAllDuesService = async (user, seasonId, id, query) => {
 };
 // GET OLD CUSTOMERS
 const getOldCustomerService = async (user, search) => {
-    console.log(search);
     const result = await prisma_1.prisma.customer.findMany({
         where: {
             vataId: user.vataId,

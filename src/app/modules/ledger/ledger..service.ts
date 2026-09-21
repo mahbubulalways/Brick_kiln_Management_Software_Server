@@ -34,7 +34,6 @@ const createLedgerService = async (
       "এই নামে একটি লেজার বা লেজার গ্রুপ ইতোমধ্যে রয়েছে।",
     );
   }
-  console.log(data);
   const result = await prisma.ledger.create({
     data: {
       ...data,
@@ -85,7 +84,12 @@ const getAllLedgerWithChildrenService = async (
     select: {
       id: true,
       name: true,
-      children: { select: { name: true, id: true } },
+      children: {
+        where: {
+          isDeleted: false,
+        },
+        select: { name: true, id: true },
+      },
     },
     orderBy: {
       createdAt: "asc",
@@ -363,7 +367,6 @@ const updateLedgerService = async (
   if (!isExist) {
     throw new AppError(StatusCodes.NOT_FOUND, "এই খতিয়ানটি পাওয়া যায়নি।");
   }
-
   const result = await prisma.ledger.update({
     where: {
       id,

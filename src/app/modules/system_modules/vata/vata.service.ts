@@ -4,6 +4,7 @@ import { prisma } from "../../../../helpers/prisma";
 import { AppError } from "../../../errors/ApplicationError";
 import { TAdminVata, TAdminVataUpdate } from "./vata.interface";
 import { bcryptHelper } from "../../../../helpers/bcryptHelper";
+import { createVataSeasonService } from "../../season/season.service";
 
 // CREATE NEW VATA
 const createNewVataService = async (payload: TAdminVata) => {
@@ -118,7 +119,7 @@ const createNewVataService = async (payload: TAdminVata) => {
       return vata;
     },
   );
-
+  await createVataSeasonService(result?.id);
   return result;
 };
 
@@ -242,7 +243,6 @@ const getSingleVataInformationService = async (id: string) => {
       additionalAddress: true,
     },
   });
-  console.log(result);
   return result;
 };
 

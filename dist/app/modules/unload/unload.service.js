@@ -240,7 +240,6 @@ const getAllUnloadDataNoPaginateService = async (user) => {
             },
         },
     });
-    console.log(result);
     return result;
 };
 const deleteUnloadService = async (user, id) => {

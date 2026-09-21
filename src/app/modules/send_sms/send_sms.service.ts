@@ -20,7 +20,6 @@ const sendMessageToUserService = async (
       vataId: user.vataId,
     },
   });
-  console.log(messageEquity);
   if (!messageEquity) {
     throw new AppError(
       StatusCodes.BAD_REQUEST,
@@ -76,8 +75,6 @@ const sendMessageToUserService = async (
       vataId: user.vataId,
     },
   });
-  console.log(result);
-
   await prisma.smsWallet.update({
     where: {
       vataId: user.vataId,

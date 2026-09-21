@@ -7,7 +7,7 @@ import { jwtHelper } from "./auth.utils";
 import { prisma } from "../../../helpers/prisma";
 import { UserService } from "../user/user.service";
 import { TAuthUser } from "../../../interface/token";
-import { VataStatus } from "../../../generated/prisma/enums";
+import { UserRole, VataStatus } from "../../../generated/prisma/enums";
 
 const userData = {
   name: "Mahbubul Hasan",
@@ -30,7 +30,6 @@ const loginUserToSystemService = async (payload: IAuth, ip: string) => {
     },
   });
   // const u = await UserService.createUserServie(userData)
-  // console.log(u)
 
   // User not found
   if (!user) {
@@ -40,13 +39,16 @@ const loginUserToSystemService = async (payload: IAuth, ip: string) => {
     );
   }
 
-  if (user.vata?.status !== VataStatus.ACTIVE) {
+  if (
+    user.role !== UserRole.SUPER_ADMIN &&
+    user.role !== UserRole.SYSTEM_ADMIN &&
+    user.vata?.status !== VataStatus.ACTIVE
+  ) {
     throw new AppError(
       StatusCodes.FORBIDDEN,
       "আপনার ভাটা অ্যাকাউন্টটি বর্তমানে নিষ্ক্রিয় রয়েছে।",
     );
   }
-
   // Password validation
   const isPasswordMatched = await bcryptHelper.comparePassword(
     payload.password,

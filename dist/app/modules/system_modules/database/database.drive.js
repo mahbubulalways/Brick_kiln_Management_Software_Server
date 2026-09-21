@@ -19,7 +19,6 @@ const drive = googleapis_1.google.drive({
 });
 const uploadBackupToGoogleDrive = async (filePath, fileName) => {
     console.log(process.env.GOOGLE_PRIVATE_KEY);
-    console.log("KEYyyyyyyyyyyyyyyyyyyy");
     try {
         const folderId = process.env.GOOGLE_DRIVE_BACKUP_FOLDER_ID;
         if (!process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL) {
