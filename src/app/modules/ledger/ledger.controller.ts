@@ -29,7 +29,7 @@ const getLedgerCountController = catchAsync(async (req, res) => {
 const createLedgerController = catchAsync(async (req, res) => {
   const body = req.body;
   const user = req.user as TAuthUser;
-  const seasonId = req.seasonId
+  const seasonId = req.seasonId;
   const result = await LedgerService.createLedgerService(user, seasonId, body);
 
   if (!result) {
@@ -50,7 +50,7 @@ const createLedgerController = catchAsync(async (req, res) => {
 // GET KHOTIYAN GROUP OPTION
 const getLedgerOptionController = catchAsync(async (req, res) => {
   const user = req.user as TAuthUser;
-  const seasonId = req.seasonId
+  const seasonId = req.seasonId;
   const result = await LedgerService.getLedgerOptionService(user, seasonId);
   if (!result) {
     sendResponse(res, {
@@ -71,8 +71,11 @@ const getLedgerOptionController = catchAsync(async (req, res) => {
 // GET ALL KHOTIYAN WITH CHILDREN
 const getAllLedgerWithController = catchAsync(async (req, res) => {
   const user = req.user as TAuthUser;
-  const seasonId = req.seasonId
-  const result = await LedgerService.getAllLedgerWithChildrenService(user, seasonId);
+  const seasonId = req.seasonId;
+  const result = await LedgerService.getAllLedgerWithChildrenService(
+    user,
+    seasonId,
+  );
 
   if (!result) {
     sendResponse(res, {
@@ -95,13 +98,17 @@ const getAllLedgerWithChildrenPaginationController = catchAsync(
   async (req, res) => {
     const { limit, page, search } = await parseListQuery(req.query);
     const user = req.user as TAuthUser;
-    const seasonId = req.seasonId
+    const seasonId = req.seasonId;
     const result =
-      await LedgerService.getAllLedgerWithChildrenPaginationService(user, seasonId, {
-        limit,
-        page,
-        search,
-      });
+      await LedgerService.getAllLedgerWithChildrenPaginationService(
+        user,
+        seasonId,
+        {
+          limit,
+          page,
+          search,
+        },
+      );
 
     if (!result) {
       sendResponse(res, {
@@ -123,10 +130,13 @@ const getAllLedgerWithChildrenPaginationController = catchAsync(
 // GET ALL KHOTIYAN WITH AMOUNT
 const getLedgerWithAmountController = catchAsync(async (req, res) => {
   const user = req.user as TAuthUser;
-  const seasonId = req.seasonId
-  const result = await LedgerService.getAllLedgerWithAmountService(user, seasonId);
+  const seasonId = req.seasonId;
+  const result = await LedgerService.getAllLedgerWithAmountService(
+    user,
+    seasonId,
+  );
 
-  if (!result) {
+  if (!result.length) {
     sendResponse(res, {
       statusCode: StatusCodes.OK,
       success: true,
@@ -147,12 +157,17 @@ const getLedgerDetailsController = catchAsync(async (req, res) => {
   const id = req.params.id;
   const { limit, page, date } = await parseListQuery(req.query);
   const user = req.user as TAuthUser;
-  const seasonId = req.seasonId
-  const result = await LedgerService.getDetailsLedgerService(user, seasonId, id, {
-    limit,
-    page,
-    date,
-  });
+  const seasonId = req.seasonId;
+  const result = await LedgerService.getDetailsLedgerService(
+    user,
+    seasonId,
+    id,
+    {
+      limit,
+      page,
+      date,
+    },
+  );
 
   if (!result.data.data.length) {
     sendResponse(res, {
@@ -177,10 +192,7 @@ const getSingleLedgerController = catchAsync(async (req, res) => {
   const result = await LedgerService.getSingleLedgerService(user, id);
 
   if (!result) {
-    throw new AppError(
-      StatusCodes.NOT_FOUND,
-      "খতিয়ানটি পাওয়া যায়নি।",
-    );
+    throw new AppError(StatusCodes.NOT_FOUND, "খতিয়ানটি পাওয়া যায়নি।");
   }
 
   sendResponse(res, {
@@ -196,11 +208,7 @@ const updateLedgerController = catchAsync(async (req, res) => {
   const body = req.body;
   const id = req.params.id;
   const user = req.user as TAuthUser;
-  const result = await LedgerService.updateLedgerService(
-    user,
-    id,
-    body,
-  );
+  const result = await LedgerService.updateLedgerService(user, id, body);
 
   if (!result) {
     throw new AppError(
@@ -248,5 +256,5 @@ export const LedgerController = {
   getAllLedgerWithChildrenPaginationController,
   getSingleLedgerController,
   updateLedgerController,
-  deleteLedgerController
+  deleteLedgerController,
 };
