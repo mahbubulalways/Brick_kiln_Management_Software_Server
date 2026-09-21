@@ -28,8 +28,8 @@ app.use(
       const isProduction = /^https:\/\/([a-zA-Z0-9-]+\.)?evatabd\.com$/.test(
         origin,
       );
-
-      if (isLocalhost || isProduction) {
+      const isVercel = origin === "https://itvata.vercel.app";
+      if (isLocalhost || isProduction || isVercel) {
         return callback(null, true);
       }
 
