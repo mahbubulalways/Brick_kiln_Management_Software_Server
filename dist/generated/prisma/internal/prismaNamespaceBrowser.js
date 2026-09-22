@@ -178,6 +178,7 @@ exports.ChallanScalarFieldEnum = {
     note: 'note',
     productPrice: 'productPrice',
     discount: 'discount',
+    carRent: 'carRent',
     totalPrice: 'totalPrice',
     cash: 'cash',
     due: 'due',

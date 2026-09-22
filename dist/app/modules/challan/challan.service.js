@@ -405,7 +405,7 @@ const getAllAdvanceInvoiceService = async (user, seasonId, query) => {
     const where = {
         vataId: user.vataId,
         isDeleted: false,
-        chalanType: "অগ্রিম চালান",
+        chalanType: { not: "রেগুলার চালান" },
         seasonId,
     };
     if (query.search?.trim()) {
