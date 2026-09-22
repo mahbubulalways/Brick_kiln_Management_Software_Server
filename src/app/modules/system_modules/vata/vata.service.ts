@@ -78,7 +78,7 @@ const createNewVataService = async (payload: TAdminVata) => {
           challanManagerPhoneNumber: payload?.vata.challanManagerPhoneNumber,
           challanPersonOneName: payload.vata.challanPersonOneName,
           challanPersonOnePhoneNumber: payload.vata.challanPersonOnePhoneNumber,
-          challanPersonTwoName: payload.vata.challanPersonTwoPhoneNumber,
+          challanPersonTwoName: payload.vata.challanPersonTwoName,
           challanPersonTwoPhoneNumber: payload.vata.challanManagerPhoneNumber,
           shortForm: payload?.vata.shortForm,
         },
