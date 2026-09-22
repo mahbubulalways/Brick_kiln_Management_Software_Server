@@ -51,7 +51,7 @@ const createDeliveryService = async (user: TAuthUser, payload: TDelivery) => {
       serial: Number(payload.invoiceId),
       vataId: user.vataId,
     },
-    select: { id: true, seasonId: true },
+    select: { id: true, seasonId: true, carRent: true },
   });
 
   const checkStockQuantity = await getStockByClass(
@@ -137,7 +137,7 @@ const createDeliveryService = async (user: TAuthUser, payload: TDelivery) => {
         },
       });
 
-      const carRent = Number(payload?.carRent);
+      const carRent = Number(payload?.carRent) || mainInvoiceId?.carRent;
       if (carRent && payload?.carNumber) {
         const car = await tx.vataCar.findFirst({
           where: {
