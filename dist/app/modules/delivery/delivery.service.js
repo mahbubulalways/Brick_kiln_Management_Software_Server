@@ -139,6 +139,12 @@ const createDeliveryService = async (user, payload) => {
                 },
             });
         }
+        await tx.deliveryStatusActionTime.create({
+            data: {
+                processingTime: new Date(),
+                deliveryId: createDelivery.id,
+            },
+        });
         return createDelivery;
     });
     return result;
@@ -213,7 +219,7 @@ const getDeliveryThatGoTodayService = async (user, seasonId, query) => {
                 },
             },
             orderBy: {
-                deliveryDate: "asc",
+                deliveryDate: "desc",
             },
             skip,
             take: limit,

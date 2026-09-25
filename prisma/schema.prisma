@@ -47,6 +47,7 @@ model ClassAndRate {
   classType   String
   className   String
   rate        Float
+  advanceRate Float        @default(0)
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @default(now()) @updatedAt
   isDeleted   Boolean      @default(false)
@@ -63,7 +64,7 @@ model Challan {
   id             String        @id @default(uuid())
   serial         Int
   chalanType     String
-  deliveryDate   DateTime
+  deliveryDate   DateTime?
   challanDate    DateTime
   duePaymentDate DateTime?
   deliverySeason String?
@@ -94,18 +95,18 @@ model Challan {
 }
 
 model ChallanItem {
-  id           String   @id @default(uuid())
+  id           String    @id @default(uuid())
   class        String
   rate         Float
   quantity     Int
-  delivered    Int      @default(0)
+  delivered    Int       @default(0)
   price        Float
   challanId    String
-  deliveryDate DateTime
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  isDeleted    Boolean  @default(false)
-  challan      Challan  @relation("ChallanItems", fields: [challanId], references: [id])
+  deliveryDate DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  isDeleted    Boolean   @default(false)
+  challan      Challan   @relation("ChallanItems", fields: [challanId], references: [id])
 
   @@map("challanItems")
 }
@@ -153,32 +154,52 @@ model CustomerDue {
   @@map("customerdues")
 }
 
+// SELIVRY STATUS
+enum DeliveryStatus {
+  PENDING
+  PROCESSING
+  CANCEL
+  DELIVERED
+}
+
 model Delivery {
-  id                  String              @id @default(uuid())
-  deliveryDate        DateTime
-  deliveryNo          Int
-  nextDeliveryDate    DateTime?
-  quantity            Int
-  deliveryReceived    Int
-  class               String
-  deliveryRemaining   Int
-  carNo               String?
-  lastDelivered       Int?
-  carRent             Float?
-  invoiceId           String
-  isDeleted           Boolean             @default(false)
-  createdAt           DateTime            @default(now())
-  updatedAt           DateTime            @updatedAt
-  season              String?
-  deliveryById        String
-  driverId            String?
-  driver              Driver?             @relation(fields: [driverId], references: [id])
-  deliveryBy          User                @relation(fields: [deliveryById], references: [id])
-  invoice             Challan             @relation(fields: [invoiceId], references: [id])
-  carIncomeDeliveries CarIncomeDelivery[]
+  id                        String                    @id @default(uuid())
+  deliveryDate              DateTime
+  deliveryNo                Int
+  nextDeliveryDate          DateTime?
+  quantity                  Int
+  deliveryReceived          Int
+  class                     String
+  deliveryRemaining         Int
+  carNo                     String?
+  lastDelivered             Int?
+  status                    DeliveryStatus            @default(PROCESSING)
+  carRent                   Float?
+  invoiceId                 String
+  isDeleted                 Boolean                   @default(false)
+  createdAt                 DateTime                  @default(now())
+  updatedAt                 DateTime                  @updatedAt
+  season                    String?
+  deliveryById              String
+  driverId                  String?
+  driver                    Driver?                   @relation(fields: [driverId], references: [id])
+  deliveryBy                User                      @relation(fields: [deliveryById], references: [id])
+  invoice                   Challan                   @relation(fields: [invoiceId], references: [id])
+  carIncomeDeliveries       CarIncomeDelivery[]
+  deliveryStatusActionTimes DeliveryStatusActionTime?
 
   @@unique([invoiceId, deliveryNo])
   @@map("deliveries")
+}
+
+model DeliveryStatusActionTime {
+  id             String    @id @default(uuid())
+  deliveryId     String    @unique
+  pendingTime    DateTime?
+  processingTime DateTime?
+  deliveredTime  DateTime?
+  cancelTime     DateTime?
+  delivery       Delivery  @relation(fields: [deliveryId], references: [id])
 }
 
 model Due_Collection {
@@ -204,24 +225,32 @@ model Due_Collection {
 }
 
 model Ledger {
-  id          String    @id @default(uuid())
+  id          String   @id @default(uuid())
   name        String
   serial      Int
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
   parentId    String?
-  rate        Float?    @default(0)
-  quantity    Float?    @default(0)
-  isDeleted   Boolean   @default(false)
+  rate        Float?   @default(0)
+  quantity    Float?   @default(0)
+  isDeleted   Boolean  @default(false)
   vataId      String
   seasonId    String
   phoneNumber String?
   startDate   String?
-  season      Season    @relation(fields: [seasonId], references: [id])
-  parent      Ledger?   @relation("LedgerHierarchy", fields: [parentId], references: [id])
-  children    Ledger[]  @relation("LedgerHierarchy")
-  vata        Vata      @relation(fields: [vataId], references: [id])
-  payments    Payment[]
+
+  // নতুন ফিল্ড
+  salary             Float?  @default(0)
+  weeklyFood         Float?  @default(0)
+  openingBalance     Float?  @default(0)
+  openingBalanceType String?
+
+  season   Season   @relation(fields: [seasonId], references: [id])
+  parent   Ledger?  @relation("LedgerHierarchy", fields: [parentId], references: [id])
+  children Ledger[] @relation("LedgerHierarchy")
+  vata     Vata     @relation(fields: [vataId], references: [id])
+
+  payments Payment[]
 
   @@unique([vataId, serial, name, seasonId])
 }
@@ -978,6 +1007,7 @@ enum UserRole {
   MANAGER
   SYSTEM_ADMIN
   SUPER_ADMIN
+  OPERATOR
 }
 
 enum VataStatus {

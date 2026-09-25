@@ -229,7 +229,7 @@ const createInvoiceService = async (user, seasonId, customer, invoiceItems, invo
             quantity: Number(item.quantity),
             price: Number(item.price),
             challanId: newInvoice.id,
-            deliveryDate: invoice.deliveryDate,
+            deliveryDate: invoice?.deliveryDate || null,
         }));
         await tx.challanItem.createMany({
             data: invokeInvoiceId,
@@ -239,7 +239,7 @@ const createInvoiceService = async (user, seasonId, customer, invoiceItems, invo
             customer: existingCustomer,
         };
     });
-    const deliveryDate = (0, formatDate_1.formatDate)(invoice.deliveryDate);
+    const deliveryDate = (0, formatDate_1.formatDate)(invoice?.deliveryDate);
     const itemsMessage = invoiceItems
         .map((item) => `${item.class}: ${Number(item.quantity)} টি`)
         .join(", ");
@@ -288,6 +288,14 @@ const searchChallanForDeliveryService = async (user, query) => {
                 },
             },
         },
+        {
+            customer: {
+                phoneNumber: {
+                    contains: searchTerm,
+                    mode: "insensitive",
+                },
+            },
+        },
     ];
     const where = {
         AND: [
@@ -326,6 +334,7 @@ const searchChallanForDeliveryService = async (user, query) => {
             },
             note: true,
             createdAt: true,
+            carRent: true,
         },
         orderBy: {
             createdAt: "desc",

@@ -1,0 +1,5 @@
+-- AlterTable
+ALTER TABLE "Ledger" ADD COLUMN     "openingBalance" DOUBLE PRECISION DEFAULT 0,
+ADD COLUMN     "openingBalanceType" TEXT,
+ADD COLUMN     "salary" DOUBLE PRECISION DEFAULT 0,
+ADD COLUMN     "weeklyFood" DOUBLE PRECISION DEFAULT 0;

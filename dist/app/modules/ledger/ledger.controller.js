@@ -17,12 +17,14 @@ const getLedgerCountController = (0, catchAsync_1.default)(async (req, res) => {
     if (!result) {
         throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.NOT_FOUND, "কোনো খতিয়ানের তথ্য পাওয়া যায়নি।");
     }
-    (0, sendResponse_1.sendResponse)(res, {
-        message: "খতিয়ানের সংখ্যা সফলভাবে পাওয়া গেছে।",
-        statusCode: http_status_codes_1.StatusCodes.OK,
-        success: true,
-        data: { count: result },
-    });
+    else {
+        (0, sendResponse_1.sendResponse)(res, {
+            message: "খতিয়ানের সংখ্যা সফলভাবে পাওয়া গেছে।",
+            statusCode: http_status_codes_1.StatusCodes.OK,
+            success: true,
+            data: { count: result },
+        });
+    }
 });
 // CREATE NEW KHOTIYAN
 const createLedgerController = (0, catchAsync_1.default)(async (req, res) => {
@@ -33,12 +35,14 @@ const createLedgerController = (0, catchAsync_1.default)(async (req, res) => {
     if (!result) {
         throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.BAD_REQUEST, "খতিয়ান তৈরি করা যায়নি। অনুগ্রহ করে আবার চেষ্টা করুন।");
     }
-    (0, sendResponse_1.sendResponse)(res, {
-        statusCode: http_status_codes_1.StatusCodes.CREATED,
-        success: true,
-        message: "খতিয়ান সফলভাবে তৈরি করা হয়েছে।",
-        data: result,
-    });
+    else {
+        (0, sendResponse_1.sendResponse)(res, {
+            statusCode: http_status_codes_1.StatusCodes.CREATED,
+            success: true,
+            message: "খতিয়ান সফলভাবে তৈরি করা হয়েছে।",
+            data: result,
+        });
+    }
 });
 // GET KHOTIYAN GROUP OPTION
 const getLedgerOptionController = (0, catchAsync_1.default)(async (req, res) => {
@@ -52,12 +56,14 @@ const getLedgerOptionController = (0, catchAsync_1.default)(async (req, res) => 
             message: "কোনো খতিয়ান গ্রুপ পাওয়া যায়নি।",
         });
     }
-    (0, sendResponse_1.sendResponse)(res, {
-        statusCode: http_status_codes_1.StatusCodes.OK,
-        success: true,
-        message: "খতিয়ান গ্রুপের তালিকা সফলভাবে পাওয়া গেছে।",
-        data: result,
-    });
+    else {
+        (0, sendResponse_1.sendResponse)(res, {
+            statusCode: http_status_codes_1.StatusCodes.OK,
+            success: true,
+            message: "খতিয়ান গ্রুপের তালিকা সফলভাবে পাওয়া গেছে।",
+            data: result,
+        });
+    }
 });
 // GET ALL KHOTIYAN WITH CHILDREN
 const getAllLedgerWithController = (0, catchAsync_1.default)(async (req, res) => {
@@ -71,12 +77,14 @@ const getAllLedgerWithController = (0, catchAsync_1.default)(async (req, res) =>
             message: "কোনো খতিয়ানের তালিকা পাওয়া যায়নি।",
         });
     }
-    (0, sendResponse_1.sendResponse)(res, {
-        statusCode: http_status_codes_1.StatusCodes.OK,
-        success: true,
-        message: "খতিয়ানের তালিকা সফলভাবে পাওয়া গেছে।",
-        data: result,
-    });
+    else {
+        (0, sendResponse_1.sendResponse)(res, {
+            statusCode: http_status_codes_1.StatusCodes.OK,
+            success: true,
+            message: "খতিয়ানের তালিকা সফলভাবে পাওয়া গেছে।",
+            data: result,
+        });
+    }
 });
 // GET ALL KHOTIYAN WITH PAGINATION
 const getAllLedgerWithChildrenPaginationController = (0, catchAsync_1.default)(async (req, res) => {
@@ -95,12 +103,14 @@ const getAllLedgerWithChildrenPaginationController = (0, catchAsync_1.default)(a
             message: "কোনো খতিয়ানের তালিকা পাওয়া যায়নি।",
         });
     }
-    (0, sendResponse_1.sendResponse)(res, {
-        statusCode: http_status_codes_1.StatusCodes.OK,
-        success: true,
-        message: "খতিয়ানের তালিকা সফলভাবে পাওয়া গেছে।",
-        data: result,
-    });
+    else {
+        (0, sendResponse_1.sendResponse)(res, {
+            statusCode: http_status_codes_1.StatusCodes.OK,
+            success: true,
+            message: "খতিয়ানের তালিকা সফলভাবে পাওয়া গেছে।",
+            data: result,
+        });
+    }
 });
 // GET ALL KHOTIYAN WITH AMOUNT
 const getLedgerWithAmountController = (0, catchAsync_1.default)(async (req, res) => {
@@ -114,12 +124,14 @@ const getLedgerWithAmountController = (0, catchAsync_1.default)(async (req, res)
             message: "কোনো খতিয়ানের হিসাব পাওয়া যায়নি।",
         });
     }
-    (0, sendResponse_1.sendResponse)(res, {
-        statusCode: http_status_codes_1.StatusCodes.OK,
-        success: true,
-        message: "খতিয়ানের হিসাব সফলভাবে পাওয়া গেছে।",
-        data: result,
-    });
+    else {
+        (0, sendResponse_1.sendResponse)(res, {
+            statusCode: http_status_codes_1.StatusCodes.OK,
+            success: true,
+            message: "খতিয়ানের হিসাব সফলভাবে পাওয়া গেছে।",
+            data: result,
+        });
+    }
 });
 // GET KHOTIYAN DETAILS
 const getLedgerDetailsController = (0, catchAsync_1.default)(async (req, res) => {
@@ -139,12 +151,14 @@ const getLedgerDetailsController = (0, catchAsync_1.default)(async (req, res) =>
             message: "এই খতিয়ানের কোনো বিস্তারিত তথ্য পাওয়া যায়নি।",
         });
     }
-    (0, sendResponse_1.sendResponse)(res, {
-        statusCode: http_status_codes_1.StatusCodes.OK,
-        success: true,
-        message: "খতিয়ানের বিস্তারিত তথ্য সফলভাবে পাওয়া গেছে।",
-        data: result,
-    });
+    else {
+        (0, sendResponse_1.sendResponse)(res, {
+            statusCode: http_status_codes_1.StatusCodes.OK,
+            success: true,
+            message: "খতিয়ানের বিস্তারিত তথ্য সফলভাবে পাওয়া গেছে।",
+            data: result,
+        });
+    }
 });
 // GET SINGLE KHOTIYAN
 const getSingleLedgerController = (0, catchAsync_1.default)(async (req, res) => {
@@ -154,12 +168,14 @@ const getSingleLedgerController = (0, catchAsync_1.default)(async (req, res) => 
     if (!result) {
         throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.NOT_FOUND, "খতিয়ানটি পাওয়া যায়নি।");
     }
-    (0, sendResponse_1.sendResponse)(res, {
-        statusCode: http_status_codes_1.StatusCodes.OK,
-        success: true,
-        message: "খতিয়ানের তথ্য সফলভাবে পাওয়া গেছে।",
-        data: result,
-    });
+    else {
+        (0, sendResponse_1.sendResponse)(res, {
+            statusCode: http_status_codes_1.StatusCodes.OK,
+            success: true,
+            message: "খতিয়ানের তথ্য সফলভাবে পাওয়া গেছে।",
+            data: result,
+        });
+    }
 });
 // UPDATE KHOTIYAN
 const updateLedgerController = (0, catchAsync_1.default)(async (req, res) => {
@@ -170,12 +186,14 @@ const updateLedgerController = (0, catchAsync_1.default)(async (req, res) => {
     if (!result) {
         throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.NOT_FOUND, "খতিয়ানটি পাওয়া যায়নি অথবা আপডেট করা সম্ভব হয়নি।");
     }
-    (0, sendResponse_1.sendResponse)(res, {
-        statusCode: http_status_codes_1.StatusCodes.OK,
-        success: true,
-        message: "খতিয়ানের তথ্য সফলভাবে আপডেট করা হয়েছে।",
-        data: result,
-    });
+    else {
+        (0, sendResponse_1.sendResponse)(res, {
+            statusCode: http_status_codes_1.StatusCodes.OK,
+            success: true,
+            message: "খতিয়ানের তথ্য সফলভাবে আপডেট করা হয়েছে।",
+            data: result,
+        });
+    }
 });
 // DELETE KHOTIYAN
 const deleteLedgerController = (0, catchAsync_1.default)(async (req, res) => {
@@ -185,12 +203,14 @@ const deleteLedgerController = (0, catchAsync_1.default)(async (req, res) => {
     if (!result) {
         throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.NOT_FOUND, "খতিয়ানটি পাওয়া যায়নি অথবা মুছে ফেলা সম্ভব হয়নি।");
     }
-    (0, sendResponse_1.sendResponse)(res, {
-        statusCode: http_status_codes_1.StatusCodes.OK,
-        success: true,
-        message: "খতিয়ানটি সফলভাবে মুছে ফেলা হয়েছে।",
-        data: result,
-    });
+    else {
+        (0, sendResponse_1.sendResponse)(res, {
+            statusCode: http_status_codes_1.StatusCodes.OK,
+            success: true,
+            message: "খতিয়ানটি সফলভাবে মুছে ফেলা হয়েছে।",
+            data: result,
+        });
+    }
 });
 exports.LedgerController = {
     getLedgerCountController,

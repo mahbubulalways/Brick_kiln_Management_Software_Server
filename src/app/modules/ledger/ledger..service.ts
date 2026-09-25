@@ -19,6 +19,22 @@ const createLedgerService = async (
   seasonId: string,
   data: Ledger,
 ) => {
+  const isSerialExist = await prisma.ledger.findFirst({
+    where: {
+      serial: Number(data.serial),
+      vataId: user.vataId,
+      seasonId,
+      isDeleted: false,
+    },
+  });
+
+  if (isSerialExist) {
+    throw new AppError(
+      StatusCodes.CONFLICT,
+      "এই সিরিয়াল নম্বরটি ইতোমধ্যে ব্যবহার করা হয়েছে।",
+    );
+  }
+
   const isExist = await prisma.ledger.findFirst({
     where: {
       name: data.name,
@@ -40,6 +56,10 @@ const createLedgerService = async (
       serial: Number(data.serial),
       quantity: Number(data.quantity || 0),
       rate: Number(data.rate || 0),
+      salary: Number(data.salary || 0),
+      weeklyFood: Number(data.weeklyFood || 0),
+      openingBalance: Number(data.openingBalance || 0),
+      openingBalanceType: data.openingBalanceType || null,
       vataId: user.vataId,
       seasonId,
     },
@@ -84,11 +104,20 @@ const getAllLedgerWithChildrenService = async (
     select: {
       id: true,
       name: true,
+      rate: true,
+      quantity: true,
+      salary: true,
       children: {
         where: {
           isDeleted: false,
         },
-        select: { name: true, id: true },
+        select: {
+          name: true,
+          id: true,
+          rate: true,
+          quantity: true,
+          salary: true,
+        },
       },
     },
     orderBy: {
@@ -114,6 +143,7 @@ const getAllLedgerWithChildrenPaginationService = async (
   };
   if (query.search?.trim()) {
     const search = query.search.trim();
+
     where.OR = [
       {
         name: {
@@ -127,6 +157,13 @@ const getAllLedgerWithChildrenPaginationService = async (
           mode: "insensitive",
         },
       },
+      ...(Number.isNaN(Number(search))
+        ? []
+        : [
+            {
+              serial: Number(search),
+            },
+          ]),
     ];
   }
 
@@ -142,6 +179,10 @@ const getAllLedgerWithChildrenPaginationService = async (
         startDate: true,
         quantity: true,
         serial: true,
+        salary: true,
+        weeklyFood: true,
+        openingBalance: true,
+        openingBalanceType: true,
         parent: {
           select: {
             name: true,
@@ -158,13 +199,17 @@ const getAllLedgerWithChildrenPaginationService = async (
             serial: true,
             phoneNumber: true,
             startDate: true,
+            salary: true,
+            weeklyFood: true,
+            openingBalance: true,
+            openingBalanceType: true,
           },
         },
       },
       skip,
       take: limit,
       orderBy: {
-        createdAt: "asc",
+        parentId: "asc",
       },
     }),
     prisma.ledger.count({ where }),
@@ -301,25 +346,100 @@ const getDetailsLedgerService = async (
     }
   }
   const ledger = await prisma.ledger.findUnique({
-    where: { id, vataId: user.vataId, seasonId },
-    select: { name: true, id: true, parentId: true },
+    where: { id, vataId: user.vataId, seasonId, isDeleted: false },
+    select: {
+      name: true,
+      id: true,
+      parentId: true,
+      phoneNumber: true,
+      rate: true,
+      quantity: true,
+      salary: true,
+      season: {
+        select: { name: true },
+      },
+      serial: true,
+      startDate: true,
+      openingBalance: true,
+      openingBalanceType: true,
+      weeklyFood: true,
+      _count: { select: { payments: true } },
+    },
   });
+
   if (ledger?.name) {
     where.ledger = {
       name: ledger.name,
     };
   } else {
-    throw new AppError(StatusCodes.NOT_FOUND, "");
+    throw new AppError(StatusCodes.NOT_FOUND, "খতিয়ানের তথ্য পাওয়া যায়নি");
   }
-  const [payment, total] = await Promise.all([
-    prisma.payment.findMany({ where }),
+
+  const [payment, total, allPayments] = await Promise.all([
+    prisma.payment.findMany({
+      where,
+      skip,
+      take: limit,
+      orderBy: { createdAt: "desc" },
+    }),
     prisma.payment.count({ where }),
+    prisma.payment.findMany({
+      where,
+      select: {
+        paymentType: true,
+        payment: true,
+        paymentDifference: true,
+        totalBill: true,
+        cutting: true,
+        quantity: true,
+      },
+    }),
   ]);
 
+  const summary = allPayments.reduce(
+    (acc, row) => {
+      const payment = Number(row.payment || 0);
+      const totalBill = Number(row.totalBill || 0);
+      const cutting = Number(row.cutting || 0);
+      const quantity = Number(row.quantity || 0);
+      if (row.paymentType === "অগ্রিম পেমেন্ট") {
+        acc.totalAdvance += payment;
+
+        const difference = Number(row.paymentDifference || 0);
+
+        acc.totalAdvanceDue += Math.max(difference, 0);
+      }
+
+      if (row.paymentType !== "অগ্রিম পেমেন্ট") {
+        acc.totalPayment += payment;
+      }
+
+      const due = totalBill - cutting - payment;
+      acc.totalDue += Math.max(due, 0);
+      acc.totalQuantity += quantity;
+      acc.totalBill += totalBill;
+      acc.totalPaymentAmount += payment;
+      acc.totalCutting += cutting;
+
+      return acc;
+    },
+    {
+      totalAdvance: 0,
+      totalPayment: 0,
+      totalAdvanceDue: 0,
+      totalDue: 0,
+      totalQuantity: 0,
+      totalBill: 0,
+      totalPaymentAmount: 0,
+      totalCutting: 0,
+    },
+  );
+
   const format = {
-    ledger: ledger?.name,
+    ledger,
     id: ledger?.id,
     data: payment,
+    summary,
   };
 
   const meta = createMetaConfig({
@@ -337,7 +457,10 @@ const getDetailsLedgerService = async (
 // const GET SINGLE
 const getSingleLedgerService = async (user: TAuthUser, id: string) => {
   const result = await prisma.ledger.findFirst({
-    where: { id, vataId: user.vataId },
+    where: {
+      id,
+      vataId: user.vataId,
+    },
     select: {
       serial: true,
       name: true,
@@ -346,11 +469,16 @@ const getSingleLedgerService = async (user: TAuthUser, id: string) => {
       quantity: true,
       phoneNumber: true,
       startDate: true,
+      salary: true,
+      weeklyFood: true,
+      openingBalance: true,
+      openingBalanceType: true,
     },
   });
 
   return result;
 };
+
 /// UPDATE KHOTIYAN
 const updateLedgerService = async (
   user: TAuthUser,
@@ -375,8 +503,13 @@ const updateLedgerService = async (
     data: {
       ...data,
       serial: Number(data.serial),
-      quantity: Number(data.quantity),
-      rate: Number(data.rate),
+      quantity: Number(data.quantity || 0),
+      rate: Number(data.rate || 0),
+      salary: Number(data.salary || 0),
+      weeklyFood: Number(data.weeklyFood || 0),
+      openingBalance: Number(data.openingBalance || 0),
+      parentId: data.parentId || null,
+      openingBalanceType: data.openingBalanceType || null,
     },
   });
 

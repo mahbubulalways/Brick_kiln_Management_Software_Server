@@ -268,7 +268,7 @@ const createInvoiceService = async (
         quantity: Number(item.quantity),
         price: Number(item.price),
         challanId: newInvoice.id,
-        deliveryDate: invoice.deliveryDate,
+        deliveryDate: invoice?.deliveryDate || null,
       }));
 
       await tx.challanItem.createMany({
@@ -282,7 +282,7 @@ const createInvoiceService = async (
     },
   );
 
-  const deliveryDate = formatDate(invoice.deliveryDate);
+  const deliveryDate = formatDate(invoice?.deliveryDate);
   const itemsMessage = invoiceItems
     .map((item) => `${item.class}: ${Number(item.quantity)} টি`)
     .join(", ");
@@ -338,6 +338,14 @@ const searchChallanForDeliveryService = async (
         },
       },
     },
+    {
+      customer: {
+        phoneNumber: {
+          contains: searchTerm,
+          mode: "insensitive",
+        },
+      },
+    },
   ];
 
   const where: Prisma.ChallanWhereInput = {
@@ -382,6 +390,7 @@ const searchChallanForDeliveryService = async (
 
       note: true,
       createdAt: true,
+      carRent: true,
     },
 
     orderBy: {

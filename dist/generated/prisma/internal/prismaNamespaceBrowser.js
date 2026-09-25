@@ -48,8 +48,8 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.SmsLogScalarFieldEnum = exports.VataSmsSettingsScalarFieldEnum = exports.SmsRechargeHistoryScalarFieldEnum = exports.SmsWalletScalarFieldEnum = exports.SmsSettingScalarFieldEnum = exports.CarIncomeDeliveryScalarFieldEnum = exports.VataCarScalarFieldEnum = exports.DriverScalarFieldEnum = exports.SeasonScalarFieldEnum = exports.SubscriptionPaymentScalarFieldEnum = exports.SubscriptionPlanScalarFieldEnum = exports.VataScalarFieldEnum = exports.WeatherScalarFieldEnum = exports.ContactScalarFieldEnum = exports.ReceivablePayableTransactionScalarFieldEnum = exports.ReceivablePayableScalarFieldEnum = exports.TaskManagerScalarFieldEnum = exports.ProductScalarFieldEnum = exports.CarRentScalarFieldEnum = exports.DocumentScalarFieldEnum = exports.GoodsLossScalarFieldEnum = exports.GoodHistoryLogScalarFieldEnum = exports.GoodsIssueScalarFieldEnum = exports.GoodsStockScalarFieldEnum = exports.GoodsStockCategoryScalarFieldEnum = exports.StockBookScalarFieldEnum = exports.BrickStockSummaryScalarFieldEnum = exports.UnloadItemScalarFieldEnum = exports.UnloadScalarFieldEnum = exports.LoadInfoScalarFieldEnum = exports.RoundScalarFieldEnum = exports.CashScalarFieldEnum = exports.PaymentScalarFieldEnum = exports.LedgerScalarFieldEnum = exports.Due_CollectionScalarFieldEnum = exports.DeliveryScalarFieldEnum = exports.CustomerDueScalarFieldEnum = exports.CustomerScalarFieldEnum = exports.ChallanItemScalarFieldEnum = exports.ChallanScalarFieldEnum = exports.ClassAndRateScalarFieldEnum = exports.LoginHistoryScalarFieldEnum = exports.UserScalarFieldEnum = exports.TransactionIsolationLevel = exports.ModelName = exports.AnyNull = exports.JsonNull = exports.DbNull = exports.NullTypes = exports.Decimal = void 0;
-exports.JsonNullValueFilter = exports.NullsOrder = exports.QueryMode = exports.NullableJsonNullValueInput = exports.SortOrder = exports.DatabaseBackupScalarFieldEnum = exports.DatabaseBackupPermissionScalarFieldEnum = exports.YoutubeLinkScalarFieldEnum = exports.HelpLineScalarFieldEnum = exports.AboutUsScalarFieldEnum = exports.FaqScalarFieldEnum = exports.NotificationScalarFieldEnum = exports.NoteScalarFieldEnum = void 0;
+exports.VataSmsSettingsScalarFieldEnum = exports.SmsRechargeHistoryScalarFieldEnum = exports.SmsWalletScalarFieldEnum = exports.SmsSettingScalarFieldEnum = exports.CarIncomeDeliveryScalarFieldEnum = exports.VataCarScalarFieldEnum = exports.DriverScalarFieldEnum = exports.SeasonScalarFieldEnum = exports.SubscriptionPaymentScalarFieldEnum = exports.SubscriptionPlanScalarFieldEnum = exports.VataScalarFieldEnum = exports.WeatherScalarFieldEnum = exports.ContactScalarFieldEnum = exports.ReceivablePayableTransactionScalarFieldEnum = exports.ReceivablePayableScalarFieldEnum = exports.TaskManagerScalarFieldEnum = exports.ProductScalarFieldEnum = exports.CarRentScalarFieldEnum = exports.DocumentScalarFieldEnum = exports.GoodsLossScalarFieldEnum = exports.GoodHistoryLogScalarFieldEnum = exports.GoodsIssueScalarFieldEnum = exports.GoodsStockScalarFieldEnum = exports.GoodsStockCategoryScalarFieldEnum = exports.StockBookScalarFieldEnum = exports.BrickStockSummaryScalarFieldEnum = exports.UnloadItemScalarFieldEnum = exports.UnloadScalarFieldEnum = exports.LoadInfoScalarFieldEnum = exports.RoundScalarFieldEnum = exports.CashScalarFieldEnum = exports.PaymentScalarFieldEnum = exports.LedgerScalarFieldEnum = exports.Due_CollectionScalarFieldEnum = exports.DeliveryStatusActionTimeScalarFieldEnum = exports.DeliveryScalarFieldEnum = exports.CustomerDueScalarFieldEnum = exports.CustomerScalarFieldEnum = exports.ChallanItemScalarFieldEnum = exports.ChallanScalarFieldEnum = exports.ClassAndRateScalarFieldEnum = exports.LoginHistoryScalarFieldEnum = exports.UserScalarFieldEnum = exports.TransactionIsolationLevel = exports.ModelName = exports.AnyNull = exports.JsonNull = exports.DbNull = exports.NullTypes = exports.Decimal = void 0;
+exports.JsonNullValueFilter = exports.NullsOrder = exports.QueryMode = exports.NullableJsonNullValueInput = exports.SortOrder = exports.DatabaseBackupScalarFieldEnum = exports.DatabaseBackupPermissionScalarFieldEnum = exports.YoutubeLinkScalarFieldEnum = exports.HelpLineScalarFieldEnum = exports.AboutUsScalarFieldEnum = exports.FaqScalarFieldEnum = exports.NotificationScalarFieldEnum = exports.NoteScalarFieldEnum = exports.SmsLogScalarFieldEnum = void 0;
 const runtime = __importStar(require("@prisma/client/runtime/index-browser"));
 exports.Decimal = runtime.Decimal;
 exports.NullTypes = {
@@ -84,6 +84,7 @@ exports.ModelName = {
     Customer: 'Customer',
     CustomerDue: 'CustomerDue',
     Delivery: 'Delivery',
+    DeliveryStatusActionTime: 'DeliveryStatusActionTime',
     Due_Collection: 'Due_Collection',
     Ledger: 'Ledger',
     Payment: 'Payment',
@@ -162,6 +163,7 @@ exports.ClassAndRateScalarFieldEnum = {
     classType: 'classType',
     className: 'className',
     rate: 'rate',
+    advanceRate: 'advanceRate',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt',
     isDeleted: 'isDeleted',
@@ -238,6 +240,7 @@ exports.DeliveryScalarFieldEnum = {
     deliveryRemaining: 'deliveryRemaining',
     carNo: 'carNo',
     lastDelivered: 'lastDelivered',
+    status: 'status',
     carRent: 'carRent',
     invoiceId: 'invoiceId',
     isDeleted: 'isDeleted',
@@ -246,6 +249,14 @@ exports.DeliveryScalarFieldEnum = {
     season: 'season',
     deliveryById: 'deliveryById',
     driverId: 'driverId'
+};
+exports.DeliveryStatusActionTimeScalarFieldEnum = {
+    id: 'id',
+    deliveryId: 'deliveryId',
+    pendingTime: 'pendingTime',
+    processingTime: 'processingTime',
+    deliveredTime: 'deliveredTime',
+    cancelTime: 'cancelTime'
 };
 exports.Due_CollectionScalarFieldEnum = {
     id: 'id',
@@ -272,7 +283,11 @@ exports.LedgerScalarFieldEnum = {
     vataId: 'vataId',
     seasonId: 'seasonId',
     phoneNumber: 'phoneNumber',
-    startDate: 'startDate'
+    startDate: 'startDate',
+    salary: 'salary',
+    weeklyFood: 'weeklyFood',
+    openingBalance: 'openingBalance',
+    openingBalanceType: 'openingBalanceType'
 };
 exports.PaymentScalarFieldEnum = {
     id: 'id',

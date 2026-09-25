@@ -2,7 +2,7 @@ import { TDelivery } from "./deliveryinterface";
 import { AppError } from "../../errors/ApplicationError";
 import { StatusCodes } from "http-status-codes";
 import { prisma } from "../../../helpers/prisma";
-import { Prisma } from "../../../generated/prisma/client";
+import { DeliveryStatus, Prisma } from "../../../generated/prisma/client";
 import { TQuery } from "../../../interface/query";
 import { paginationHelper } from "../../../helpers/paginationHelper";
 import { createMetaConfig } from "../../../utils/createMetaConfig";
@@ -161,9 +161,16 @@ const createDeliveryService = async (user: TAuthUser, payload: TDelivery) => {
         });
       }
 
+      await tx.deliveryStatusActionTime.create({
+        data: {
+          processingTime: new Date(),
+          deliveryId: createDelivery.id,
+        },
+      });
       return createDelivery;
     },
   );
+
   return result;
 };
 
@@ -245,7 +252,7 @@ const getDeliveryThatGoTodayService = async (
         },
       },
       orderBy: {
-        deliveryDate: "asc",
+        deliveryDate: "desc",
       },
       skip,
       take: limit,
@@ -531,6 +538,44 @@ const getSingleDeliveryService = async (id: string) => {
     },
   });
   return result;
+};
+
+// CHANGE DELIVERY STATUS
+const changeDeliveryStatusService = async (
+  id: string,
+  status: DeliveryStatus,
+) => {
+  const findInvoice = await prisma.delivery.findFirst({
+    where: { id },
+    select: { invoiceId: true, class: true, deliveryReceived: true },
+  });
+
+  await prisma.delivery.update({ where: { id }, data: { status: status } });
+
+  if (status === "DELIVERED") {
+    const findItem = await prisma.challanItem.findFirst({
+      where: {
+        challanId: findInvoice?.invoiceId as string,
+        class: findInvoice?.class as string,
+      },
+      select: {
+        id: true,
+      },
+    });
+    await prisma.challanItem.update({
+      where: {
+        id: findItem?.id,
+      },
+      data: {
+        delivered: { increment: findInvoice?.deliveryReceived },
+      },
+    });
+
+    await prisma.deliveryStatusActionTime.update({
+      where: { deliveryId: id },
+      data: { deliveredTime: new Date() },
+    });
+  }
 };
 
 export const DeliveryService = {
