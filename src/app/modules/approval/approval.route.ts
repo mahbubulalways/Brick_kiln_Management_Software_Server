@@ -10,5 +10,10 @@ router.get(
   AuthGuard(UserRole.ADMIN, UserRole.OWNER),
   ApprovalController.getAlApprovalController,
 );
+router.patch(
+  "/update-status/:id",
+  AuthGuard(UserRole.ADMIN, UserRole.OWNER),
+  ApprovalController.changeApprovalStatusController,
+);
 
 export default router;

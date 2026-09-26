@@ -1037,10 +1037,8 @@ model ApprovalRequest {
   status     ApprovalStatus @default(PENDING)
   isDeleted  Boolean        @default(false)
   reviewedAt DateTime?
-  reviewNote String?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
 
   vata        Vata @relation(fields: [vataId], references: [id])
   requestedBy User @relation(fields: [requestedById], references: [id])
@@ -1094,18 +1092,60 @@ enum ApprovalStatus {
 }
 
 enum ModuleType {
-  CHALLAN
-  DELIVERY
-  CUSTOMER
-  PAYMENT
-  STOCK
-  LEDGER
-  DUE
-  CASH
-  INVOICE
+  USER
+  LOGIN_HISTORY
   CLASS_RATE
+  CHALLAN
+  CHALLAN_ITEM
+  CUSTOMER
+  CUSTOMER_DUE
+  DELIVERY
+  DELIVERY_STATUS_TIME
+  DUE
+  LEDGER
+  PAYMENT
+  CASH
+  ROUND
+  LOAD_INFO
+  UNLOAD
+  UNLOAD_ITEM
+  BRICK_STOCK_SUMMARY
+  STOCK
+  GOODS_STOCK_CATEGORY
+  GOODS_STOCK
+  GOODS_ISSUE
+  GOOD_HISTORY_LOG
+  GOODS_LOSS
+  DOCUMENT
+  CAR_RENT
+  PRODUCT
   TASK
+  RECEIVABLE_PAYABLE
+  RECEIVABLE_PAYABLE_TRANSACTION
+  CONTACT
+  WEATHER
+  VATA
+  SUBSCRIPTION_PLAN
+  SUBSCRIPTION_PAYMENT
+  SEASON
   DRIVER
+  VATA_CAR
+  CAR_INCOME_DELIVERY
+  SMS_SETTING
+  SMS_WALLET
+  SMS_RECHARGE_HISTORY
+  VATA_SMS_SETTINGS
+  SMS_LOG
+  NOTE
+  NOTIFICATION
+  FAQ
+  ABOUT_US
+  HELP_LINE
+  YOUTUBE_LINK
+  DATABASE_BACKUP_PERMISSION
+  DATABASE_BACKUP
+  APPROVAL_REQUEST
+  ACTIVITY_LOG
 }
 
 enum UserRole {

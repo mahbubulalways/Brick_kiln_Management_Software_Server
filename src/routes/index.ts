@@ -28,6 +28,7 @@ import goodsStockCategoryRouter from "../app/modules/goods_category/goods_catego
 import goodStockRouter from "../app/modules/goods_stock/good_stock.route";
 import goodIssueRouter from "../app/modules/good_issue/good_issue.route";
 import approvalRoute from "../app/modules/approval/approval.route";
+import activityRoute from "../app/modules/activity/activity.route";
 import goodIssueRefundRouter from "../app/modules/good_refund/good_refund.routes";
 import subscriptionPaymentRouter from "../app/modules/subscription_payment/subscription_payment.route";
 import vatacarRouter from "../app/modules/vata_car/vata_car.route";
@@ -87,6 +88,7 @@ const applicationRoutes: IApplicationRoute[] = [
   { path: "/notification", route: notificationRoute },
   { path: "/faq", route: faqRoute },
   { path: "/approval", route: approvalRoute },
+  { path: "/activity", route: activityRoute },
 
   // ADMIN MODULES
   {

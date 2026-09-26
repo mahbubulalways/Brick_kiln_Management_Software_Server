@@ -172,6 +172,21 @@ const deleteClassAndRateService = async (user, id) => {
             message: "শ্রেণী ও রেট সফলভাবে মুছে ফেলা হয়েছে",
         };
     }
+    const findClassRate = await prisma_1.prisma.classAndRate.findFirst({
+        where: {
+            vataId: user.vataId,
+            id,
+        },
+        select: {
+            advanceRate: true,
+            className: true,
+            classType: true,
+            rate: true,
+        },
+    });
+    if (!findClassRate) {
+        throw new Error("শ্রেণী ও রেট পাওয়া যায়নি");
+    }
     const result = await prisma_1.prisma.$transaction(async (tx) => {
         await tx.classAndRate.update({
             data: {
@@ -190,6 +205,7 @@ const deleteClassAndRateService = async (user, id) => {
                 requestedById: user.userId,
                 vataId: user.vataId,
                 status: "PENDING",
+                oldData: findClassRate,
             },
         });
     });

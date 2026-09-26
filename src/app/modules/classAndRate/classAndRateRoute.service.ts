@@ -6,6 +6,7 @@ import { TAuthUser } from "../../../interface/token";
 import { createMetaConfig } from "../../../utils/createMetaConfig";
 import { AppError } from "../../errors/ApplicationError";
 import { StatusCodes } from "http-status-codes";
+import { ActivityService } from "../activity/activity.service";
 
 const createClassAndRateService = async (
   user: TAuthUser,
@@ -124,23 +125,8 @@ const getSingleClassAndRateService = async (user: TAuthUser, id: string) => {
 const updateClassAndRateService = async (
   user: TAuthUser,
   id: string,
-  data: ClassAndRate,
+  data: Partial<ClassAndRate>,
 ) => {
-  if (user.role === "ADMIN" || user.role === "OWNER") {
-    const result = await prisma.classAndRate.update({
-      data,
-      where: {
-        vataId: user.vataId,
-        id,
-      },
-    });
-
-    return {
-      result,
-      message: "শ্রেণী ও রেট সফলভাবে আপডেট হয়েছে",
-    };
-  }
-
   const findClassRate = await prisma.classAndRate.findFirst({
     where: {
       vataId: user.vataId,
@@ -156,6 +142,33 @@ const updateClassAndRateService = async (
 
   if (!findClassRate) {
     throw new Error("শ্রেণী ও রেট পাওয়া যায়নি");
+  }
+
+  if (user.role === "ADMIN" || user.role === "OWNER") {
+    const result = await prisma.classAndRate.update({
+      data: {
+        ...data,
+        updateStatus: "APPROVED",
+      },
+      where: {
+        vataId: user.vataId,
+        id,
+      },
+    });
+    await ActivityService.createActivityService({
+      action: "UPDATE",
+      module: "CLASS_RATE",
+      targetId: id,
+      userId: user.userId,
+      vataId: user.vataId,
+      newData: data,
+      oldData: findClassRate,
+      referenceNumber: undefined,
+    });
+    return {
+      result,
+      message: "শ্রেণী ও রেট সফলভাবে আপডেট হয়েছে",
+    };
   }
 
   const result = await prisma.$transaction(async (tx) => {
@@ -201,11 +214,35 @@ const deleteClassAndRateService = async (user: TAuthUser, id: string) => {
         id,
       },
     });
+    await ActivityService.createActivityService({
+      action: "DELETE",
+      module: "CLASS_RATE",
+      targetId: id,
+      userId: user.userId,
+      vataId: user.vataId,
+    });
 
     return {
       result,
       message: "শ্রেণী ও রেট সফলভাবে মুছে ফেলা হয়েছে",
     };
+  }
+
+  const findClassRate = await prisma.classAndRate.findFirst({
+    where: {
+      vataId: user.vataId,
+      id,
+    },
+    select: {
+      advanceRate: true,
+      className: true,
+      classType: true,
+      rate: true,
+    },
+  });
+
+  if (!findClassRate) {
+    throw new Error("শ্রেণী ও রেট পাওয়া যায়নি");
   }
 
   const result = await prisma.$transaction(async (tx) => {
@@ -227,6 +264,7 @@ const deleteClassAndRateService = async (user: TAuthUser, id: string) => {
         requestedById: user.userId,
         vataId: user.vataId,
         status: "PENDING",
+        oldData: findClassRate,
       },
     });
   });

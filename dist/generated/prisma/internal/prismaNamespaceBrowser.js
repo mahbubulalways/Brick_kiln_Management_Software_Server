@@ -746,6 +746,7 @@ exports.ApprovalRequestScalarFieldEnum = {
     oldData: 'oldData',
     newData: 'newData',
     status: 'status',
+    isDeleted: 'isDeleted',
     reviewedAt: 'reviewedAt',
     reviewNote: 'reviewNote',
     createdAt: 'createdAt',
@@ -759,6 +760,7 @@ exports.ActivityLogScalarFieldEnum = {
     action: 'action',
     targetId: 'targetId',
     description: 'description',
+    isDeleted: 'isDeleted',
     createdAt: 'createdAt'
 };
 exports.SortOrder = {

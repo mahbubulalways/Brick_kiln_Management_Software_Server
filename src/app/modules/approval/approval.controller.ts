@@ -30,6 +30,31 @@ const getAlApprovalController = catchAsync(async (req, res) => {
   }
 });
 
+// UPDATE STATUS
+const changeApprovalStatusController = catchAsync(async (req, res) => {
+  const user = req.user as TAuthUser;
+  const body = req.body.status;
+  const result = await ApprovalService.changeAprovalStatus(
+    user,
+    req.params.id,
+    body,
+  );
+  if (!result.result) {
+    sendResponse(res, {
+      message: "অনুমোদনের অনুরোধ পাওয়া যায়নি।",
+      statusCode: StatusCodes.NOT_FOUND,
+      success: false,
+    });
+  } else {
+    sendResponse(res, {
+      message: result?.message,
+      statusCode: StatusCodes.OK,
+      success: true,
+    });
+  }
+});
+
 export const ApprovalController = {
   getAlApprovalController,
+  changeApprovalStatusController,
 };

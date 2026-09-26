@@ -410,6 +410,14 @@ const getDetailsLedgerService = async (
         acc.totalAdvanceDue += Math.max(difference, 0);
       }
 
+      if (row.paymentType === "বাকি পেমেন্ট") {
+        acc.totalLoanPayment += payment;
+
+        const difference = Number(row.paymentDifference || 0);
+
+        acc.totalLoanPayment += Math.max(difference, 0);
+      }
+
       if (row.paymentType !== "অগ্রিম পেমেন্ট") {
         acc.totalPayment += payment;
       }
@@ -432,6 +440,7 @@ const getDetailsLedgerService = async (
       totalBill: 0,
       totalPaymentAmount: 0,
       totalCutting: 0,
+      totalLoanPayment: 0,
     },
   );
 
