@@ -47,4 +47,10 @@ router.get(
   DeliveryController.getSingleDeliveryController,
 );
 
+router.patch(
+  API_ENDPOINTS.DELIVERY.STATUS_CHANGE,
+  AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+  DeliveryController.changeDeliveryStatusController,
+);
+
 export default router;

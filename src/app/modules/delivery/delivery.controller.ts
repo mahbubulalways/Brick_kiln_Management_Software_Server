@@ -7,11 +7,10 @@ import { DeliveryService } from "./delivery.service";
 import { StatusCodes } from "http-status-codes";
 
 const getNextDeliveryNoController = catchAsync(async (req, res) => {
-  const user = req.user as TAuthUser
+  const user = req.user as TAuthUser;
   const result = await DeliveryService.getNextDeliveryNo(user);
   if (!result) {
-    throw new AppError(StatusCodes.NOT_FOUND, "কোনো ডেলিভারি পাওয়া যায়নি।")
-
+    throw new AppError(StatusCodes.NOT_FOUND, "কোনো ডেলিভারি পাওয়া যায়নি।");
   } else {
     sendResponse(res, {
       message: "সফলভাবে পাওয়া গেছে।",
@@ -20,17 +19,18 @@ const getNextDeliveryNoController = catchAsync(async (req, res) => {
       data: result,
     });
   }
-
 });
-
 
 // CREATE NEW DELIVERY
 const createDeliveryController = catchAsync(async (req, res) => {
   const body = req.body;
-  const user = req.user as TAuthUser
+  const user = req.user as TAuthUser;
   const result = await DeliveryService.createDeliveryService(user, body);
   if (!result) {
-    throw new AppError(StatusCodes.BAD_REQUEST, "ডেলিভারি তৈরি করা সম্ভব হয়নি।")
+    throw new AppError(
+      StatusCodes.BAD_REQUEST,
+      "ডেলিভারি তৈরি করা সম্ভব হয়নি।",
+    );
   } else {
     sendResponse(res, {
       message: "ডেলিভারি সফলভাবে তৈরি করা হয়েছে।",
@@ -38,15 +38,18 @@ const createDeliveryController = catchAsync(async (req, res) => {
       success: !!result?.id,
     });
   }
-
 });
 
 // GET DELIVERY THAT GO TODAY
 const getDeliveryThatGoTodayController = catchAsync(async (req, res) => {
-  const user = req.user as TAuthUser
+  const user = req.user as TAuthUser;
   const { limit, page, date, search } = await parseListQuery(req.query);
-  const seasonId = req.seasonId
-  const result = await DeliveryService.getDeliveryThatGoTodayService(user,seasonId, { date, limit, page, search });
+  const seasonId = req.seasonId;
+  const result = await DeliveryService.getDeliveryThatGoTodayService(
+    user,
+    seasonId,
+    { date, limit, page, search },
+  );
   if (!result?.data?.length) {
     sendResponse(res, {
       message: "আজকের জন্য কোনো ডেলিভারি পাওয়া যায়নি।",
@@ -54,8 +57,7 @@ const getDeliveryThatGoTodayController = catchAsync(async (req, res) => {
       success: true,
       data: [],
     });
-  }
-  else {
+  } else {
     sendResponse(res, {
       message: "আজকের ডেলিভারি পাওয়া গেছে",
       statusCode: StatusCodes.OK,
@@ -65,14 +67,15 @@ const getDeliveryThatGoTodayController = catchAsync(async (req, res) => {
   }
 });
 
-// GET ALL DELIVERY 
+// GET ALL DELIVERY
 const getAllDeliveryListController = catchAsync(async (req, res) => {
-  const user = req.user as TAuthUser
+  const user = req.user as TAuthUser;
   const { limit, page, date, search } = await parseListQuery(req.query);
-    const seasonId = req.seasonId
-  const result = await DeliveryService.getAllDeliveryListService(user,
+  const seasonId = req.seasonId;
+  const result = await DeliveryService.getAllDeliveryListService(
+    user,
     seasonId,
-    { date, limit, page, search }
+    { date, limit, page, search },
   );
 
   if (!result?.data?.length) {
@@ -82,8 +85,7 @@ const getAllDeliveryListController = catchAsync(async (req, res) => {
       success: true,
       data: [],
     });
-  }
-  else {
+  } else {
     sendResponse(res, {
       message: "ডেলিভারি সফলভাবে পাওয়া গেছে।",
       statusCode: StatusCodes.OK,
@@ -91,16 +93,18 @@ const getAllDeliveryListController = catchAsync(async (req, res) => {
       data: result,
     });
   }
-
 });
-
 
 // GET DELIVERY THAT DONE
 const getTodaysDeliveryThatDoneController = catchAsync(async (req, res) => {
   const { limit, page, date } = await parseListQuery(req.query);
-  const user = req.user as TAuthUser
-    const seasonId = req.seasonId
-  const result = await DeliveryService.getTodaysDeliveryThatDone(user,seasonId, { date, limit, page });
+  const user = req.user as TAuthUser;
+  const seasonId = req.seasonId;
+  const result = await DeliveryService.getTodaysDeliveryThatDone(
+    user,
+    seasonId,
+    { date, limit, page },
+  );
   if (!result?.data?.length) {
     sendResponse(res, {
       message: "আজকের জন্য কোনো ডেলিভারি পাওয়া যায়নি।",
@@ -108,8 +112,7 @@ const getTodaysDeliveryThatDoneController = catchAsync(async (req, res) => {
       success: true,
       data: [],
     });
-  }
-  else {
+  } else {
     sendResponse(res, {
       message: "আজকের ডেলিভারি পাওয়া গেছে",
       statusCode: StatusCodes.OK,
@@ -124,17 +127,34 @@ const getSingleDeliveryController = catchAsync(async (req, res) => {
   const id = req.params.id;
   const result = await DeliveryService.getSingleDeliveryService(id);
   if (!result) {
-    throw new AppError(StatusCodes.NOT_FOUND, "কোনো ডেলিভারি পাওয়া যায়নি।")
-  }
-  else {
+    throw new AppError(StatusCodes.NOT_FOUND, "কোনো ডেলিভারি পাওয়া যায়নি।");
+  } else {
     sendResponse(res, {
-      message:
-        "ডেলিভারি পাওয়া গেছে",
+      message: "ডেলিভারি পাওয়া গেছে",
       statusCode: StatusCodes.OK,
       success: true,
       data: result,
     });
   }
+});
+
+// CHANGE DELIVERY STATUS
+const changeDeliveryStatusController = catchAsync(async (req, res) => {
+  const id = req.params.id;
+  const status = req.body.status;
+  const result = await DeliveryService.changeDeliveryStatusService(id, status);
+  if (!result) {
+    throw new AppError(
+      StatusCodes.NOT_FOUND,
+      "ডেলিভারির স্ট্যাটাস পরিবর্তন করা যায়নি।",
+    );
+  }
+  sendResponse(res, {
+    message: "ডেলিভারির স্ট্যাটাস সফলভাবে পরিবর্তন করা হয়েছে।",
+    statusCode: StatusCodes.OK,
+    success: true,
+    data: result,
+  });
 });
 
 export const DeliveryController = {
@@ -144,4 +164,5 @@ export const DeliveryController = {
   getTodaysDeliveryThatDoneController,
   getAllDeliveryListController,
   getSingleDeliveryController,
+  changeDeliveryStatusController,
 };

@@ -17,4 +17,5 @@ router.get(api_endpoints_1.API_ENDPOINTS.DELIVERY.TODAY_HAVE_TO_DELIVERY, (0, Au
 router.get(api_endpoints_1.API_ENDPOINTS.DELIVERY.ALL_DELIVERY_LIST, (0, AuthGuard_1.default)(enums_1.UserRole.OWNER, enums_1.UserRole.ADMIN, enums_1.UserRole.MANAGER), ActiveSeasonGuard_1.default, delivery_controller_1.DeliveryController.getAllDeliveryListController);
 router.get(api_endpoints_1.API_ENDPOINTS.DELIVERY.TODAYS_DELIVERY, (0, AuthGuard_1.default)(enums_1.UserRole.OWNER, enums_1.UserRole.ADMIN, enums_1.UserRole.MANAGER), ActiveSeasonGuard_1.default, delivery_controller_1.DeliveryController.getTodaysDeliveryThatDoneController);
 router.get(api_endpoints_1.API_ENDPOINTS.DELIVERY.GET_SINGLE_DELIVERY, (0, AuthGuard_1.default)(enums_1.UserRole.OWNER, enums_1.UserRole.ADMIN, enums_1.UserRole.MANAGER), delivery_controller_1.DeliveryController.getSingleDeliveryController);
+router.patch(api_endpoints_1.API_ENDPOINTS.DELIVERY.STATUS_CHANGE, (0, AuthGuard_1.default)(enums_1.UserRole.OWNER, enums_1.UserRole.ADMIN, enums_1.UserRole.MANAGER), delivery_controller_1.DeliveryController.changeDeliveryStatusController);
 exports.default = router;

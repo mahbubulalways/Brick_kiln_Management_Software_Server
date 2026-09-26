@@ -106,16 +106,16 @@ const createDeliveryService = async (user, payload) => {
                 },
             });
         }
-        await tx.challanItem.update({
-            data: {
-                delivered: {
-                    increment: data?.deliveryReceived,
-                },
-            },
-            where: {
-                id: payload?.itemId,
-            },
-        });
+        // await tx.challanItem.update({
+        //   data: {
+        //     delivered: {
+        //       increment: data?.deliveryReceived,
+        //     },
+        //   },
+        //   where: {
+        //     id: payload?.itemId,
+        //   },
+        // });
         const carRent = Number(payload?.carRent) || mainInvoiceId?.carRent;
         if (carRent && payload?.carNumber) {
             const car = await tx.vataCar.findFirst({
@@ -456,8 +456,73 @@ const getSingleDeliveryService = async (id) => {
                     name: true,
                 },
             },
+            deliveryStatusActionTimes: true,
         },
     });
+    return result;
+};
+// CHANGE DELIVERY STATUS
+const changeDeliveryStatusService = async (id, status) => {
+    const findInvoice = await prisma_1.prisma.delivery.findFirst({
+        where: { id },
+        select: { invoiceId: true, class: true, deliveryReceived: true },
+    });
+    await prisma_1.prisma.delivery.update({ where: { id }, data: { status: status } });
+    const findItem = await prisma_1.prisma.challanItem.findFirst({
+        where: {
+            challanId: findInvoice?.invoiceId,
+            class: findInvoice?.class,
+        },
+        select: {
+            id: true,
+        },
+    });
+    let result;
+    if (status === "DELIVERED") {
+        result = await prisma_1.prisma.challanItem.update({
+            where: {
+                id: findItem?.id,
+            },
+            data: {
+                delivered: { increment: findInvoice?.deliveryReceived },
+            },
+        });
+        await prisma_1.prisma.deliveryStatusActionTime.update({
+            where: { deliveryId: id },
+            data: { deliveredTime: new Date() },
+        });
+        return result;
+    }
+    else if (status === "CANCEL") {
+        result = await prisma_1.prisma.challanItem.update({
+            where: {
+                id: findItem?.id,
+            },
+            data: {
+                delivered: { decrement: findInvoice?.deliveryReceived },
+            },
+        });
+        await prisma_1.prisma.deliveryStatusActionTime.update({
+            where: { deliveryId: id },
+            data: { cancelTime: new Date() },
+        });
+        return result;
+    }
+    else if (status === "PROCESSING") {
+        result = await prisma_1.prisma.challanItem.update({
+            where: {
+                id: findItem?.id,
+            },
+            data: {
+                delivered: { decrement: findInvoice?.deliveryReceived },
+            },
+        });
+        await prisma_1.prisma.deliveryStatusActionTime.update({
+            where: { deliveryId: id },
+            data: { processingTime: new Date() },
+        });
+        return result;
+    }
     return result;
 };
 exports.DeliveryService = {
@@ -467,4 +532,5 @@ exports.DeliveryService = {
     getTodaysDeliveryThatDone,
     getAllDeliveryListService,
     getSingleDeliveryService,
+    changeDeliveryStatusService,
 };

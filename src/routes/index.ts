@@ -27,6 +27,7 @@ import stockBookRoute from "../app/modules/stock_book/stock_book.route";
 import goodsStockCategoryRouter from "../app/modules/goods_category/goods_category.route";
 import goodStockRouter from "../app/modules/goods_stock/good_stock.route";
 import goodIssueRouter from "../app/modules/good_issue/good_issue.route";
+import approvalRoute from "../app/modules/approval/approval.route";
 import goodIssueRefundRouter from "../app/modules/good_refund/good_refund.routes";
 import subscriptionPaymentRouter from "../app/modules/subscription_payment/subscription_payment.route";
 import vatacarRouter from "../app/modules/vata_car/vata_car.route";
@@ -84,7 +85,8 @@ const applicationRoutes: IApplicationRoute[] = [
   { path: "/vata/send-sms", route: sendSmsRoute },
   { path: "/note", route: noteRoutes }, // vata + system
   { path: "/notification", route: notificationRoute },
-  { path: "/faq", route: notificationRoute },
+  { path: "/faq", route: faqRoute },
+  { path: "/approval", route: approvalRoute },
 
   // ADMIN MODULES
   {

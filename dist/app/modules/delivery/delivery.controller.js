@@ -64,7 +64,7 @@ const getDeliveryThatGoTodayController = (0, catchAsync_1.default)(async (req, r
         });
     }
 });
-// GET ALL DELIVERY 
+// GET ALL DELIVERY
 const getAllDeliveryListController = (0, catchAsync_1.default)(async (req, res) => {
     const user = req.user;
     const { limit, page, date, search } = await (0, parseListQuery_1.parseListQuery)(req.query);
@@ -126,6 +126,21 @@ const getSingleDeliveryController = (0, catchAsync_1.default)(async (req, res) =
         });
     }
 });
+// CHANGE DELIVERY STATUS
+const changeDeliveryStatusController = (0, catchAsync_1.default)(async (req, res) => {
+    const id = req.params.id;
+    const status = req.body.status;
+    const result = await delivery_service_1.DeliveryService.changeDeliveryStatusService(id, status);
+    if (!result) {
+        throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.NOT_FOUND, "ডেলিভারির স্ট্যাটাস পরিবর্তন করা যায়নি।");
+    }
+    (0, sendResponse_1.sendResponse)(res, {
+        message: "ডেলিভারির স্ট্যাটাস সফলভাবে পরিবর্তন করা হয়েছে।",
+        statusCode: http_status_codes_1.StatusCodes.OK,
+        success: true,
+        data: result,
+    });
+});
 exports.DeliveryController = {
     getNextDeliveryNoController,
     getDeliveryThatGoTodayController,
@@ -133,4 +148,5 @@ exports.DeliveryController = {
     getTodaysDeliveryThatDoneController,
     getAllDeliveryListController,
     getSingleDeliveryController,
+    changeDeliveryStatusController,
 };

@@ -8,26 +8,30 @@ datasource db {
   provider = "postgresql"
 }
 
+// ========================== USER MODEL==================================
 model User {
-  id           String         @id @default(uuid())
-  name         String         @default("Admin")
-  username     String         @unique
-  role         UserRole       @default(ADMIN)
-  password     String
-  isDeleted    Boolean        @default(false)
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
-  vataId       String?
-  taskManagers TaskManager[]
-  challans     Challan[]
-  deliveries   Delivery[]
-  loginHistory LoginHistory[]
-  vata         Vata?          @relation(fields: [vataId], references: [id])
-  stockBooks   StockBook[]
+  id               String            @id @default(uuid())
+  name             String            @default("Admin")
+  username         String            @unique
+  role             UserRole          @default(ADMIN)
+  password         String
+  isDeleted        Boolean           @default(false)
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  vataId           String?
+  taskManagers     TaskManager[]
+  challans         Challan[]
+  deliveries       Delivery[]
+  loginHistory     LoginHistory[]
+  vata             Vata?             @relation(fields: [vataId], references: [id])
+  stockBooks       StockBook[]
+  approvalRequests ApprovalRequest[]
+  activityLogs     ActivityLog[]
 
   @@map("users")
 }
 
+// ========================== LOGIN HISTORY MODEL==================================
 model LoginHistory {
   id        String   @id @default(uuid())
   type      String
@@ -42,24 +46,28 @@ model LoginHistory {
   @@map("login_histories")
 }
 
+// ========================== CLASS AND RATE MODEL==================================
 model ClassAndRate {
-  id          String       @id @default(uuid())
-  classType   String
-  className   String
-  rate        Float
-  advanceRate Float        @default(0)
-  createdAt   DateTime     @default(now())
-  updatedAt   DateTime     @default(now()) @updatedAt
-  isDeleted   Boolean      @default(false)
-  vataId      String
-  vata        Vata         @relation(fields: [vataId], references: [id])
-  loadInfos   LoadInfo[]
-  unloadItems UnloadItem[]
+  id           String         @id @default(uuid())
+  classType    String
+  className    String
+  rate         Float
+  advanceRate  Float          @default(0)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @default(now()) @updatedAt
+  isDeleted    Boolean        @default(false)
+  vataId       String
+  vata         Vata           @relation(fields: [vataId], references: [id])
+  loadInfos    LoadInfo[]
+  unloadItems  UnloadItem[]
+  deleteStatus ApprovalStatus @default(DEFAULT)
+  updateStatus ApprovalStatus @default(DEFAULT)
 
   @@unique([vataId, classType, className])
   @@map("classAndRates")
 }
 
+// ========================== INVOICE MODEL==================================
 model Challan {
   id             String        @id @default(uuid())
   serial         Int
@@ -94,6 +102,7 @@ model Challan {
   @@map("chllans")
 }
 
+// ========================== INVOICE ITEMS MODEL==================================
 model ChallanItem {
   id           String    @id @default(uuid())
   class        String
@@ -111,6 +120,7 @@ model ChallanItem {
   @@map("challanItems")
 }
 
+// ========================== CUSTOMER MODEL==================================
 model Customer {
   id              String           @id @default(uuid())
   customerCode    String
@@ -132,6 +142,7 @@ model Customer {
   @@map("customers")
 }
 
+// ========================== CUSTOMER DUE MODEL==================================
 model CustomerDue {
   id         String @id @default(uuid())
   customerId String
@@ -162,6 +173,7 @@ enum DeliveryStatus {
   DELIVERED
 }
 
+// ========================== DELIVERY MODEL==================================
 model Delivery {
   id                        String                    @id @default(uuid())
   deliveryDate              DateTime
@@ -192,6 +204,7 @@ model Delivery {
   @@map("deliveries")
 }
 
+// ========================== DELIVERY STATUS TIME ACTION MODEL==================================
 model DeliveryStatusActionTime {
   id             String    @id @default(uuid())
   deliveryId     String    @unique
@@ -202,6 +215,7 @@ model DeliveryStatusActionTime {
   delivery       Delivery  @relation(fields: [deliveryId], references: [id])
 }
 
+// ========================== DUE COLLECTION MODEL==================================
 model Due_Collection {
   id       String    @id @default(uuid())
   due      Float
@@ -224,6 +238,7 @@ model Due_Collection {
   @@map("duecollections")
 }
 
+// ========================== LEDGER MODEL==================================
 model Ledger {
   id          String   @id @default(uuid())
   name        String
@@ -255,6 +270,7 @@ model Ledger {
   @@unique([vataId, serial, name, seasonId])
 }
 
+// ========================== PAYMENT MODEL==================================
 model Payment {
   id                String   @id @default(uuid())
   serial            Int      @default(autoincrement())
@@ -278,6 +294,7 @@ model Payment {
   vata              Vata     @relation(fields: [vataId], references: [id])
 }
 
+// ========================== CASH MODEL==================================
 model Cash {
   id          String   @id @default(uuid())
   type        CashType
@@ -298,6 +315,7 @@ model Cash {
   @@map("cash")
 }
 
+// ========================== ROUND MODEL==================================
 model Round {
   id        String     @id @default(uuid())
   name      String
@@ -322,6 +340,7 @@ enum LoadType {
   FIELD_TO_STOCK
 }
 
+// ========================== LOAD INFO MODEL==================================
 model LoadInfo {
   id        String        @id @default(uuid())
   date      DateTime
@@ -336,6 +355,7 @@ model LoadInfo {
   round     Round         @relation(fields: [roundId], references: [id])
 }
 
+// ========================== UNLOAD MODEL==================================
 model Unload {
   id        String       @id @default(uuid())
   date      DateTime
@@ -349,6 +369,7 @@ model Unload {
   @@index([roundId])
 }
 
+// ========================== UNLOAD ITEMS MODEL==================================
 model UnloadItem {
   id        String        @id @default(uuid())
   unloadId  String
@@ -364,6 +385,7 @@ model UnloadItem {
   @@index([classId])
 }
 
+// ========================== BRICK STOCK SUMMARY MODEL==================================
 model BrickStockSummary {
   id          String   @id @default(uuid())
   vataId      String
@@ -378,7 +400,7 @@ model BrickStockSummary {
   @@unique([vataId])
 }
 
-// STOCK MANAGEMENT
+// ========================== STOCK BOOK MODEL==================================
 model StockBook {
   id          String   @id @default(uuid())
   class       String
@@ -396,7 +418,7 @@ model StockBook {
   vata        Vata     @relation(fields: [vataId], references: [id])
 }
 
-// GOODS STOCK
+// ========================== GOODS STOCK CATEGORY MODEL==================================
 model GoodsStockCategory {
   id          String       @id @default(uuid())
   name        String
@@ -408,6 +430,7 @@ model GoodsStockCategory {
   goodsStocks GoodsStock[]
 }
 
+// ========================== GOOD STOCK MODEL==================================
 model GoodsStock {
   id              String             @id @default(uuid())
   name            String
@@ -427,6 +450,7 @@ model GoodsStock {
   goodHistoryLogs GoodHistoryLog[]
 }
 
+// ========================== GOOD ISSUE MODEL==================================
 model GoodsIssue {
   id        String     @id @default(uuid())
   name      String
@@ -448,6 +472,7 @@ enum GoodHistoryType {
   DEMAGE
 }
 
+// ========================== GOOD HISTORY LOG MODEL==================================
 model GoodHistoryLog {
   id          String          @id @default(uuid())
   type        GoodHistoryType
@@ -471,6 +496,7 @@ enum GoodLossType {
   LOST
 }
 
+// ========================== GOOD LOSS MODEL==================================
 model GoodsLoss {
   id         String       @id @default(uuid())
   goodId     String
@@ -482,19 +508,7 @@ model GoodsLoss {
   updatedAt  DateTime     @updatedAt
 }
 
-// model GoodStockDashboard {
-//   id       String          @id @default(uuid())
-//   type     GoodHistoryType
-//   quantity Int
-//   date     DateTime
-//   goodId   String
-//   good     GoodsStock      @relation(fields: [goodId], references: [id])
-//   damage   Int?
-//   lost     Int?
-//   okay     Int?
-// }
-
-// DOCUMENT
+// ========================== DOCUMENT MODEL==================================
 model Document {
   id        String       @id @default(cuid())
   name      String
@@ -517,6 +531,7 @@ model Document {
   @@index([parentId])
 }
 
+// ========================== CAR RENT MODEL==================================
 model CarRent {
   id        String   @id @default(uuid())
   address   String
@@ -530,6 +545,7 @@ model CarRent {
   @@map("carrents")
 }
 
+// ========================== PRODUCT MODEL==================================
 model Product {
   id           Int       @id @default(autoincrement())
   productName  String
@@ -549,6 +565,7 @@ model Product {
   @@map("products")
 }
 
+// ========================== TASK MANAGER MODEL==================================
 model TaskManager {
   id          String     @id @default(uuid())
   description String
@@ -564,6 +581,7 @@ model TaskManager {
   vata        Vata       @relation(fields: [vataId], references: [id])
 }
 
+// ========================== RECEIVABLE AND PAYABLE (DENA PAWNA) MODEL==================================
 model ReceivablePayable {
   id              String                         @id @default(uuid())
   transactionType TransactionType
@@ -589,6 +607,7 @@ model ReceivablePayable {
   @@index([isDeleted])
 }
 
+// ========================== RECEIVABLE AND PAYABLE TRANSACTIONS (DENA PAWNA) MODEL==================================
 model ReceivablePayableTransaction {
   id                  String            @id @default(uuid())
   receivablePayableId String
@@ -607,6 +626,7 @@ model ReceivablePayableTransaction {
   @@index([transactionDate])
 }
 
+// ========================== CONTACT MODEL==================================
 model Contact {
   id         String   @id @default(uuid())
   name       String
@@ -619,6 +639,7 @@ model Contact {
   vata       Vata     @relation(fields: [vataId], references: [id])
 }
 
+// ========================== WEATHER MODEL==================================
 model Weather {
   id        String   @id @default(uuid())
   linkOne   String?
@@ -629,6 +650,7 @@ model Weather {
   vata      Vata     @relation(fields: [vataId], references: [id])
 }
 
+// ========================== VATA MODEL==================================
 model Vata {
   id                        String  @id @default(uuid())
   vataId                    String  @unique
@@ -685,6 +707,8 @@ model Vata {
   smsLogs                       SmsLog[]
   notifications                 Notification[]
   seasons                       Season[]
+  approvalRequests              ApprovalRequest[]
+  activityLogs                  ActivityLog[]
 
   @@map("vatainformation")
 }
@@ -702,6 +726,7 @@ enum BillingCycle {
   YEARLY
 }
 
+// ========================== SUBSCRIPTION MODEL==================================
 model SubscriptionPlan {
   id                   String                @id @default(uuid())
   name                 String                @unique
@@ -722,6 +747,7 @@ model SubscriptionPlan {
   subscriptionPayments SubscriptionPayment[]
 }
 
+// ========================== SUBSCRIPTION PAYMENT MODEL==================================
 model SubscriptionPayment {
   id                 String                    @id @default(uuid())
   vataId             String
@@ -747,6 +773,7 @@ enum SubscriptionPaymentStatus {
   CANCELLED
 }
 
+// ========================== SEASON MODEL==================================
 model Season {
   id     String @id @default(uuid())
   vataId String
@@ -773,7 +800,7 @@ model Season {
   @@index([vataId, isActive])
 }
 
-// DRIVER
+// ========================== DRIVER MODEL==================================
 model Driver {
   id                  String              @id @default(uuid())
   name                String
@@ -787,19 +814,7 @@ model Driver {
   carIncomeDeliveries CarIncomeDelivery[]
 }
 
-// PLATFORM
-// model SystemAdmin {
-//   id          String   @id @default(uuid())
-//   name        String
-//   phoneNumber String
-//   email       String
-//   createdAt   DateTime @default(now())
-//   updatedAt   DateTime @updatedAt
-//   userId      String
-//   user        User     @relation(fields: [userId], references: [id])
-// }
-
-// CAR 
+// ========================== VATA CAR MODEL==================================
 model VataCar {
   id                  String              @id @default(uuid())
   vataId              String
@@ -810,6 +825,7 @@ model VataCar {
   carIncomeDeliveries CarIncomeDelivery[]
 }
 
+// ========================== CAR INCOME DELIVERY MODEL==================================
 model CarIncomeDelivery {
   id         String   @id @default(uuid())
   amount     Float
@@ -824,7 +840,7 @@ model CarIncomeDelivery {
 }
 
 //=============================== SMS PART=========================================
-// SMS RATE 
+// ========================== SMS SETTINGS MODEL==================================
 model SmsSetting {
   id         String   @id @default(uuid())
   ratePerSms Decimal  @db.Decimal(10, 4)
@@ -836,7 +852,7 @@ model SmsSetting {
   updatedAt  DateTime @updatedAt
 }
 
-// SMS WALLET VATA
+// ==========================  SMS WALLET VATA MODEL==================================
 model SmsWallet {
   id     String @id @default(uuid())
   vataId String @unique
@@ -851,7 +867,7 @@ model SmsWallet {
   vata Vata @relation(fields: [vataId], references: [id])
 }
 
-// SMS HISTORY
+// ========================== SMS HISTORY MODEL==================================
 model SmsRechargeHistory {
   id            String            @id @default(uuid())
   vataId        String
@@ -880,6 +896,7 @@ enum SmsRechargeStatus {
   CANCELLED
 }
 
+// ========================== VATA SMS SETTINGS MODEL==================================
 // KOI KOI SMS JABE 
 model VataSmsSettings {
   id                  String  @id @default(uuid())
@@ -901,6 +918,7 @@ enum SmsStatus {
   FAILED
 }
 
+// ========================== SMS LOG MODEL==================================
 model SmsLog {
   id          String    @id @default(uuid())
   vataId      String
@@ -931,6 +949,7 @@ enum NotificationType {
   DELIVERY
 }
 
+// ========================== NOTIFICATION MODEL==================================
 model Notification {
   id        String           @id @default(uuid())
   title     String
@@ -946,7 +965,7 @@ model Notification {
   season    Season           @relation(fields: [seasonId], references: [id])
 }
 
-// FAQ ADMIN PART
+// ============================FAQ SUPER ADMIN PART=================================
 model Faq {
   id          String   @id @default(uuid())
   title       String
@@ -960,7 +979,7 @@ model AboutUs {
   description String
 }
 
-// HELP LINE
+//====================================  HELP LINE  SUPER ADMIN ===================================
 model HelpLine {
   id          String @id @default(uuid())
   phoneNumber String
@@ -968,8 +987,7 @@ model HelpLine {
   email       String
 }
 
-// YT LINK
-
+//================= YT LINK SUPER ADMIN ===========================
 model YoutubeLink {
   id   String @id @default(uuid())
   link String
@@ -981,11 +999,13 @@ enum DatabaseBackupType {
   AUTO
 }
 
+// ========================== DATABASE BACKUP PERMISSION MODEL SUPER ADMIN==================================
 model DatabaseBackupPermission {
   id   String             @id @default(uuid())
   type DatabaseBackupType
 }
 
+// ========================== DATABASE BACKUP  MODEL==================================
 model DatabaseBackup {
   id             String             @id @default(uuid())
   fileName       String
@@ -999,7 +1019,94 @@ model DatabaseBackup {
   createdAt DateTime @default(now())
 }
 
+// =============================EDIT DELETE APPROVAL===========================
+model ApprovalRequest {
+  id String @id @default(cuid())
+
+  vataId        String
+  requestedById String
+
+  action ApprovalAction
+  module ModuleType
+
+  targetId String
+
+  oldData Json?
+  newData Json?
+
+  status     ApprovalStatus @default(PENDING)
+  isDeleted  Boolean        @default(false)
+  reviewedAt DateTime?
+  reviewNote String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  vata        Vata @relation(fields: [vataId], references: [id])
+  requestedBy User @relation(fields: [requestedById], references: [id])
+
+  @@index([vataId, status])
+  @@index([targetId])
+  @@index([module, targetId])
+}
+
+// =============================== ACTIVITY LOG MODEL =============================
+model ActivityLog {
+  id String @id @default(cuid())
+
+  vataId String
+  userId String?
+
+  module ModuleType
+  action ActivityAction
+
+  targetId String?
+
+  description String
+  isDeleted   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  vata Vata  @relation(fields: [vataId], references: [id])
+  user User? @relation(fields: [userId], references: [id])
+
+  @@index([vataId, createdAt])
+  @@index([vataId, userId])
+  @@index([vataId, module])
+}
+
+enum ActivityAction {
+  CREATE
+  UPDATE
+  DELETE
+}
+
 // ======================================ENUMS ======================================
+enum ApprovalAction {
+  UPDATE
+  DELETE
+}
+
+enum ApprovalStatus {
+  DEFAULT
+  PENDING
+  APPROVED
+  CANCELLED
+}
+
+enum ModuleType {
+  CHALLAN
+  DELIVERY
+  CUSTOMER
+  PAYMENT
+  STOCK
+  LEDGER
+  DUE
+  CASH
+  INVOICE
+  CLASS_RATE
+  TASK
+  DRIVER
+}
 
 enum UserRole {
   OWNER

@@ -9,7 +9,7 @@
 * 🟢 You can import this file directly.
 */
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.TransactionType = exports.TaskStatus = exports.DocumentType = exports.CashType = exports.VataStatus = exports.UserRole = exports.DatabaseBackupType = exports.NotificationType = exports.SmsStatus = exports.SmsRechargeStatus = exports.SmsPaymentType = exports.SubscriptionPaymentStatus = exports.BillingCycle = exports.SubscriptionPlanType = exports.GoodLossType = exports.GoodHistoryType = exports.LoadType = exports.DeliveryStatus = void 0;
+exports.TransactionType = exports.TaskStatus = exports.DocumentType = exports.CashType = exports.VataStatus = exports.UserRole = exports.ModuleType = exports.ApprovalStatus = exports.ApprovalAction = exports.ActivityAction = exports.DatabaseBackupType = exports.NotificationType = exports.SmsStatus = exports.SmsRechargeStatus = exports.SmsPaymentType = exports.SubscriptionPaymentStatus = exports.BillingCycle = exports.SubscriptionPlanType = exports.GoodLossType = exports.GoodHistoryType = exports.LoadType = exports.DeliveryStatus = void 0;
 exports.DeliveryStatus = {
     PENDING: 'PENDING',
     PROCESSING: 'PROCESSING',
@@ -71,6 +71,35 @@ exports.NotificationType = {
 exports.DatabaseBackupType = {
     MANUAL: 'MANUAL',
     AUTO: 'AUTO'
+};
+exports.ActivityAction = {
+    CREATE: 'CREATE',
+    UPDATE: 'UPDATE',
+    DELETE: 'DELETE'
+};
+exports.ApprovalAction = {
+    UPDATE: 'UPDATE',
+    DELETE: 'DELETE'
+};
+exports.ApprovalStatus = {
+    DEFAULT: 'DEFAULT',
+    PENDING: 'PENDING',
+    APPROVED: 'APPROVED',
+    CANCELLED: 'CANCELLED'
+};
+exports.ModuleType = {
+    CHALLAN: 'CHALLAN',
+    DELIVERY: 'DELIVERY',
+    CUSTOMER: 'CUSTOMER',
+    PAYMENT: 'PAYMENT',
+    STOCK: 'STOCK',
+    LEDGER: 'LEDGER',
+    DUE: 'DUE',
+    CASH: 'CASH',
+    INVOICE: 'INVOICE',
+    CLASS_RATE: 'CLASS_RATE',
+    TASK: 'TASK',
+    DRIVER: 'DRIVER'
 };
 exports.UserRole = {
     OWNER: 'OWNER',

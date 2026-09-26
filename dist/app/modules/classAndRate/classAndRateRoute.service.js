@@ -65,15 +65,16 @@ const getClassAndRateService = async (user, query) => {
         prisma_1.prisma.classAndRate.findMany({
             where: {
                 vataId: user.vataId,
-                isDeleted: false
-            }, orderBy: { createdAt: "asc" },
+                isDeleted: false,
+            },
+            orderBy: { createdAt: "asc" },
         }),
         prisma_1.prisma.classAndRate.count({
             where: {
                 vataId: user.vataId,
-                isDeleted: false
-            }
-        })
+                isDeleted: false,
+            },
+        }),
     ]);
     const meta = (0, createMetaConfig_1.createMetaConfig)({
         limit,
@@ -82,43 +83,127 @@ const getClassAndRateService = async (user, query) => {
     });
     return {
         data: result,
-        meta
+        meta,
     };
 };
 // GET SINGLE CLASS AND RATE
 const getSingleClassAndRateService = async (user, id) => {
     const result = await prisma_1.prisma.classAndRate.findFirst({
         where: {
-            vataId: user.vataId, id,
-            isDeleted: false
-        }
-    });
-    return result;
-};
-// GET SINGLE CLASS AND RATE
-const updateClassAndRateService = async (user, id, data) => {
-    const result = await prisma_1.prisma.classAndRate.update({
-        data: data,
-        where: { vataId: user.vataId, id },
-    });
-    return result;
-};
-// DELETYE
-const deleteClassAndRateService = async (user, id) => {
-    const result = await prisma_1.prisma.classAndRate.update({
-        data: {
-            isDeleted: true
+            vataId: user.vataId,
+            id,
+            isDeleted: false,
         },
-        where: { vataId: user.vataId, id },
     });
     return result;
 };
-// GET OPTIONS 
+// UPDATE CLASS AND RATEs
+const updateClassAndRateService = async (user, id, data) => {
+    if (user.role === "ADMIN" || user.role === "OWNER") {
+        const result = await prisma_1.prisma.classAndRate.update({
+            data,
+            where: {
+                vataId: user.vataId,
+                id,
+            },
+        });
+        return {
+            result,
+            message: "শ্রেণী ও রেট সফলভাবে আপডেট হয়েছে",
+        };
+    }
+    const findClassRate = await prisma_1.prisma.classAndRate.findFirst({
+        where: {
+            vataId: user.vataId,
+            id,
+        },
+        select: {
+            advanceRate: true,
+            className: true,
+            classType: true,
+            rate: true,
+        },
+    });
+    if (!findClassRate) {
+        throw new Error("শ্রেণী ও রেট পাওয়া যায়নি");
+    }
+    const result = await prisma_1.prisma.$transaction(async (tx) => {
+        await tx.classAndRate.update({
+            data: {
+                updateStatus: "PENDING",
+            },
+            where: {
+                vataId: user.vataId,
+                id,
+            },
+        });
+        return await tx.approvalRequest.create({
+            data: {
+                action: "UPDATE",
+                module: "CLASS_RATE",
+                targetId: id,
+                requestedById: user.userId,
+                vataId: user.vataId,
+                status: "PENDING",
+                oldData: findClassRate,
+                newData: data,
+            },
+        });
+    });
+    return {
+        result,
+        message: "শ্রেণী ও রেট আপডেটের অনুরোধ অ্যাডমিনের কাছে পাঠানো হয়েছে",
+    };
+};
+// DELETE CLASS AND RATE
+const deleteClassAndRateService = async (user, id) => {
+    if (user.role === "ADMIN" || user.role === "OWNER") {
+        const result = await prisma_1.prisma.classAndRate.update({
+            data: {
+                isDeleted: true,
+            },
+            where: {
+                vataId: user.vataId,
+                id,
+            },
+        });
+        return {
+            result,
+            message: "শ্রেণী ও রেট সফলভাবে মুছে ফেলা হয়েছে",
+        };
+    }
+    const result = await prisma_1.prisma.$transaction(async (tx) => {
+        await tx.classAndRate.update({
+            data: {
+                deleteStatus: "PENDING",
+            },
+            where: {
+                vataId: user.vataId,
+                id,
+            },
+        });
+        return await tx.approvalRequest.create({
+            data: {
+                action: "DELETE",
+                module: "CLASS_RATE",
+                targetId: id,
+                requestedById: user.userId,
+                vataId: user.vataId,
+                status: "PENDING",
+            },
+        });
+    });
+    return {
+        result,
+        message: "শ্রেণী ও রেট মুছে ফেলার অনুরোধ অ্যাডমিনের কাছে পাঠানো হয়েছে",
+    };
+};
+// GET OPTIONS
 const getClassAndRateOptionsService = async (user) => {
     const result = await prisma_1.prisma.classAndRate.findMany({
         where: {
             vataId: user.vataId,
-            isDeleted: false
+            isDeleted: false,
         },
         select: {
             className: true,
@@ -134,5 +219,5 @@ exports.ClassAndRateService = {
     getSingleClassAndRateService,
     updateClassAndRateService,
     deleteClassAndRateService,
-    getClassAndRateOptionsService
+    getClassAndRateOptionsService,
 };

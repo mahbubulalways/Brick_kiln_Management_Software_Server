@@ -27,8 +27,11 @@ const createClassAndRateController = (0, catchAsync_1.default)(async (req, res) 
 // GET ALL CLASS AND RATE
 const getClassAndRateController = (0, catchAsync_1.default)(async (req, res) => {
     const user = req.user;
-    const { limit, page, } = await (0, parseListQuery_1.parseListQuery)(req.query);
-    const result = await classAndRateRoute_service_1.ClassAndRateService.getClassAndRateService(user, { limit, page });
+    const { limit, page } = await (0, parseListQuery_1.parseListQuery)(req.query);
+    const result = await classAndRateRoute_service_1.ClassAndRateService.getClassAndRateService(user, {
+        limit,
+        page,
+    });
     if (!result.data.length) {
         throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.BAD_REQUEST, "শ্রেণী ও রেট নিয়ে তথ্য আনতে ব্যর্থ হয়েছে");
     }
@@ -64,15 +67,14 @@ const updateClassAndRateController = (0, catchAsync_1.default)(async (req, res) 
     const body = req.body;
     const user = req.user;
     const result = await classAndRateRoute_service_1.ClassAndRateService.updateClassAndRateService(user, id, body);
-    if (!result?.id) {
+    if (!result?.result.id) {
         throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.BAD_REQUEST, "দুঃখিত! শ্রেণী ও রেট আপডেট করতে ব্যর্থ হয়েছে");
     }
     else {
         (0, sendResponse_1.sendResponse)(res, {
-            message: "শ্রেণী ও রেট সফলভাবে আপডেট হয়েছে",
+            message: result?.message,
             statusCode: http_status_codes_1.StatusCodes.OK,
             success: true,
-            data: result,
         });
     }
 });
@@ -80,15 +82,14 @@ const deleteClassAndRateController = (0, catchAsync_1.default)(async (req, res) 
     const id = req.params?.id;
     const user = req.user;
     const result = await classAndRateRoute_service_1.ClassAndRateService.deleteClassAndRateService(user, id);
-    if (!result?.id) {
+    if (!result?.result?.id) {
         throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.BAD_REQUEST, "দুঃখিত! শ্রেণী ও রেট মুছে ফেলতে ব্যর্থ হয়েছে");
     }
     else {
         (0, sendResponse_1.sendResponse)(res, {
-            message: "শ্রেণী ও রেট সফলভাবে মুছে ফেলা হয়েছে",
+            message: result?.message,
             statusCode: http_status_codes_1.StatusCodes.OK,
             success: true,
-            data: result,
         });
     }
 });
@@ -119,5 +120,5 @@ exports.ClassAndRateController = {
     getSingleClassAndRateController,
     updateClassAndRateController,
     deleteClassAndRateController,
-    getClassAndRateOptionsController
+    getClassAndRateOptionsController,
 };

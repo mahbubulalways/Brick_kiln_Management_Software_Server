@@ -253,7 +253,8 @@ const todayPayDueService = async (user, seasonId, query) => {
         }),
         prisma_1.prisma.customer.count({ where }),
     ]);
-    const data = result.map((customer) => {
+    const data = result
+        .map((customer) => {
         // সব due যোগ হবে
         const totalDue = customer.customerDues.reduce((sum, item) => sum + Number(item.dueAmount || 0), 0);
         // সব collection যোগ হবে
@@ -266,8 +267,8 @@ const todayPayDueService = async (user, seasonId, query) => {
             totalCollect,
             remainingDue,
         };
-    });
-    // .filter((customer) => customer.remainingDue > 0);
+    })
+        .filter((customer) => customer.remainingDue > 0);
     const meta = (0, createMetaConfig_1.createMetaConfig)({
         limit,
         page,

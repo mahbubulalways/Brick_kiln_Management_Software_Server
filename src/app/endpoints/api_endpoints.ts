@@ -2,7 +2,7 @@ export const API_ENDPOINTS = {
   CLASS_AND_RATE: {
     CREATE: "/create",
     GET_ALL_ClASS: "/class-and-rate",
-    OPTIONS:"/options",
+    OPTIONS: "/options",
     GET_CLASS_BY_ID: "/class-and-rate/:id",
     UPDATE_CLASS_BY_ID: "/update-class-and-rate/:id",
     DELETE: "/delete/:id",
@@ -30,6 +30,7 @@ export const API_ENDPOINTS = {
     ALL_DELIVERY_LIST: "/delivery-list",
     CREATE_DELIVERY: "/create-delivery",
     GET_SINGLE_DELIVERY: "/single-delivery/:id",
+    STATUS_CHANGE: "/status/:id",
   },
   DUE_COLLECTION: {
     TODAY_PAID: "/today-paid",
