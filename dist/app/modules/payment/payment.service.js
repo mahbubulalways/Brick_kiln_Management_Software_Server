@@ -7,6 +7,7 @@ const http_status_codes_1 = require("http-status-codes");
 const paginationHelper_1 = require("../../../helpers/paginationHelper");
 const createMetaConfig_1 = require("../../../utils/createMetaConfig");
 const getDateRangeDbSearch_1 = require("../../../utils/getDateRangeDbSearch");
+const activity_service_1 = require("../activity/activity.service");
 const createPaymentService = async (req, user) => {
     const file = req?.file;
     const body = JSON.parse(req.body.data);
@@ -148,17 +149,30 @@ const getSinglePaymentService = async (user, id) => {
     });
 };
 // UPDATE PAYMENT
-const updatePaymentService = async (user, req) => {
-    const id = req.params.id;
-    const file = req.file;
-    const body = JSON.parse(req.body.data);
+const updatePaymentService = async (user, req, approval = null, targetId = null) => {
+    const id = req?.params?.id ?? targetId;
+    const file = req?.file;
+    const body = req?.body?.data
+        ? JSON.parse(req?.body?.data)
+        : approval;
     // ============================================
     // 1. Check existing payment
     // ============================================
     const existingPayment = await prisma_1.prisma.payment.findUnique({
         where: {
             vataId: user.vataId,
-            id,
+            id: id,
+        },
+        select: {
+            paymentType: true,
+            paymentDetails: true,
+            quantity: true,
+            rate: true,
+            totalBill: true,
+            cutting: true,
+            payment: true,
+            paymentDifference: true,
+            paymentDate: true,
         },
     });
     if (!existingPayment) {
@@ -174,6 +188,7 @@ const updatePaymentService = async (user, req) => {
         },
         select: {
             id: true,
+            name: true,
         },
     });
     if (!ledger) {
@@ -183,7 +198,7 @@ const updatePaymentService = async (user, req) => {
     // 3. Prepare update data
     // ============================================
     const data = {
-        ledgerId: ledger.id,
+        // ledgerId: ledger.id,
         paymentType: body.paymentType,
         paymentDetails: body.paymentDetails,
         quantity: Number(body.quantity) || 0,
@@ -194,30 +209,155 @@ const updatePaymentService = async (user, req) => {
         paymentDifference: Number(body.paymentDifference) || 0,
         paymentDate: body.paymentDate,
     };
-    // ============================================
-    // 4. New file থাকলে শুধু তখন document update
-    // ============================================
     if (file?.filename) {
-        data.document = file.filename;
+        data.document = file?.filename;
+    }
+    if (approval) {
+        data.document = approval?.document || null;
     }
     // ============================================
     // 5. Update
     // ============================================
-    const result = await prisma_1.prisma.payment.update({
-        where: {
-            id,
+    if (user.role === "ADMIN" || user.role === "OWNER") {
+        const result = await prisma_1.prisma.payment.update({
+            where: {
+                id: id,
+                vataId: user.vataId,
+            },
+            data: {
+                ...data,
+                updateStatus: "APPROVED",
+            },
+        });
+        await activity_service_1.ActivityService.createActivityService({
+            action: "UPDATE",
+            module: "PAYMENT",
+            targetId: id,
+            userId: user.userId,
             vataId: user.vataId,
-        },
-        data,
+            newData: {
+                ...data,
+                name: ledger.name,
+            },
+            oldData: {
+                ...existingPayment,
+                name: ledger.name,
+            },
+            referenceNumber: ledger?.name,
+        });
+        return {
+            result,
+            message: "পেমেন্ট সফলভাবে আপডেট করা হয়েছে।",
+        };
+    }
+    // IF NOT ADMIN
+    const result = await prisma_1.prisma.$transaction(async (tx) => {
+        await tx.payment.update({
+            data: {
+                updateStatus: "PENDING",
+            },
+            where: {
+                vataId: user.vataId,
+                id: id,
+            },
+        });
+        return await tx.approvalRequest.create({
+            data: {
+                action: "UPDATE",
+                module: "PAYMENT",
+                targetId: id,
+                requestedById: user.userId,
+                vataId: user.vataId,
+                status: "PENDING",
+                newData: {
+                    ...data,
+                    name: ledger.name,
+                },
+                oldData: {
+                    ...existingPayment,
+                    name: ledger.name,
+                },
+            },
+        });
     });
-    return result;
+    return {
+        result,
+        message: "পেমেন্ট আপডেটের অনুরোধ অ্যাডমিনের কাছে পাঠানো হয়েছে",
+    };
 };
 // DELETE PAYMENT
 const deletePaymentServie = async (user, id) => {
-    return await prisma_1.prisma.payment.update({
-        where: { id, vataId: user.vataId },
-        data: { isDeleted: true },
+    const existingPayment = await prisma_1.prisma.payment.findUnique({
+        where: {
+            vataId: user.vataId,
+            id: id,
+        },
+        select: {
+            paymentType: true,
+            paymentDetails: true,
+            quantity: true,
+            rate: true,
+            totalBill: true,
+            cutting: true,
+            payment: true,
+            paymentDifference: true,
+            paymentDate: true,
+            ledger: {
+                select: {
+                    name: true,
+                },
+            },
+        },
     });
+    if (!existingPayment) {
+        throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.NOT_FOUND, "পেমেন্ট পাওয়া যায়নি।");
+    }
+    if (user.role === "ADMIN" || user.role === "OWNER") {
+        const result = await prisma_1.prisma.payment.update({
+            where: { id, vataId: user.vataId },
+            data: { isDeleted: true, deleteStatus: "APPROVED" },
+        });
+        await activity_service_1.ActivityService.createActivityService({
+            action: "DELETE",
+            module: "PAYMENT",
+            targetId: id,
+            userId: user.userId,
+            vataId: user.vataId,
+            referenceNumber: existingPayment?.ledger?.name,
+        });
+        return {
+            result,
+            message: "পেমেন্টটি সফলভাবে মুছে ফেলা হয়েছে।",
+        };
+    }
+    // OTHER ACTION
+    const result = await prisma_1.prisma.$transaction(async (tx) => {
+        await tx.payment.update({
+            data: {
+                deleteStatus: "PENDING",
+            },
+            where: {
+                vataId: user.vataId,
+                id,
+            },
+        });
+        const { ledger, ...rest } = existingPayment;
+        return await tx.approvalRequest.create({
+            data: {
+                action: "DELETE",
+                module: "PAYMENT",
+                targetId: id,
+                requestedById: user.userId,
+                vataId: user.vataId,
+                status: "PENDING",
+                oldData: { ...rest, name: ledger?.name },
+            },
+        });
+    });
+    return {
+        result,
+        message: "পেমেন্টটি মুছে ফেলার অনুরোধ অ্যাডমিনের কাছে পাঠানো হয়েছে",
+    };
 };
 exports.PaymentService = {
     createPaymentService,

@@ -53,4 +53,10 @@ router.patch(
   DeliveryController.changeDeliveryStatusController,
 );
 
+router.patch(
+  API_ENDPOINTS.DELIVERY.DELETE_DELIVERY,
+  AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+  DeliveryController.deleteDeliveryController,
+);
+
 export default router;

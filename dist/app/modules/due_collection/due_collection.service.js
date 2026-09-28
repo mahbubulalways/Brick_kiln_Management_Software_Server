@@ -7,6 +7,7 @@ const prisma_1 = require("../../../helpers/prisma");
 const createMetaConfig_1 = require("../../../utils/createMetaConfig");
 const getDateRangeDbSearch_1 = require("../../../utils/getDateRangeDbSearch");
 const ApplicationError_1 = require("../../errors/ApplicationError");
+const activity_service_1 = require("../activity/activity.service");
 //  GET CUSTOMER CURRENT SEASON DUE (DONE)
 const getDueOfCustomerService = async (user, seasonId, customerCode) => {
     const result = await prisma_1.prisma.customer.findFirst({
@@ -31,6 +32,7 @@ const getDueOfCustomerService = async (user, seasonId, customerCode) => {
             dueCollections: {
                 where: {
                     seasonId,
+                    isDeleted: false,
                 },
                 select: {
                     collect: true,
@@ -162,22 +164,22 @@ const todayPayDueService = async (user, seasonId, query) => {
     const where = {
         vataId: user.vataId,
         isDeleted: false,
-        challans: {
-            every: {
-                seasonId,
-            },
-        },
-        dueCollections: {
-            every: {
-                seasonId,
-                isDeleted: false,
-            },
-        },
-        customerDues: {
-            every: {
-                seasonId,
-            },
-        },
+        // challans: {
+        //   every: {
+        //     seasonId,
+        //   },
+        // },
+        // dueCollections: {
+        //   every: {
+        //     seasonId,
+        //     isDeleted: false,
+        //   },
+        // },
+        // customerDues: {
+        //   every: {
+        //     seasonId,
+        //   },
+        // },
     };
     if (query.search?.trim()) {
         const search = query.search.trim();
@@ -213,6 +215,9 @@ const todayPayDueService = async (user, seasonId, query) => {
             where,
             include: {
                 challans: {
+                    where: {
+                        seasonId,
+                    },
                     select: {
                         note: true,
                         season: {
@@ -229,6 +234,9 @@ const todayPayDueService = async (user, seasonId, query) => {
                     },
                 },
                 customerDues: {
+                    where: {
+                        seasonId,
+                    },
                     select: {
                         dueAmount: true,
                     },
@@ -237,6 +245,10 @@ const todayPayDueService = async (user, seasonId, query) => {
                     },
                 },
                 dueCollections: {
+                    where: {
+                        seasonId,
+                        isDeleted: false,
+                    },
                     select: {
                         collect: true,
                         newDue: true,
@@ -473,29 +485,92 @@ const getSingleDueCollectionService = async (user, id) => {
     return result;
 };
 // UPDATE DUE (DONE)
-const updateDueCollectionService = async (id, payload) => {
+const updateDueCollectionService = async (user, id, payload) => {
     const data = {
         due: Number(payload.due),
         collect: Number(payload.collect),
         newDue: Number(payload.newDue),
         nextDate: payload.nextDate,
     };
-    // UPDATE DUE COLLECTION INFORMATIONS AND CUSTOMER NEXT PAYMENT DATE
-    const result = await prisma_1.prisma.$transaction(async (tx) => {
-        const update = await tx.due_Collection.update({
-            data: {
-                ...data,
-                customer: {
-                    update: {
-                        nextPaymentDate: data.nextDate,
-                    },
+    const findDue = await prisma_1.prisma.due_Collection.findFirst({
+        where: { id },
+        select: {
+            due: true,
+            collect: true,
+            newDue: true,
+            nextDate: true,
+            customer: {
+                select: {
+                    customerCode: true,
                 },
             },
-            where: { id },
-        });
-        return update;
+        },
     });
-    return result;
+    if (!findDue) {
+        throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.NOT_FOUND, "বাকি পাওয়া যায়নি।");
+    }
+    const { customer, ...rest } = findDue;
+    // UPDATE DUE COLLECTION INFORMATIONS AND CUSTOMER NEXT PAYMENT DATE
+    if (user.role === "ADMIN" || user.role === "OWNER") {
+        const result = await prisma_1.prisma.$transaction(async (tx) => {
+            const update = await tx.due_Collection.update({
+                data: {
+                    ...data,
+                    customer: {
+                        update: {
+                            nextPaymentDate: data.nextDate,
+                        },
+                    },
+                    updateStatus: "APPROVED",
+                },
+                where: { id },
+            });
+            return update;
+        });
+        await activity_service_1.ActivityService.createActivityService({
+            action: "UPDATE",
+            module: "DUE",
+            targetId: id,
+            userId: user.userId,
+            vataId: user.vataId,
+            newData: data,
+            oldData: rest,
+            referenceNumber: `কাস্টমার আইডি ${customer?.customerCode}`,
+        });
+        return {
+            result,
+            message: "বাকি তথ্য সফলভাবে আপডেট করা হয়েছে।",
+        };
+    }
+    const result = await prisma_1.prisma.$transaction(async (tx) => {
+        await tx.due_Collection.update({
+            data: {
+                updateStatus: "PENDING",
+            },
+            where: {
+                customer: {
+                    vataId: user.vataId,
+                },
+                id,
+            },
+        });
+        return await tx.approvalRequest.create({
+            data: {
+                action: "UPDATE",
+                module: "DUE",
+                targetId: id,
+                requestedById: user.userId,
+                vataId: user.vataId,
+                status: "PENDING",
+                oldData: rest,
+                newData: data,
+            },
+        });
+    });
+    return {
+        result,
+        message: "বাকি আপডেটের অনুরোধ অ্যাডমিনের কাছে পাঠানো হয়েছে",
+    };
 };
 const getSingleDueCollectionDateService = async (user, id) => {
     return await prisma_1.prisma.customer.findFirst({
@@ -520,6 +595,87 @@ const updateDueCollectionDateService = async (user, id, info) => {
     });
     return result;
 };
+// DELETE DUE
+const deleteDueCollectionService = async (user, id) => {
+    const due = await prisma_1.prisma.due_Collection.findUnique({
+        where: {
+            id,
+            customer: {
+                vataId: user.vataId,
+            },
+        },
+        select: {
+            collect: true,
+            customer: {
+                select: { customerCode: true },
+            },
+            newDue: true,
+            nextDate: true,
+        },
+    });
+    if (!due) {
+        throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.NOT_FOUND, "এই বাকি পাওয়া যায়নি।");
+    }
+    if (user.role === "ADMIN" || user.role === "OWNER") {
+        const result = await prisma_1.prisma.due_Collection.update({
+            where: {
+                id,
+                customer: {
+                    vataId: user.vataId,
+                },
+            },
+            data: {
+                isDeleted: true,
+                deleteStatus: "APPROVED",
+            },
+        });
+        await activity_service_1.ActivityService.createActivityService({
+            action: "DELETE",
+            module: "DUE",
+            targetId: id,
+            userId: user.userId,
+            vataId: user.vataId,
+            referenceNumber: `কাস্টমার আইডি ${due?.customer.customerCode} এর ${due?.collect} টাকার একটি বাকি আদায় `,
+        });
+        return {
+            result,
+            message: "বাকিটি সফলভাবে মুছে ফেলা হয়েছে।",
+        };
+    }
+    // HERE REQUEST CREATE FOR DELETE
+    const result = await prisma_1.prisma.$transaction(async (tx) => {
+        await tx.due_Collection.update({
+            data: {
+                deleteStatus: "PENDING",
+            },
+            where: {
+                customer: {
+                    vataId: user.vataId,
+                },
+                id,
+            },
+        });
+        const { customer, ...rest } = due;
+        return await tx.approvalRequest.create({
+            data: {
+                action: "DELETE",
+                module: "DUE",
+                targetId: id,
+                requestedById: user.userId,
+                vataId: user.vataId,
+                status: "PENDING",
+                oldData: {
+                    customerCode: customer.customerCode,
+                    ...rest,
+                },
+            },
+        });
+    });
+    return {
+        result,
+        message: "বাকি মুছে ফেলার অনুরোধ অ্যাডমিনের কাছে পাঠানো হয়েছে",
+    };
+};
 exports.DueCollectionService = {
     getDueOfCustomerService,
     collectDueService,
@@ -531,4 +687,5 @@ exports.DueCollectionService = {
     updateDueCollectionDateService,
     getSingleDueCollectionDateService,
     searchCustomerForDeuService,
+    deleteDueCollectionService,
 };

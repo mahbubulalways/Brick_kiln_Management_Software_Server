@@ -33,6 +33,27 @@ const getAlApprovalController = (0, catchAsync_1.default)(async (req, res) => {
         });
     }
 });
+// UPDATE STATUS
+const changeApprovalStatusController = (0, catchAsync_1.default)(async (req, res) => {
+    const user = req.user;
+    const body = req.body.status;
+    const result = await approval_service_1.ApprovalService.changeAprovalStatus(user, req.params.id, body);
+    if (!result?.result) {
+        (0, sendResponse_1.sendResponse)(res, {
+            message: "অনুমোদনের অনুরোধ পাওয়া যায়নি।",
+            statusCode: http_status_codes_1.StatusCodes.NOT_FOUND,
+            success: false,
+        });
+    }
+    else {
+        (0, sendResponse_1.sendResponse)(res, {
+            message: result?.message,
+            statusCode: http_status_codes_1.StatusCodes.OK,
+            success: true,
+        });
+    }
+});
 exports.ApprovalController = {
     getAlApprovalController,
+    changeApprovalStatusController,
 };

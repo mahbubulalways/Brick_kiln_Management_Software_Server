@@ -32,6 +32,7 @@ exports.API_ENDPOINTS = {
         CREATE_DELIVERY: "/create-delivery",
         GET_SINGLE_DELIVERY: "/single-delivery/:id",
         STATUS_CHANGE: "/status/:id",
+        DELETE_DELIVERY: "/delete/:id",
     },
     DUE_COLLECTION: {
         TODAY_PAID: "/today-paid",
@@ -44,5 +45,6 @@ exports.API_ENDPOINTS = {
         TODAYS_HAVE_DUE: "/today-have-due",
         GET_CUSTOMER_DUE: "/customer-due/:customerId",
         COLLECTION: "/collection",
+        DELETE_DUE_COLLECTION: "/delete/:id",
     },
 };

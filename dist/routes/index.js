@@ -32,6 +32,7 @@ const goods_category_route_1 = __importDefault(require("../app/modules/goods_cat
 const good_stock_route_1 = __importDefault(require("../app/modules/goods_stock/good_stock.route"));
 const good_issue_route_1 = __importDefault(require("../app/modules/good_issue/good_issue.route"));
 const approval_route_1 = __importDefault(require("../app/modules/approval/approval.route"));
+const activity_route_1 = __importDefault(require("../app/modules/activity/activity.route"));
 const good_refund_routes_1 = __importDefault(require("../app/modules/good_refund/good_refund.routes"));
 const subscription_payment_route_1 = __importDefault(require("../app/modules/subscription_payment/subscription_payment.route"));
 const vata_car_route_1 = __importDefault(require("../app/modules/vata_car/vata_car.route"));
@@ -89,6 +90,7 @@ const applicationRoutes = [
     { path: "/notification", route: notification_route_1.default },
     { path: "/faq", route: faq_route_1.default },
     { path: "/approval", route: approval_route_1.default },
+    { path: "/activity", route: activity_route_1.default },
     // ADMIN MODULES
     {
         path: "/system/admin",

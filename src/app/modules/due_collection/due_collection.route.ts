@@ -77,4 +77,11 @@ router.patch(
   SubscriptionGuard,
   DueCollectionController.updateDueCollectionDateController,
 );
+
+router.patch(
+  API_ENDPOINTS.DUE_COLLECTION.DELETE_DUE_COLLECTION,
+  AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+  DueCollectionController.deleteDueCollectionController,
+);
+
 export default router;

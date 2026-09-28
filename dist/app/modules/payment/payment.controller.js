@@ -98,14 +98,14 @@ const getSinglePaymentController = (0, catchAsync_1.default)(async (req, res) =>
 const updatePaymentController = (0, catchAsync_1.default)(async (req, res) => {
     const user = req.user;
     const result = await payment_service_1.PaymentService.updatePaymentService(user, req);
-    if (!result) {
+    if (!result.result) {
         throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.BAD_REQUEST, "পেমেন্ট আপডেট করা যায়নি। অনুগ্রহ করে আবার চেষ্টা করুন।");
     }
     else {
         (0, sendResponse_1.sendResponse)(res, {
             statusCode: http_status_codes_1.StatusCodes.OK,
             success: true,
-            message: "পেমেন্ট সফলভাবে আপডেট করা হয়েছে।",
+            message: result?.message,
         });
     }
 });
@@ -114,14 +114,14 @@ const deletePaymentController = (0, catchAsync_1.default)(async (req, res) => {
     const id = req.params.id;
     const user = req.user;
     const result = await payment_service_1.PaymentService.deletePaymentServie(user, id);
-    if (!result) {
+    if (!result.result) {
         throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.BAD_REQUEST, "পেমেন্ট মুছে ফেলা যায়নি। অনুগ্রহ করে আবার চেষ্টা করুন।");
     }
     else {
         (0, sendResponse_1.sendResponse)(res, {
             statusCode: http_status_codes_1.StatusCodes.OK,
             success: true,
-            message: "পেমেন্ট সফলভাবে মুছে ফেলা হয়েছে।",
+            message: result.message,
         });
     }
 });
@@ -131,5 +131,5 @@ exports.PaymentController = {
     paymentReportViaGroupController,
     getSinglePaymentController,
     updatePaymentController,
-    deletePaymentController
+    deletePaymentController,
 };

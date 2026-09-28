@@ -9,4 +9,5 @@ const enums_1 = require("../../../generated/prisma/enums");
 const approval_controller_1 = require("./approval.controller");
 const router = (0, express_1.Router)();
 router.get("/all", (0, AuthGuard_1.default)(enums_1.UserRole.ADMIN, enums_1.UserRole.OWNER), approval_controller_1.ApprovalController.getAlApprovalController);
+router.patch("/update-status/:id", (0, AuthGuard_1.default)(enums_1.UserRole.ADMIN, enums_1.UserRole.OWNER), approval_controller_1.ApprovalController.changeApprovalStatusController);
 exports.default = router;

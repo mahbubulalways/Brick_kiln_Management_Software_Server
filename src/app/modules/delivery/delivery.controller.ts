@@ -97,13 +97,13 @@ const getAllDeliveryListController = catchAsync(async (req, res) => {
 
 // GET DELIVERY THAT DONE
 const getTodaysDeliveryThatDoneController = catchAsync(async (req, res) => {
-  const { limit, page, date } = await parseListQuery(req.query);
+  const { limit, page, date, search } = await parseListQuery(req.query);
   const user = req.user as TAuthUser;
   const seasonId = req.seasonId;
   const result = await DeliveryService.getTodaysDeliveryThatDone(
     user,
     seasonId,
-    { date, limit, page },
+    { date, limit, page, search },
   );
   if (!result?.data?.length) {
     sendResponse(res, {
@@ -157,6 +157,23 @@ const changeDeliveryStatusController = catchAsync(async (req, res) => {
   });
 });
 
+// DELETE DELIVERY
+const deleteDeliveryController = catchAsync(async (req, res) => {
+  const id = req.params.id;
+  const user = req.user as TAuthUser;
+  const result = await DeliveryService.deleteDeliveryService(user, id);
+  if (!result.result) {
+    throw new AppError(StatusCodes.NOT_FOUND, "ডেলিভারি মুছে ফেলা সম্ভব হয়নি।");
+  } else {
+    sendResponse(res, {
+      statusCode: StatusCodes.OK,
+      success: true,
+      message: result.message,
+      data: result,
+    });
+  }
+});
+
 export const DeliveryController = {
   getNextDeliveryNoController,
   getDeliveryThatGoTodayController,
@@ -165,4 +182,5 @@ export const DeliveryController = {
   getAllDeliveryListController,
   getSingleDeliveryController,
   changeDeliveryStatusController,
+  deleteDeliveryController,
 };

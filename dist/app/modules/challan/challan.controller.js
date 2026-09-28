@@ -20,10 +20,10 @@ const getInvoiceSerial = (0, catchAsync_1.default)(async (req, res) => {
         },
     })) + 1;
     if (!result) {
-        throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.BAD_REQUEST, "ইনভয়েস সিরিয়াল তৈরি করা যায়নি।");
+        throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.BAD_REQUEST, "চালান সিরিয়াল তৈরি করা যায়নি।");
     }
     (0, sendResponse_1.sendResponse)(res, {
-        message: "ইনভয়েস সিরিয়াল সফলভাবে তৈরি হয়েছে।",
+        message: "চালান সিরিয়াল সফলভাবে তৈরি হয়েছে।",
         statusCode: http_status_codes_1.StatusCodes.OK,
         success: true,
         data: {
@@ -38,11 +38,11 @@ const createInvoiceController = (0, catchAsync_1.default)(async (req, res) => {
     const seasonId = req.seasonId;
     const result = await challan_service_1.InvoiceService.createInvoiceService(user, seasonId, body.customer, body.invoiceItems.items, body.invoice);
     if (!result?.id) {
-        throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.BAD_REQUEST, "চ্যালান তৈরি করতে ব্যর্থ হয়েছে।");
+        throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.BAD_REQUEST, "চালান তৈরি করতে ব্যর্থ হয়েছে।");
     }
     else {
         (0, sendResponse_1.sendResponse)(res, {
-            message: "চ্যালান সফলভাবে তৈরি হয়েছে।",
+            message: "চালান সফলভাবে তৈরি হয়েছে।",
             statusCode: http_status_codes_1.StatusCodes.OK,
             success: true,
             data: result,
@@ -58,7 +58,7 @@ const searchChallanForDeliveryController = (0, catchAsync_1.default)(async (req,
     });
     if (!result) {
         return (0, sendResponse_1.sendResponse)(res, {
-            message: "কোনো চ্যালান পাওয়া যায়নি।",
+            message: "কোনো চালান পাওয়া যায়নি।",
             statusCode: http_status_codes_1.StatusCodes.OK,
             success: true,
             data: [],
@@ -66,7 +66,7 @@ const searchChallanForDeliveryController = (0, catchAsync_1.default)(async (req,
     }
     else {
         return (0, sendResponse_1.sendResponse)(res, {
-            message: "চ্যালান সফলভাবে পাওয়া গেছে।",
+            message: "চালান সফলভাবে পাওয়া গেছে।",
             statusCode: http_status_codes_1.StatusCodes.OK,
             success: true,
             data: result,
@@ -86,7 +86,7 @@ const getAllInvoiceController = (0, catchAsync_1.default)(async (req, res) => {
     });
     if (!result?.data.length) {
         (0, sendResponse_1.sendResponse)(res, {
-            message: "চ্যালান পাওয়া যায়নি।",
+            message: "চালান পাওয়া যায়নি।",
             statusCode: http_status_codes_1.StatusCodes.OK,
             success: true,
             data: [],
@@ -94,7 +94,7 @@ const getAllInvoiceController = (0, catchAsync_1.default)(async (req, res) => {
     }
     else {
         (0, sendResponse_1.sendResponse)(res, {
-            message: "চ্যালান সফলভাবে পাওয়া গেছে।",
+            message: "চালান সফলভাবে পাওয়া গেছে।",
             statusCode: http_status_codes_1.StatusCodes.OK,
             success: true,
             data: result,
@@ -114,7 +114,7 @@ const getAllAdvanceInvoiceController = (0, catchAsync_1.default)(async (req, res
     });
     if (!result?.data.length) {
         (0, sendResponse_1.sendResponse)(res, {
-            message: "চ্যালান পাওয়া যায়নি।",
+            message: "চালান পাওয়া যায়নি।",
             statusCode: http_status_codes_1.StatusCodes.OK,
             success: true,
             data: [],
@@ -122,7 +122,7 @@ const getAllAdvanceInvoiceController = (0, catchAsync_1.default)(async (req, res
     }
     else {
         (0, sendResponse_1.sendResponse)(res, {
-            message: "চ্যালান সফলভাবে পাওয়া গেছে।",
+            message: "চালান সফলভাবে পাওয়া গেছে।",
             statusCode: http_status_codes_1.StatusCodes.OK,
             success: true,
             data: result,
@@ -135,13 +135,13 @@ const getSingleInvoiceController = (0, catchAsync_1.default)(async (req, res) =>
     const user = req.user;
     const result = await challan_service_1.InvoiceService.getSingleInvoiceService(user, id);
     if (!result?.id) {
-        throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.BAD_REQUEST, "চ্যালান পাওয়া যায়নি।");
+        throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.BAD_REQUEST, "চালান পাওয়া যায়নি।");
     }
     else {
         (0, sendResponse_1.sendResponse)(res, {
             message: !result?.id
-                ? "চ্যালান পাওয়া যায়নি।"
-                : "চ্যালান সফলভাবে পাওয়া গেছে।",
+                ? "চালান পাওয়া যায়নি।"
+                : "চালান সফলভাবে পাওয়া গেছে।",
             statusCode: http_status_codes_1.StatusCodes.OK,
             success: true,
             data: result,
@@ -156,7 +156,7 @@ const getSingleInvoiceItemsController = (0, catchAsync_1.default)(async (req, re
     const result = await challan_service_1.InvoiceService.getSingleInvoiceItemsService(user, id, query?.ids);
     if (!result?.length) {
         (0, sendResponse_1.sendResponse)(res, {
-            message: "চ্যালান পাওয়া যায়নি।",
+            message: "চালান পাওয়া যায়নি।",
             statusCode: http_status_codes_1.StatusCodes.OK,
             success: true,
             data: {},
@@ -164,7 +164,7 @@ const getSingleInvoiceItemsController = (0, catchAsync_1.default)(async (req, re
     }
     else {
         (0, sendResponse_1.sendResponse)(res, {
-            message: "চ্যালান সফলভাবে পাওয়া গেছে।",
+            message: "চালান সফলভাবে পাওয়া গেছে।",
             statusCode: http_status_codes_1.StatusCodes.OK,
             success: true,
             data: result,
@@ -177,12 +177,12 @@ const updateInvoiceController = (0, catchAsync_1.default)(async (req, res) => {
     const body = req.body;
     const user = req.user;
     const result = await challan_service_1.InvoiceService.updateInvoiceService(user, id, body.invoice, body.invoiceItems);
-    if (!result?.id) {
-        throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.BAD_REQUEST, "চ্যালান হালনাগাদ করতে ব্যর্থ হয়েছে।");
+    if (!result?.result) {
+        throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.BAD_REQUEST, "চালান হালনাগাদ করতে ব্যর্থ হয়েছে।");
     }
     else {
         (0, sendResponse_1.sendResponse)(res, {
-            message: "চ্যালান সফলভাবে হালনাগাদ হয়েছে।",
+            message: result.message,
             statusCode: http_status_codes_1.StatusCodes.OK,
             success: true,
             data: result,
@@ -194,12 +194,12 @@ const deleteInvoiceController = (0, catchAsync_1.default)(async (req, res) => {
     const id = req?.params?.id;
     const user = req.user;
     const result = await challan_service_1.InvoiceService.deleteInvoiceService(user, id);
-    if (!result?.id) {
-        throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.BAD_REQUEST, "চ্যালান মুছে ফেলতে ব্যর্থ হয়েছে।");
+    if (!result?.result.id) {
+        throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.BAD_REQUEST, "চালান মুছে ফেলতে ব্যর্থ হয়েছে।");
     }
     else {
         (0, sendResponse_1.sendResponse)(res, {
-            message: "চ্যালান সফলভাবে মুছে ফেলা হয়েছে।",
+            message: result.message,
             statusCode: http_status_codes_1.StatusCodes.OK,
             success: true,
             data: result,
@@ -214,7 +214,7 @@ const getItemsWithInvoiceController = (0, catchAsync_1.default)(async (req, res)
     const result = await challan_service_1.InvoiceService.getItemsWithInvoiceService(user, seasonId, { date, search });
     if (!result?.length) {
         (0, sendResponse_1.sendResponse)(res, {
-            message: "চ্যালান পাওয়া যায়নি।",
+            message: "চালান পাওয়া যায়নি।",
             statusCode: http_status_codes_1.StatusCodes.OK,
             success: true,
             data: [],
@@ -222,7 +222,7 @@ const getItemsWithInvoiceController = (0, catchAsync_1.default)(async (req, res)
     }
     else {
         (0, sendResponse_1.sendResponse)(res, {
-            message: " চ্যালান সফলভাবে পাওয়া গেছে।",
+            message: " চালান সফলভাবে পাওয়া গেছে।",
             statusCode: http_status_codes_1.StatusCodes.OK,
             success: true,
             data: result,
@@ -236,11 +236,11 @@ const updateInvoiceDeliveryDateController = (0, catchAsync_1.default)(async (req
     const user = req.user;
     const result = await challan_service_1.InvoiceService.updateInvoiceDeliveryDateService(user, id, updatedDate);
     if (!result?.id) {
-        throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.BAD_REQUEST, "চ্যালান আপডেট করতে ব্যর্থ হয়েছে।");
+        throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.BAD_REQUEST, "চালান আপডেট করতে ব্যর্থ হয়েছে।");
     }
     else {
         (0, sendResponse_1.sendResponse)(res, {
-            message: " চ্যালান সফলভাবে আপডেট হয়েছে",
+            message: " চালান সফলভাবে আপডেট হয়েছে",
             statusCode: http_status_codes_1.StatusCodes.OK,
             success: true,
         });
@@ -253,11 +253,11 @@ const updateInvoiceItemDeliveryDateController = (0, catchAsync_1.default)(async 
     const user = req.user;
     const result = await challan_service_1.InvoiceService.updateItemsDateService(user, id, updatedDate);
     if (!result?.id) {
-        throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.BAD_REQUEST, "চ্যালান আপডেট করতে ব্যর্থ হয়েছে।");
+        throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.BAD_REQUEST, "চালান আপডেট করতে ব্যর্থ হয়েছে।");
     }
     else {
         (0, sendResponse_1.sendResponse)(res, {
-            message: " চ্যালান সফলভাবে আপডেট হয়েছে",
+            message: " চালান সফলভাবে আপডেট হয়েছে",
             statusCode: http_status_codes_1.StatusCodes.OK,
             success: true,
         });

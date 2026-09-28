@@ -39,7 +39,7 @@ const changeApprovalStatusController = catchAsync(async (req, res) => {
     req.params.id,
     body,
   );
-  if (!result.result) {
+  if (!result?.result) {
     sendResponse(res, {
       message: "অনুমোদনের অনুরোধ পাওয়া যায়নি।",
       statusCode: StatusCodes.NOT_FOUND,

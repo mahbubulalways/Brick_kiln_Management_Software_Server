@@ -16,6 +16,7 @@ import { StatusCodes } from "http-status-codes";
 // import { getUserAndPermissionForSms } from "../send_sms/send_sms.utils";
 import { formatDate } from "../../../utils/formatDate";
 import { getUserAndPermissionForSms } from "../send_sms/send_sms.utils";
+import { ActivityService } from "../activity/activity.service";
 
 // CREATE CUSTOMER AND INVOICE AND INVOICE ITEMS
 // const createInvoiceService = async (
@@ -593,6 +594,80 @@ const getSingleInvoiceItemsService = async (
 };
 
 // UPDATE INVOICE
+// const updateInvoiceService = async (
+//   user: TAuthUser,
+//   serialId: string,
+//   invoice: Challan,
+//   items: ChallanItem[],
+// ) => {
+//   const invoiceId = await prisma.challan.findFirst({
+//     where: { serial: Number(serialId), vataId: user.vataId },
+//     select: { id: true },
+//   });
+
+//   const result = await prisma.$transaction(
+//     async (tx: Prisma.TransactionClient) => {
+//       // update invoice
+//       const updateInvoice = await tx.challan.update({
+//         data: invoice,
+//         where: {
+//           id: invoiceId?.id,
+//           vataId: user.vataId,
+//         },
+//       });
+
+//       //  SEPARATE NEW AND OLD ITEMS
+//       const existItems = items.filter((item) => item.id);
+//       const newItems = items.filter((item) => !item.id);
+
+//       // DELETE ITEMS
+//       // IDS
+//       const Ids = existItems.map((item) => item.id);
+//       await tx.challanItem.deleteMany({
+//         where: {
+//           challanId: invoiceId?.id,
+//           id: { notIn: Ids },
+//         },
+//       });
+
+//       //  update items
+//       await Promise.all(
+//         existItems?.map((item) =>
+//           tx.challanItem.update({
+//             where: { id: item.id },
+//             data: {
+//               quantity: Number(item.quantity),
+//               rate: Number(item.rate),
+//               class: item.class,
+//               price: Number(item.price),
+//               deliveryDate: invoice.deliveryDate,
+//             },
+//           }),
+//         ),
+//       );
+
+//       // CREATE NEW INVOICE AFTER UPDATE IF THERE ANY NEW ITEM ADDED
+//       if (newItems?.length) {
+//         const invokeInvoiceId = newItems.map((it: ChallanItem) => {
+//           return {
+//             class: it.class,
+//             rate: Number(it.rate),
+//             quantity: Number(it.quantity),
+//             price: Number(it.price),
+//             challanId: invoiceId?.id!,
+//             deliveryDate: invoice.deliveryDate,
+//           };
+//         });
+//         await tx.challanItem.createMany({
+//           data: invokeInvoiceId,
+//         });
+//       }
+//       return updateInvoice;
+//     },
+//   );
+//   return result;
+// };
+
 const updateInvoiceService = async (
   user: TAuthUser,
   serialId: string,
@@ -600,94 +675,292 @@ const updateInvoiceService = async (
   items: ChallanItem[],
 ) => {
   const invoiceId = await prisma.challan.findFirst({
-    where: { serial: Number(serialId), vataId: user.vataId },
-    select: { id: true },
+    where: {
+      serial: Number(serialId),
+      vataId: user.vataId,
+      isDeleted: false,
+    },
+    select: {
+      id: true,
+      serial: true,
+      chalanType: true,
+      deliveryDate: true,
+      challanDate: true,
+      duePaymentDate: true,
+      deliverySeason: true,
+      note: true,
+      productPrice: true,
+      discount: true,
+      carRent: true,
+      totalPrice: true,
+      cash: true,
+      due: true,
+      customerId: true,
+      seasonId: true,
+      items: true,
+    },
   });
+
+  if (!invoiceId) {
+    throw new AppError(StatusCodes.NOT_FOUND, "চালান পাওয়া যায়নি।");
+  }
+
+  // ADMIN / OWNER → DIRECT UPDATE
+  const { items: challaItems, ...rest } = invoiceId;
+  const formatItems = challaItems?.map((it) => ({
+    class: it.class,
+    rate: it.rate,
+    quantity: it.quantity,
+    price: it.price,
+  }));
+
+  if (user.role === "ADMIN" || user.role === "OWNER") {
+    const result = await prisma.$transaction(
+      async (tx: Prisma.TransactionClient) => {
+        // UPDATE INVOICE
+
+        const updateInvoice = await tx.challan.update({
+          data: {
+            ...invoice,
+            updateStatus: "APPROVED",
+          },
+          where: {
+            id: invoiceId.id,
+            vataId: user.vataId,
+          },
+        });
+
+        // SEPARATE NEW AND OLD ITEMS
+
+        const existItems = items.filter((item) => item.id);
+
+        const newItems = items.filter((item) => !item.id);
+
+        // DELETE ITEMS
+
+        const Ids = existItems.map((item) => item.id).filter(Boolean);
+
+        await tx.challanItem.deleteMany({
+          where: {
+            challanId: invoiceId.id,
+            ...(Ids.length
+              ? {
+                  id: {
+                    notIn: Ids,
+                  },
+                }
+              : {}),
+          },
+        });
+
+        // UPDATE ITEMS
+
+        await Promise.all(
+          existItems.map((item) =>
+            tx.challanItem.update({
+              where: {
+                id: item.id,
+              },
+              data: {
+                quantity: Number(item.quantity),
+                rate: Number(item.rate),
+                class: item.class,
+                price: Number(item.price),
+                deliveryDate: invoice.deliveryDate,
+              },
+            }),
+          ),
+        );
+
+        // CREATE NEW ITEMS
+
+        if (newItems.length) {
+          const invokeInvoiceId = newItems.map((it: ChallanItem) => {
+            return {
+              class: it.class,
+              rate: Number(it.rate),
+              quantity: Number(it.quantity),
+              price: Number(it.price),
+              challanId: invoiceId.id,
+              deliveryDate: invoice.deliveryDate,
+            };
+          });
+
+          await tx.challanItem.createMany({
+            data: invokeInvoiceId,
+          });
+        }
+
+        return updateInvoice;
+      },
+    );
+
+    await ActivityService.createActivityService({
+      action: "UPDATE",
+      module: "CHALLAN",
+      targetId: serialId,
+      userId: user.userId,
+      vataId: user.vataId,
+      newData: {
+        invoice,
+        items,
+      },
+      oldData: {
+        invoice: rest,
+        items: formatItems,
+      },
+      referenceNumber: invoiceId.serial,
+    });
+
+    return {
+      result,
+      message: "চালান সফলভাবে আপডেট করা হয়েছে।",
+    };
+  }
+
+  // OTHER ROLE → APPROVAL REQUEST
 
   const result = await prisma.$transaction(
     async (tx: Prisma.TransactionClient) => {
-      // update invoice
-      const updateInvoice = await tx.challan.update({
-        data: invoice,
+      await tx.challan.update({
+        data: {
+          updateStatus: "PENDING",
+        },
         where: {
-          id: invoiceId?.id,
+          id: invoiceId.id,
           vataId: user.vataId,
         },
       });
 
-      //  SEPARATE NEW AND OLD ITEMS
-      const existItems = items.filter((item) => item.id);
-      const newItems = items.filter((item) => !item.id);
+      const newItemsFormat = items?.map((it) => ({
+        class: it.class,
+        rate: it.rate,
+        quantity: it.quantity,
+        price: it.price,
+      }));
 
-      // DELETE ITEMS
-      // IDS
-      const Ids = existItems.map((item) => item.id);
-      await tx.challanItem.deleteMany({
-        where: {
-          challanId: invoiceId?.id,
-          id: { notIn: Ids },
+      return await tx.approvalRequest.create({
+        data: {
+          action: "UPDATE",
+          module: "CHALLAN",
+          targetId: serialId,
+          requestedById: user.userId,
+          vataId: user.vataId,
+          status: "PENDING",
+
+          oldData: {
+            invoice: {
+              serial: rest.serial,
+              chalanType: rest.chalanType,
+              challanDate: rest.challanDate,
+              deliveryDate: rest.deliveryDate,
+              deliverySeason: rest.deliverySeason,
+              duePaymentDate: rest.duePaymentDate,
+              productPrice: rest.productPrice,
+              discount: rest.discount,
+              carRent: rest.carRent,
+              totalPrice: rest.totalPrice,
+              cash: rest.cash,
+              due: rest.due,
+              note: rest.note,
+            },
+            items: formatItems,
+          },
+
+          newData: {
+            invoice,
+            items: newItemsFormat,
+          },
         },
       });
-
-      //  update items
-      await Promise.all(
-        existItems?.map((item) =>
-          tx.challanItem.update({
-            where: { id: item.id },
-            data: {
-              quantity: Number(item.quantity),
-              rate: Number(item.rate),
-              class: item.class,
-              price: Number(item.price),
-              deliveryDate: invoice.deliveryDate,
-            },
-          }),
-        ),
-      );
-
-      // CREATE NEW INVOICE AFTER UPDATE IF THERE ANY NEW ITEM ADDED
-      if (newItems?.length) {
-        const invokeInvoiceId = newItems.map((it: ChallanItem) => {
-          return {
-            class: it.class,
-            rate: Number(it.rate),
-            quantity: Number(it.quantity),
-            price: Number(it.price),
-            challanId: invoiceId?.id!,
-            deliveryDate: invoice.deliveryDate,
-          };
-        });
-        await tx.challanItem.createMany({
-          data: invokeInvoiceId,
-        });
-      }
-      return updateInvoice;
     },
   );
-  return result;
+
+  return {
+    result,
+    message: "চালান আপডেটের অনুরোধ অ্যাডমিনের কাছে পাঠানো হয়েছে।",
+  };
 };
 
 // DELETE INVOICE
 const deleteInvoiceService = async (user: TAuthUser, invoiceId: string) => {
-  const result = await prisma.challan.update({
-    data: {
-      isDeleted: true,
-    },
+  const findInvoice = await prisma.challan.findFirst({
     where: {
       id: invoiceId,
       vataId: user.vataId,
     },
+    select: {
+      serial: true,
+    },
   });
 
-  await prisma.challanItem.updateMany({
-    data: {
-      isDeleted: true,
-    },
-    where: {
-      challanId: invoiceId,
-    },
+  if (!findInvoice) {
+    throw new AppError(StatusCodes.BAD_REQUEST, "চ্যালান পাওয়া যায়নি।");
+  }
+  if (user.role === "ADMIN" || user.role === "OWNER") {
+    const result = await prisma.challan.update({
+      data: {
+        isDeleted: true,
+        deleteStatus: "APPROVED",
+      },
+      where: {
+        id: invoiceId,
+        vataId: user.vataId,
+      },
+    });
+
+    await prisma.challanItem.updateMany({
+      data: {
+        isDeleted: true,
+      },
+      where: {
+        challanId: invoiceId,
+      },
+    });
+
+    await ActivityService.createActivityService({
+      action: "DELETE",
+      module: "CHALLAN",
+      targetId: invoiceId,
+      userId: user.userId,
+      vataId: user.vataId,
+      referenceNumber: findInvoice?.serial,
+    });
+
+    return {
+      result,
+      message: "চালান সফলভাবে মুছে ফেলা হয়েছে।",
+    };
+  }
+
+  const result = await prisma.$transaction(async (tx) => {
+    await tx.challan.update({
+      data: {
+        deleteStatus: "PENDING",
+      },
+      where: {
+        id: invoiceId,
+        vataId: user.vataId,
+      },
+    });
+
+    return await tx.approvalRequest.create({
+      data: {
+        action: "DELETE",
+        module: "CHALLAN",
+        targetId: invoiceId,
+        requestedById: user.userId,
+        vataId: user.vataId,
+        status: "PENDING",
+        oldData: findInvoice,
+      },
+    });
   });
-  return result;
+
+  return {
+    result,
+    message: "চালানটি মুছে ফেলার অনুরোধ অ্যাডমিনের কাছে পাঠানো হয়েছে",
+  };
 };
 
 //*

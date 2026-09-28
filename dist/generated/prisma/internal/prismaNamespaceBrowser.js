@@ -194,7 +194,9 @@ exports.ChallanScalarFieldEnum = {
     vataId: 'vataId',
     isDeleted: 'isDeleted',
     createdById: 'createdById',
-    seasonId: 'seasonId'
+    seasonId: 'seasonId',
+    deleteStatus: 'deleteStatus',
+    updateStatus: 'updateStatus'
 };
 exports.ChallanItemScalarFieldEnum = {
     id: 'id',
@@ -252,7 +254,9 @@ exports.DeliveryScalarFieldEnum = {
     updatedAt: 'updatedAt',
     season: 'season',
     deliveryById: 'deliveryById',
-    driverId: 'driverId'
+    driverId: 'driverId',
+    deleteStatus: 'deleteStatus',
+    updateStatus: 'updateStatus'
 };
 exports.DeliveryStatusActionTimeScalarFieldEnum = {
     id: 'id',
@@ -272,7 +276,9 @@ exports.Due_CollectionScalarFieldEnum = {
     seasonId: 'seasonId',
     isDeleted: 'isDeleted',
     createdAt: 'createdAt',
-    updatedAt: 'updatedAt'
+    updatedAt: 'updatedAt',
+    deleteStatus: 'deleteStatus',
+    updateStatus: 'updateStatus'
 };
 exports.LedgerScalarFieldEnum = {
     id: 'id',
@@ -291,7 +297,9 @@ exports.LedgerScalarFieldEnum = {
     salary: 'salary',
     weeklyFood: 'weeklyFood',
     openingBalance: 'openingBalance',
-    openingBalanceType: 'openingBalanceType'
+    openingBalanceType: 'openingBalanceType',
+    deleteStatus: 'deleteStatus',
+    updateStatus: 'updateStatus'
 };
 exports.PaymentScalarFieldEnum = {
     id: 'id',
@@ -311,7 +319,9 @@ exports.PaymentScalarFieldEnum = {
     address: 'address',
     totalBill: 'totalBill',
     isDeleted: 'isDeleted',
-    paymentDate: 'paymentDate'
+    paymentDate: 'paymentDate',
+    deleteStatus: 'deleteStatus',
+    updateStatus: 'updateStatus'
 };
 exports.CashScalarFieldEnum = {
     id: 'id',
@@ -323,7 +333,9 @@ exports.CashScalarFieldEnum = {
     createdAt: 'createdAt',
     updatedAt: 'updatedAt',
     vataId: 'vataId',
-    seasonId: 'seasonId'
+    seasonId: 'seasonId',
+    deleteStatus: 'deleteStatus',
+    updateStatus: 'updateStatus'
 };
 exports.RoundScalarFieldEnum = {
     id: 'id',
@@ -748,7 +760,6 @@ exports.ApprovalRequestScalarFieldEnum = {
     status: 'status',
     isDeleted: 'isDeleted',
     reviewedAt: 'reviewedAt',
-    reviewNote: 'reviewNote',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
 };

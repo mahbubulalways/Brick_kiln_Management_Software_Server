@@ -8,20 +8,18 @@ import { TAuthUser } from "../../../interface/token";
 
 // CREATE NEW LEDGER
 const createPaymentController = catchAsync(async (req, res) => {
-  const user = req.user as TAuthUser
+  const user = req.user as TAuthUser;
   const result = await PaymentService.createPaymentService(req, user);
   if (!result) {
     throw new AppError(
       StatusCodes.BAD_REQUEST,
       "পেমেন্ট তৈরি করা যায়নি। অনুগ্রহ করে আবার চেষ্টা করুন।",
     );
-  }
-  else {
+  } else {
     sendResponse(res, {
       statusCode: StatusCodes.CREATED,
       success: true,
       message: "পেমেন্ট সফলভাবে তৈরি করা হয়েছে।",
-
     });
   }
 });
@@ -29,9 +27,9 @@ const createPaymentController = catchAsync(async (req, res) => {
 // GET ALL PAYMENT PAGINATE AND SEARCH
 const getAllPaymentController = catchAsync(async (req, res) => {
   const { limit, page, search, date } = await parseListQuery(req.query);
-  const user = req.user as TAuthUser
-    const seasonId = req.seasonId
-  const result = await PaymentService.getAllPaymentService(user,seasonId, {
+  const user = req.user as TAuthUser;
+  const seasonId = req.seasonId;
+  const result = await PaymentService.getAllPaymentService(user, seasonId, {
     limit,
     page,
     search,
@@ -45,9 +43,7 @@ const getAllPaymentController = catchAsync(async (req, res) => {
       message: "কোনো পেমেন্ট পাওয়া যায়নি।",
       data: [],
     });
-  }
-
-  else {
+  } else {
     sendResponse(res, {
       statusCode: StatusCodes.OK,
       success: true,
@@ -61,10 +57,14 @@ const getAllPaymentController = catchAsync(async (req, res) => {
 
 // GET ALL PAYMENT PAGINATE AND SEARCH
 const paymentReportViaGroupController = catchAsync(async (req, res) => {
-  const user = req.user as TAuthUser
-      const seasonId = req.seasonId
-      const date = req.params.date
-  const result = await PaymentService.paymentReportViaGroupService(user,seasonId,date);
+  const user = req.user as TAuthUser;
+  const seasonId = req.seasonId;
+  const date = req.params.date;
+  const result = await PaymentService.paymentReportViaGroupService(
+    user,
+    seasonId,
+    date,
+  );
   if (!result.length) {
     sendResponse(res, {
       statusCode: StatusCodes.OK,
@@ -72,9 +72,7 @@ const paymentReportViaGroupController = catchAsync(async (req, res) => {
       message: "কোনো পেমেন্ট পাওয়া যায়নি।",
       data: [],
     });
-  }
-
-  else {
+  } else {
     sendResponse(res, {
       statusCode: StatusCodes.OK,
       success: true,
@@ -84,17 +82,14 @@ const paymentReportViaGroupController = catchAsync(async (req, res) => {
   }
 });
 
-
 // GET SINGLE PAYMENT
 const getSinglePaymentController = catchAsync(async (req, res) => {
-  const id = req.params.id
-  const user = req.user as TAuthUser
+  const id = req.params.id;
+  const user = req.user as TAuthUser;
   const result = await PaymentService.getSinglePaymentService(user, id);
   if (!result) {
-    throw new AppError(StatusCodes.NOT_FOUND, "কোনো পেমেন্ট পাওয়া যায়নি।")
-  }
-
-  else {
+    throw new AppError(StatusCodes.NOT_FOUND, "কোনো পেমেন্ট পাওয়া যায়নি।");
+  } else {
     sendResponse(res, {
       statusCode: StatusCodes.OK,
       success: true,
@@ -104,49 +99,41 @@ const getSinglePaymentController = catchAsync(async (req, res) => {
   }
 });
 
-
 // UPDATE PAYMENT
 const updatePaymentController = catchAsync(async (req, res) => {
-  const user = req.user as TAuthUser
+  const user = req.user as TAuthUser;
   const result = await PaymentService.updatePaymentService(user, req);
 
-  if (!result) {
+  if (!result.result) {
     throw new AppError(
       StatusCodes.BAD_REQUEST,
       "পেমেন্ট আপডেট করা যায়নি। অনুগ্রহ করে আবার চেষ্টা করুন।",
     );
-  }
-
-  else {
+  } else {
     sendResponse(res, {
       statusCode: StatusCodes.OK,
       success: true,
-      message: "পেমেন্ট সফলভাবে আপডেট করা হয়েছে।",
-
+      message: result?.message,
     });
   }
 });
 
-
 // DELETE PAYMENT (SOFT)
 const deletePaymentController = catchAsync(async (req, res) => {
   const id = req.params.id;
-  const user = req.user as TAuthUser
-  const result =
-    await PaymentService.deletePaymentServie(user, id);
+  const user = req.user as TAuthUser;
+  const result = await PaymentService.deletePaymentServie(user, id);
 
-  if (!result) {
+  if (!result.result) {
     throw new AppError(
       StatusCodes.BAD_REQUEST,
       "পেমেন্ট মুছে ফেলা যায়নি। অনুগ্রহ করে আবার চেষ্টা করুন।",
     );
-  }
-  else {
-
+  } else {
     sendResponse(res, {
       statusCode: StatusCodes.OK,
       success: true,
-      message: "পেমেন্ট সফলভাবে মুছে ফেলা হয়েছে।",
+      message: result.message,
     });
   }
 });
@@ -157,5 +144,5 @@ export const PaymentController = {
   paymentReportViaGroupController,
   getSinglePaymentController,
   updatePaymentController,
-  deletePaymentController
+  deletePaymentController,
 };

@@ -31,7 +31,7 @@ const createActivityService = async ({
 }: TCreateActivity) => {
   const description = generateActivityDescription(
     module,
-    "UPDATE",
+    action,
     oldData as Record<string, unknown>,
     newData as Record<string, unknown>,
     referenceNumber,

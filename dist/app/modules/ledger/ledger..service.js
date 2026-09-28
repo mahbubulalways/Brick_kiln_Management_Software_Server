@@ -7,6 +7,7 @@ const ApplicationError_1 = require("../../errors/ApplicationError");
 const getDateRangeDbSearch_1 = require("../../../utils/getDateRangeDbSearch");
 const paginationHelper_1 = require("../../../helpers/paginationHelper");
 const createMetaConfig_1 = require("../../../utils/createMetaConfig");
+const activity_service_1 = require("../activity/activity.service");
 // GET LEDGER COUNT
 const getLedgerCountService = async (user) => {
     const res = await prisma_1.prisma.ledger.count({ where: { vataId: user?.vataId } });
@@ -154,6 +155,8 @@ const getAllLedgerWithChildrenPaginationService = async (user, seasonId, query) 
                 weeklyFood: true,
                 openingBalance: true,
                 openingBalanceType: true,
+                deleteStatus: true,
+                updateStatus: true,
                 parent: {
                     select: {
                         name: true,
@@ -174,6 +177,8 @@ const getAllLedgerWithChildrenPaginationService = async (user, seasonId, query) 
                         weeklyFood: true,
                         openingBalance: true,
                         openingBalanceType: true,
+                        deleteStatus: true,
+                        updateStatus: true,
                     },
                 },
             },
@@ -413,55 +418,166 @@ const getSingleLedgerService = async (user, id) => {
 };
 /// UPDATE KHOTIYAN
 const updateLedgerService = async (user, id, data) => {
-    const isExist = await prisma_1.prisma.ledger.findUnique({
+    const ledger = await prisma_1.prisma.ledger.findUnique({
         where: {
             id,
             vataId: user.vataId,
         },
+        select: {
+            name: true,
+            parentId: true,
+            phoneNumber: true,
+            startDate: true,
+            rate: true,
+            quantity: true,
+            salary: true,
+            weeklyFood: true,
+            openingBalance: true,
+            openingBalanceType: true,
+            serial: true,
+        },
     });
-    if (!isExist) {
+    if (!ledger) {
         throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.NOT_FOUND, "এই খতিয়ানটি পাওয়া যায়নি।");
     }
-    const result = await prisma_1.prisma.ledger.update({
-        where: {
-            id,
+    if (user.role === "ADMIN" || user.role === "OWNER") {
+        const result = await prisma_1.prisma.ledger.update({
+            where: {
+                id,
+                vataId: user.vataId,
+            },
+            data: {
+                ...data,
+                serial: Number(data.serial),
+                quantity: Number(data.quantity || 0),
+                rate: Number(data.rate || 0),
+                salary: Number(data.salary || 0),
+                weeklyFood: Number(data.weeklyFood || 0),
+                openingBalance: Number(data.openingBalance || 0),
+                parentId: data.parentId || null,
+                openingBalanceType: data.openingBalanceType || null,
+                updateStatus: "APPROVED",
+            },
+        });
+        data.serial == Number(data.serial);
+        await activity_service_1.ActivityService.createActivityService({
+            action: "UPDATE",
+            module: "LEDGER",
+            targetId: id,
+            userId: user.userId,
             vataId: user.vataId,
-        },
-        data: {
-            ...data,
-            serial: Number(data.serial),
-            quantity: Number(data.quantity || 0),
-            rate: Number(data.rate || 0),
-            salary: Number(data.salary || 0),
-            weeklyFood: Number(data.weeklyFood || 0),
-            openingBalance: Number(data.openingBalance || 0),
-            parentId: data.parentId || null,
-            openingBalanceType: data.openingBalanceType || null,
-        },
+            newData: data,
+            oldData: ledger,
+            referenceNumber: ledger?.serial,
+        });
+        return {
+            result,
+            message: "খতিয়ানের তথ্য সফলভাবে আপডেট করা হয়েছে।",
+        };
+    }
+    const result = await prisma_1.prisma.$transaction(async (tx) => {
+        await tx.ledger.update({
+            data: {
+                updateStatus: "PENDING",
+            },
+            where: {
+                vataId: user.vataId,
+                id,
+            },
+        });
+        return await tx.approvalRequest.create({
+            data: {
+                action: "UPDATE",
+                module: "LEDGER",
+                targetId: id,
+                requestedById: user.userId,
+                vataId: user.vataId,
+                status: "PENDING",
+                oldData: ledger,
+                newData: data,
+            },
+        });
     });
-    return result;
+    return {
+        result,
+        message: "খতিয়ান আপডেটের অনুরোধ অ্যাডমিনের কাছে পাঠানো হয়েছে",
+    };
 };
 // DELETE KHOTIYAN
 const deleteLedgerService = async (user, id) => {
-    const isExist = await prisma_1.prisma.ledger.findUnique({
+    const ledger = await prisma_1.prisma.ledger.findUnique({
         where: {
             id,
             vataId: user.vataId,
         },
+        select: {
+            name: true,
+            parentId: true,
+            phoneNumber: true,
+            startDate: true,
+            rate: true,
+            quantity: true,
+            salary: true,
+            weeklyFood: true,
+            openingBalance: true,
+            openingBalanceType: true,
+            serial: true,
+        },
     });
-    if (!isExist) {
+    if (!ledger?.name) {
         throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.NOT_FOUND, "এই খতিয়ানটি পাওয়া যায়নি।");
     }
-    const result = await prisma_1.prisma.ledger.update({
-        where: {
-            id,
+    if (user.role === "ADMIN" || user.role === "OWNER") {
+        const result = await prisma_1.prisma.ledger.update({
+            where: {
+                id,
+                vataId: user.vataId,
+            },
+            data: {
+                isDeleted: true,
+                deleteStatus: "APPROVED",
+            },
+        });
+        await activity_service_1.ActivityService.createActivityService({
+            action: "DELETE",
+            module: "LEDGER",
+            targetId: id,
+            userId: user.userId,
             vataId: user.vataId,
-        },
-        data: {
-            isDeleted: true,
-        },
+            referenceNumber: ledger?.serial,
+        });
+        return {
+            result,
+            message: "খতিয়ানটি সফলভাবে মুছে ফেলা হয়েছে।",
+        };
+    }
+    // HERE REQUEST CREATE FOR DELETE
+    const result = await prisma_1.prisma.$transaction(async (tx) => {
+        await tx.ledger.update({
+            data: {
+                deleteStatus: "PENDING",
+            },
+            where: {
+                vataId: user.vataId,
+                id,
+            },
+        });
+        return await tx.approvalRequest.create({
+            data: {
+                action: "DELETE",
+                module: "LEDGER",
+                targetId: id,
+                requestedById: user.userId,
+                vataId: user.vataId,
+                status: "PENDING",
+                oldData: ledger,
+            },
+        });
     });
-    return result;
+    return {
+        result,
+        message: "খতিয়ানটি মুছে ফেলার অনুরোধ অ্যাডমিনের কাছে পাঠানো হয়েছে",
+    };
 };
 exports.LedgerService = {
     getLedgerCountService,

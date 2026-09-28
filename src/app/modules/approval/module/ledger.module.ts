@@ -1,0 +1,63 @@
+import { StatusCodes } from "http-status-codes";
+import { ApprovalRequest } from "../../../../generated/prisma/client";
+import { TAuthUser } from "../../../../interface/token";
+import { AppError } from "../../../errors/ApplicationError";
+import { LedgerService } from "../../ledger/ledger..service";
+import { prisma } from "../../../../helpers/prisma";
+
+export const ledgerModule = async (
+  user: TAuthUser,
+  findRequest: Partial<ApprovalRequest>,
+  approvalId: string,
+) => {
+  if (findRequest.action === "UPDATE") {
+    if (!findRequest) {
+      throw new AppError(
+        StatusCodes.BAD_REQUEST,
+        "আপডেটের জন্য নতুন তথ্য পাওয়া যায়নি।",
+      );
+    }
+    const newData = findRequest.newData;
+    const result = await LedgerService.updateLedgerService(
+      user,
+      findRequest?.targetId!,
+      newData as any,
+    );
+
+    await prisma.approvalRequest.update({
+      where: {
+        id: approvalId,
+      },
+      data: {
+        status: "APPROVED",
+        reviewedAt: new Date(),
+      },
+    });
+
+    return {
+      result,
+      message: "খতিয়ান আপডেটের অনুরোধ সফলভাবে অনুমোদন করা হয়েছে।",
+    };
+  }
+
+  if (findRequest.action === "DELETE") {
+    const result = await LedgerService.deleteLedgerService(
+      user,
+      findRequest.targetId!,
+    );
+    await prisma.approvalRequest.update({
+      where: {
+        id: approvalId,
+      },
+      data: {
+        status: "APPROVED",
+        reviewedAt: new Date(),
+      },
+    });
+
+    return {
+      result,
+      message: "খতিয়ান মুছে ফেলার অনুরোধ সফলভাবে অনুমোদন করা হয়েছে।",
+    };
+  }
+};

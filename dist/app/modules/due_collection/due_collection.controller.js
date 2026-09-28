@@ -76,7 +76,12 @@ const todayPayDueController = (0, catchAsync_1.default)(async (req, res) => {
     const user = req.user;
     const { limit, page, date, search } = await (0, parseListQuery_1.parseListQuery)(req.query);
     const seasonId = req.seasonId;
-    const result = await due_collection_service_1.DueCollectionService.todayPayDueService(user, seasonId, { date, limit, page, search });
+    const result = await due_collection_service_1.DueCollectionService.todayPayDueService(user, seasonId, {
+        date,
+        limit,
+        page,
+        search,
+    });
     if (!result?.data?.length) {
         (0, sendResponse_1.sendResponse)(res, {
             message: "আজকের  জন্য কোনো বাকি পাওয়া যায়নি।",
@@ -176,14 +181,15 @@ const getSingleDueCollectionDateController = (0, catchAsync_1.default)(async (re
 // UPDATE DUE COLLECTION
 const updateDueCollectionController = (0, catchAsync_1.default)(async (req, res) => {
     const id = req.params.id;
+    const user = req.user;
     const body = req.body;
-    const result = await due_collection_service_1.DueCollectionService.updateDueCollectionService(id, body);
-    if (!result?.id) {
+    const result = await due_collection_service_1.DueCollectionService.updateDueCollectionService(user, id, body);
+    if (!result?.result.id) {
         throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.BAD_REQUEST, "আপডেট করতে ব্যর্থ হয়েছে");
     }
     else {
         (0, sendResponse_1.sendResponse)(res, {
-            message: "সফলভাবে আপডেট করেছে",
+            message: result?.message,
             statusCode: http_status_codes_1.StatusCodes.OK,
             success: true,
             data: result,
@@ -208,6 +214,23 @@ const updateDueCollectionDateController = (0, catchAsync_1.default)(async (req, 
         });
     }
 });
+// DDELETE
+const deleteDueCollectionController = (0, catchAsync_1.default)(async (req, res) => {
+    const id = req.params.id;
+    const user = req.user;
+    const result = await due_collection_service_1.DueCollectionService.deleteDueCollectionService(user, id);
+    if (!result?.result) {
+        throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.BAD_REQUEST, "বাকি মুছতে ব্যর্থ হয়েছে");
+    }
+    else {
+        (0, sendResponse_1.sendResponse)(res, {
+            message: result.message,
+            statusCode: http_status_codes_1.StatusCodes.OK,
+            success: true,
+            data: result,
+        });
+    }
+});
 exports.DueCollectionController = {
     collectionNewDueController,
     getDueOfCustomerController,
@@ -218,5 +241,6 @@ exports.DueCollectionController = {
     updateDueCollectionController,
     updateDueCollectionDateController,
     getSingleDueCollectionDateController,
-    searchCustomerForDeuController
+    searchCustomerForDeuController,
+    deleteDueCollectionController,
 };

@@ -20,12 +20,12 @@ const getInvoiceSerial = catchAsync(async (req, res) => {
   if (!result) {
     throw new AppError(
       StatusCodes.BAD_REQUEST,
-      "ইনভয়েস সিরিয়াল তৈরি করা যায়নি।",
+      "চালান সিরিয়াল তৈরি করা যায়নি।",
     );
   }
 
   sendResponse(res, {
-    message: "ইনভয়েস সিরিয়াল সফলভাবে তৈরি হয়েছে।",
+    message: "চালান সিরিয়াল সফলভাবে তৈরি হয়েছে।",
     statusCode: StatusCodes.OK,
     success: true,
     data: {
@@ -50,11 +50,11 @@ const createInvoiceController = catchAsync(async (req, res) => {
   if (!result?.id) {
     throw new AppError(
       StatusCodes.BAD_REQUEST,
-      "চ্যালান তৈরি করতে ব্যর্থ হয়েছে।",
+      "চালান তৈরি করতে ব্যর্থ হয়েছে।",
     );
   } else {
     sendResponse(res, {
-      message: "চ্যালান সফলভাবে তৈরি হয়েছে।",
+      message: "চালান সফলভাবে তৈরি হয়েছে।",
       statusCode: StatusCodes.OK,
       success: true,
       data: result,
@@ -72,14 +72,14 @@ const searchChallanForDeliveryController = catchAsync(async (req, res) => {
 
   if (!result) {
     return sendResponse(res, {
-      message: "কোনো চ্যালান পাওয়া যায়নি।",
+      message: "কোনো চালান পাওয়া যায়নি।",
       statusCode: StatusCodes.OK,
       success: true,
       data: [],
     });
   } else {
     return sendResponse(res, {
-      message: "চ্যালান সফলভাবে পাওয়া গেছে।",
+      message: "চালান সফলভাবে পাওয়া গেছে।",
       statusCode: StatusCodes.OK,
       success: true,
       data: result,
@@ -100,14 +100,14 @@ const getAllInvoiceController = catchAsync(async (req, res) => {
   });
   if (!result?.data.length) {
     sendResponse(res, {
-      message: "চ্যালান পাওয়া যায়নি।",
+      message: "চালান পাওয়া যায়নি।",
       statusCode: StatusCodes.OK,
       success: true,
       data: [],
     });
   } else {
     sendResponse(res, {
-      message: "চ্যালান সফলভাবে পাওয়া গেছে।",
+      message: "চালান সফলভাবে পাওয়া গেছে।",
       statusCode: StatusCodes.OK,
       success: true,
       data: result,
@@ -132,14 +132,14 @@ const getAllAdvanceInvoiceController = catchAsync(async (req, res) => {
   );
   if (!result?.data.length) {
     sendResponse(res, {
-      message: "চ্যালান পাওয়া যায়নি।",
+      message: "চালান পাওয়া যায়নি।",
       statusCode: StatusCodes.OK,
       success: true,
       data: [],
     });
   } else {
     sendResponse(res, {
-      message: "চ্যালান সফলভাবে পাওয়া গেছে।",
+      message: "চালান সফলভাবে পাওয়া গেছে।",
       statusCode: StatusCodes.OK,
       success: true,
       data: result,
@@ -153,12 +153,12 @@ const getSingleInvoiceController = catchAsync(async (req, res) => {
   const user = req.user as TAuthUser;
   const result = await InvoiceService.getSingleInvoiceService(user, id);
   if (!result?.id) {
-    throw new AppError(StatusCodes.BAD_REQUEST, "চ্যালান পাওয়া যায়নি।");
+    throw new AppError(StatusCodes.BAD_REQUEST, "চালান পাওয়া যায়নি।");
   } else {
     sendResponse(res, {
       message: !result?.id
-        ? "চ্যালান পাওয়া যায়নি।"
-        : "চ্যালান সফলভাবে পাওয়া গেছে।",
+        ? "চালান পাওয়া যায়নি।"
+        : "চালান সফলভাবে পাওয়া গেছে।",
       statusCode: StatusCodes.OK,
       success: true,
       data: result,
@@ -178,14 +178,14 @@ const getSingleInvoiceItemsController = catchAsync(async (req, res) => {
   );
   if (!result?.length) {
     sendResponse(res, {
-      message: "চ্যালান পাওয়া যায়নি।",
+      message: "চালান পাওয়া যায়নি।",
       statusCode: StatusCodes.OK,
       success: true,
       data: {},
     });
   } else {
     sendResponse(res, {
-      message: "চ্যালান সফলভাবে পাওয়া গেছে।",
+      message: "চালান সফলভাবে পাওয়া গেছে।",
       statusCode: StatusCodes.OK,
       success: true,
       data: result,
@@ -205,14 +205,14 @@ const updateInvoiceController = catchAsync(async (req, res) => {
     body.invoice,
     body.invoiceItems,
   );
-  if (!result?.id) {
+  if (!result?.result) {
     throw new AppError(
       StatusCodes.BAD_REQUEST,
-      "চ্যালান হালনাগাদ করতে ব্যর্থ হয়েছে।",
+      "চালান হালনাগাদ করতে ব্যর্থ হয়েছে।",
     );
   } else {
     sendResponse(res, {
-      message: "চ্যালান সফলভাবে হালনাগাদ হয়েছে।",
+      message: result.message,
       statusCode: StatusCodes.OK,
       success: true,
       data: result,
@@ -225,14 +225,14 @@ const deleteInvoiceController = catchAsync(async (req, res) => {
   const id = req?.params?.id;
   const user = req.user as TAuthUser;
   const result = await InvoiceService.deleteInvoiceService(user, id);
-  if (!result?.id) {
+  if (!result?.result.id) {
     throw new AppError(
       StatusCodes.BAD_REQUEST,
-      "চ্যালান মুছে ফেলতে ব্যর্থ হয়েছে।",
+      "চালান মুছে ফেলতে ব্যর্থ হয়েছে।",
     );
   } else {
     sendResponse(res, {
-      message: "চ্যালান সফলভাবে মুছে ফেলা হয়েছে।",
+      message: result.message,
       statusCode: StatusCodes.OK,
       success: true,
       data: result,
@@ -252,14 +252,14 @@ const getItemsWithInvoiceController = catchAsync(async (req, res) => {
   );
   if (!result?.length) {
     sendResponse(res, {
-      message: "চ্যালান পাওয়া যায়নি।",
+      message: "চালান পাওয়া যায়নি।",
       statusCode: StatusCodes.OK,
       success: true,
       data: [],
     });
   } else {
     sendResponse(res, {
-      message: " চ্যালান সফলভাবে পাওয়া গেছে।",
+      message: " চালান সফলভাবে পাওয়া গেছে।",
       statusCode: StatusCodes.OK,
       success: true,
       data: result,
@@ -280,11 +280,11 @@ const updateInvoiceDeliveryDateController = catchAsync(async (req, res) => {
   if (!result?.id) {
     throw new AppError(
       StatusCodes.BAD_REQUEST,
-      "চ্যালান আপডেট করতে ব্যর্থ হয়েছে।",
+      "চালান আপডেট করতে ব্যর্থ হয়েছে।",
     );
   } else {
     sendResponse(res, {
-      message: " চ্যালান সফলভাবে আপডেট হয়েছে",
+      message: " চালান সফলভাবে আপডেট হয়েছে",
       statusCode: StatusCodes.OK,
       success: true,
     });
@@ -304,11 +304,11 @@ const updateInvoiceItemDeliveryDateController = catchAsync(async (req, res) => {
   if (!result?.id) {
     throw new AppError(
       StatusCodes.BAD_REQUEST,
-      "চ্যালান আপডেট করতে ব্যর্থ হয়েছে।",
+      "চালান আপডেট করতে ব্যর্থ হয়েছে।",
     );
   } else {
     sendResponse(res, {
-      message: " চ্যালান সফলভাবে আপডেট হয়েছে",
+      message: " চালান সফলভাবে আপডেট হয়েছে",
       statusCode: StatusCodes.OK,
       success: true,
     });

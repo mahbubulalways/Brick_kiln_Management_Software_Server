@@ -183,14 +183,14 @@ const updateLedgerController = (0, catchAsync_1.default)(async (req, res) => {
     const id = req.params.id;
     const user = req.user;
     const result = await ledger__service_1.LedgerService.updateLedgerService(user, id, body);
-    if (!result) {
+    if (!result?.result) {
         throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.NOT_FOUND, "খতিয়ানটি পাওয়া যায়নি অথবা আপডেট করা সম্ভব হয়নি।");
     }
     else {
         (0, sendResponse_1.sendResponse)(res, {
             statusCode: http_status_codes_1.StatusCodes.OK,
             success: true,
-            message: "খতিয়ানের তথ্য সফলভাবে আপডেট করা হয়েছে।",
+            message: result.message,
             data: result,
         });
     }
@@ -200,14 +200,14 @@ const deleteLedgerController = (0, catchAsync_1.default)(async (req, res) => {
     const id = req.params.id;
     const user = req.user;
     const result = await ledger__service_1.LedgerService.deleteLedgerService(user, id);
-    if (!result) {
+    if (!result.result) {
         throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.NOT_FOUND, "খতিয়ানটি পাওয়া যায়নি অথবা মুছে ফেলা সম্ভব হয়নি।");
     }
     else {
         (0, sendResponse_1.sendResponse)(res, {
             statusCode: http_status_codes_1.StatusCodes.OK,
             success: true,
-            message: "খতিয়ানটি সফলভাবে মুছে ফেলা হয়েছে।",
+            message: result.message,
             data: result,
         });
     }

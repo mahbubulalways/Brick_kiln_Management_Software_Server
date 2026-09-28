@@ -133,6 +133,7 @@ export const fieldNameMap: Record<string, Record<string, string>> = {
   DUE: {
     id: "বাকি আদায় আইডি",
     due: "আগের বাকি",
+    customerCode: "কাস্টমার আইডি",
     collect: "আদায়ের পরিমাণ",
     newDue: "নতুন বাকি",
     nextDate: "পরবর্তী পেমেন্টের তারিখ",
@@ -145,7 +146,7 @@ export const fieldNameMap: Record<string, Record<string, string>> = {
 
   LEDGER: {
     id: "লেজার আইডি",
-    name: "লেজারের নাম",
+    name: "খতিয়ানের নাম",
     serial: "লেজার নম্বর",
     createdAt: "তৈরির সময়",
     updatedAt: "আপডেটের সময়",
@@ -165,6 +166,7 @@ export const fieldNameMap: Record<string, Record<string, string>> = {
 
   PAYMENT: {
     id: "পেমেন্ট আইডি",
+    name: "খতিয়ানের নাম", // extra field
     serial: "পেমেন্ট নম্বর",
     quantity: "পেমেন্টের পরিমাণ",
     cutting: "কাটিং",

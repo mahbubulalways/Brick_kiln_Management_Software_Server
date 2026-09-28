@@ -6,6 +6,7 @@ const prisma_1 = require("../../../helpers/prisma");
 const createMetaConfig_1 = require("../../../utils/createMetaConfig");
 const ApplicationError_1 = require("../../errors/ApplicationError");
 const http_status_codes_1 = require("http-status-codes");
+const activity_service_1 = require("../activity/activity.service");
 const createClassAndRateService = async (user, payload) => {
     // ==========================================
     // CHECK ACTIVE RECORD
@@ -99,19 +100,6 @@ const getSingleClassAndRateService = async (user, id) => {
 };
 // UPDATE CLASS AND RATEs
 const updateClassAndRateService = async (user, id, data) => {
-    if (user.role === "ADMIN" || user.role === "OWNER") {
-        const result = await prisma_1.prisma.classAndRate.update({
-            data,
-            where: {
-                vataId: user.vataId,
-                id,
-            },
-        });
-        return {
-            result,
-            message: "শ্রেণী ও রেট সফলভাবে আপডেট হয়েছে",
-        };
-    }
     const findClassRate = await prisma_1.prisma.classAndRate.findFirst({
         where: {
             vataId: user.vataId,
@@ -126,6 +114,32 @@ const updateClassAndRateService = async (user, id, data) => {
     });
     if (!findClassRate) {
         throw new Error("শ্রেণী ও রেট পাওয়া যায়নি");
+    }
+    if (user.role === "ADMIN" || user.role === "OWNER") {
+        const result = await prisma_1.prisma.classAndRate.update({
+            data: {
+                ...data,
+                updateStatus: "APPROVED",
+            },
+            where: {
+                vataId: user.vataId,
+                id,
+            },
+        });
+        await activity_service_1.ActivityService.createActivityService({
+            action: "UPDATE",
+            module: "CLASS_RATE",
+            targetId: id,
+            userId: user.userId,
+            vataId: user.vataId,
+            newData: data,
+            oldData: findClassRate,
+            referenceNumber: undefined,
+        });
+        return {
+            result,
+            message: "শ্রেণী ও রেট সফলভাবে আপডেট হয়েছে",
+        };
     }
     const result = await prisma_1.prisma.$transaction(async (tx) => {
         await tx.classAndRate.update({
@@ -166,6 +180,13 @@ const deleteClassAndRateService = async (user, id) => {
                 vataId: user.vataId,
                 id,
             },
+        });
+        await activity_service_1.ActivityService.createActivityService({
+            action: "DELETE",
+            module: "CLASS_RATE",
+            targetId: id,
+            userId: user.userId,
+            vataId: user.vataId,
         });
         return {
             result,

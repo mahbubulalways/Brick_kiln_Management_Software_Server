@@ -8,8 +8,16 @@ import { TAuthUser } from "../../../interface/token";
 import { createMetaConfig } from "../../../utils/createMetaConfig";
 import { AppError } from "../../errors/ApplicationError";
 import { ClassAndRateService } from "../classAndRate/classAndRateRoute.service";
-import { generateActivityDescription } from "./approval.utils";
-import { ActivityService } from "../activity/activity.service";
+import { LedgerService } from "../ledger/ledger..service";
+import { InvoiceService } from "../challan/challan.service";
+import { PaymentService } from "../payment/payment.service";
+import { paymentModule } from "./module/payment.module";
+import { ledgerModule } from "./module/ledger.module";
+import { classRateModule } from "./module/class.rate.module";
+import { challanModule } from "./module/challan.module";
+import { deliveryModule } from "./module/delivery.module";
+import { dueCollectionModule } from "./module/due.collection.module";
+import { cashModule } from "./module/cash.module";
 
 const getAlApprovalService = async (user: TAuthUser, query: TQuery) => {
   const { limit, page, skip } = paginationHelper(query.page, query.limit);
@@ -71,114 +79,57 @@ const changeAprovalStatus = async (
     throw new AppError(StatusCodes.NOT_FOUND, "অনুমোদনের অনুরোধ পাওয়া যায়নি।");
   }
 
-  // if (status === "CANCELLED") {
-  //   const result = await prisma.approvalRequest.update({
-  //     where: {
-  //       id: approvalId,
-  //     },
-  //     data: {
-  //       status: "CANCELLED",
-  //       reviewedAt: new Date(),
-  //     },
-  //   });
-
-  //   return {
-  //     result,
-  //     message: "অনুমোদনের অনুরোধ সফলভাবে বাতিল করা হয়েছে।",
-  //   };
-  // }
-
   if (status !== "APPROVED") {
     throw new AppError(StatusCodes.BAD_REQUEST, "অনুমোদনের স্ট্যাটাস সঠিক নয়।");
   }
 
-  //============================ APPROVED STATUS =================
+  switch (findRequest.module) {
+    case "CLASS_RATE":
+      return await classRateModule(user, findRequest, approvalId); //done
 
-  // ===========================CLASS AND RATE ===================================
+    case "LEDGER":
+      return await ledgerModule(user, findRequest, approvalId); //done
 
-  if (findRequest.module === "CLASS_RATE") {
-    if (findRequest.action === "UPDATE") {
-      if (!findRequest.newData) {
-        throw new AppError(
-          StatusCodes.BAD_REQUEST,
-          "আপডেটের জন্য নতুন তথ্য পাওয়া যায়নি।",
-        );
-      }
-      const newData = findRequest.newData;
-      const result = await ClassAndRateService.updateClassAndRateService(
-        user,
-        findRequest?.targetId,
-        newData as any,
+    case "CHALLAN":
+      return await challanModule(user, findRequest, approvalId); //done
+
+    case "DELIVERY":
+      return await deliveryModule(user, findRequest, approvalId); //done delete
+
+    case "PAYMENT":
+      return await paymentModule(user, findRequest, approvalId); //done
+
+    case "DUE":
+      return await dueCollectionModule(user, findRequest, approvalId); //done
+
+    case "CASH":
+      return await cashModule(user, findRequest, approvalId); //done
+
+    default:
+      throw new AppError(
+        StatusCodes.BAD_REQUEST,
+        "এই অনুমোদনের অনুরোধের জন্য কোনো কার্যক্রম নির্ধারিত নেই।",
       );
-
-      await prisma.approvalRequest.update({
-        where: {
-          id: approvalId,
-        },
-        data: {
-          status: "APPROVED",
-          reviewedAt: new Date(),
-        },
-      });
-
-      return {
-        result,
-        message: "শ্রেণী ও রেট আপডেটের অনুরোধ সফলভাবে অনুমোদন করা হয়েছে।",
-      };
-    }
-
-    if (findRequest.action === "DELETE") {
-      const result = await ClassAndRateService.deleteClassAndRateService(
-        user,
-        findRequest.targetId,
-      );
-      await prisma.approvalRequest.update({
-        where: {
-          id: approvalId,
-        },
-        data: {
-          status: "APPROVED",
-          reviewedAt: new Date(),
-        },
-      });
-      return {
-        result,
-        message: "শ্রেণী ও রেট মুছে ফেলার অনুরোধ সফলভাবে অনুমোদন করা হয়েছে।",
-      };
-    }
   }
-
-  // ==================== CHALLAN ================================
-
-  if (findRequest.module === "CHALLAN") {
-    if (findRequest.action === "UPDATE") {
-      // Challan update approval
-    }
-
-    if (findRequest.action === "DELETE") {
-      // Challan delete approval
-    }
-  }
-
-  // =========================== DELIVERY============================
-
-  if (findRequest.module === "DELIVERY") {
-    if (findRequest.action === "UPDATE") {
-      // Delivery update approval
-    }
-
-    if (findRequest.action === "DELETE") {
-      // Delivery delete approval
-    }
-  }
-
-  throw new AppError(
-    StatusCodes.BAD_REQUEST,
-    "এই অনুমোদনের অনুরোধের জন্য কোনো কার্যক্রম নির্ধারিত নেই।",
-  );
 };
-
 export const ApprovalService = {
   getAlApprovalService,
   changeAprovalStatus,
 };
+
+// if (status === "CANCELLED") {
+//   const result = await prisma.approvalRequest.update({
+//     where: {
+//       id: approvalId,
+//     },
+//     data: {
+//       status: "CANCELLED",
+//       reviewedAt: new Date(),
+//     },
+//   });
+
+//   return {
+//     result,
+//     message: "অনুমোদনের অনুরোধ সফলভাবে বাতিল করা হয়েছে।",
+//   };
+// }

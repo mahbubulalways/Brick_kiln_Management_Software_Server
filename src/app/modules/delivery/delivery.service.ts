@@ -9,6 +9,7 @@ import { createMetaConfig } from "../../../utils/createMetaConfig";
 import { getDateRangeDbSearch } from "../../../utils/getDateRangeDbSearch";
 import { TAuthUser } from "../../../interface/token";
 import { getStockByClass } from "./delivery.utils";
+import { ActivityService } from "../activity/activity.service";
 
 const getNextDeliveryNo = async (user: TAuthUser) => {
   const result = await prisma.delivery.findFirst({
@@ -41,6 +42,19 @@ const createDeliveryService = async (user: TAuthUser, payload: TDelivery) => {
     },
   });
 
+  const car = await prisma.vataCar.findFirst({
+    where: {
+      carNo: payload?.carNumber,
+      vataId: user.vataId,
+    },
+    select: {
+      id: true,
+    },
+  });
+  if (!car) {
+    throw new AppError(StatusCodes.NOT_FOUND, "এই গাড়িটি পাওয়া যায়নি");
+  }
+
   if (isDeliveryNoExist?.id) {
     throw new AppError(StatusCodes.CONFLICT, "এই ডেলিভারি নম্বর ইতিমধ্যে আছে");
   }
@@ -72,6 +86,7 @@ const createDeliveryService = async (user: TAuthUser, payload: TDelivery) => {
     where: {
       invoiceId: mainInvoiceId?.id,
       class: payload.items.class,
+      isDeleted: false,
     },
     _sum: {
       deliveryReceived: true,
@@ -136,30 +151,6 @@ const createDeliveryService = async (user: TAuthUser, payload: TDelivery) => {
       //     id: payload?.itemId,
       //   },
       // });
-
-      const carRent = Number(payload?.carRent) || mainInvoiceId?.carRent;
-      if (carRent && payload?.carNumber) {
-        const car = await tx.vataCar.findFirst({
-          where: {
-            carNo: payload.carNumber,
-            vataId: user.vataId,
-          },
-          select: {
-            id: true,
-          },
-        });
-        if (!car) {
-          throw new AppError(StatusCodes.NOT_FOUND, "এই গাড়িটি পাওয়া যায়নি");
-        }
-        await tx.carIncomeDelivery.create({
-          data: {
-            amount: carRent,
-            carId: car?.id,
-            deliveryId: createDelivery?.id,
-            driverId: payload.driverId,
-          },
-        });
-      }
 
       await tx.deliveryStatusActionTime.create({
         data: {
@@ -303,6 +294,60 @@ const getTodaysDeliveryThatDone = async (
       where.deliveryDate = dateRange;
     }
   }
+
+  if (query.search?.trim()) {
+    const search = query.search.trim();
+    const isNumber = !isNaN(Number(search));
+    if (isNumber) {
+      where.OR = [
+        {
+          invoice: {
+            serial: Number(search),
+          },
+        },
+      ];
+    }
+    where.OR = [
+      {
+        invoice: {
+          customer: {
+            is: {
+              name: {
+                contains: search,
+                mode: "insensitive",
+              },
+            },
+          },
+        },
+      },
+      // {
+      //   invoice: {
+      //     customer: {
+      //       is: {
+      //         address: {
+      //           contains: search,
+      //           mode: "insensitive",
+      //         },
+      //       },
+      //     },
+      //   },
+      // },
+
+      {
+        invoice: {
+          customer: {
+            is: {
+              phoneNumber: {
+                contains: search,
+                mode: "insensitive",
+              },
+            },
+          },
+        },
+      },
+    ];
+  }
+
   const [result, total] = await prisma.$transaction([
     prisma.delivery.findMany({
       where,
@@ -546,15 +591,28 @@ const changeDeliveryStatusService = async (
   id: string,
   status: DeliveryStatus,
 ) => {
-  const findInvoice = await prisma.delivery.findFirst({
+  const findDelivery = await prisma.delivery.findFirst({
     where: { id },
-    select: { invoiceId: true, class: true, deliveryReceived: true },
+    select: {
+      id: true,
+      invoiceId: true,
+      class: true,
+      deliveryReceived: true,
+      carRent: true,
+      driverId: true,
+      carNo: true,
+      invoice: {
+        select: {
+          vataId: true,
+        },
+      },
+    },
   });
   await prisma.delivery.update({ where: { id }, data: { status: status } });
   const findItem = await prisma.challanItem.findFirst({
     where: {
-      challanId: findInvoice?.invoiceId as string,
-      class: findInvoice?.class as string,
+      challanId: findDelivery?.invoiceId as string,
+      class: findDelivery?.class as string,
     },
     select: {
       id: true,
@@ -568,14 +626,39 @@ const changeDeliveryStatusService = async (
         id: findItem?.id,
       },
       data: {
-        delivered: { increment: findInvoice?.deliveryReceived },
+        delivered: { increment: findDelivery?.deliveryReceived },
       },
     });
+
+    // CAR RENT AND DRIVER ASSIGN
+    if (findDelivery?.carRent && findDelivery?.carNo) {
+      const car = await prisma.vataCar.findFirst({
+        where: {
+          carNo: findDelivery?.carNo,
+          vataId: findDelivery.invoice.vataId,
+        },
+        select: {
+          id: true,
+        },
+      });
+      if (!car) {
+        throw new AppError(StatusCodes.NOT_FOUND, "এই গাড়িটি পাওয়া যায়নি");
+      }
+      await prisma.carIncomeDelivery.create({
+        data: {
+          amount: findDelivery.carRent,
+          carId: car?.id,
+          deliveryId: findDelivery?.id,
+          driverId: findDelivery?.driverId!,
+        },
+      });
+    }
 
     await prisma.deliveryStatusActionTime.update({
       where: { deliveryId: id },
       data: { deliveredTime: new Date() },
     });
+
     return result;
   } else if (status === "CANCEL") {
     result = await prisma.challanItem.update({
@@ -583,7 +666,7 @@ const changeDeliveryStatusService = async (
         id: findItem?.id,
       },
       data: {
-        delivered: { decrement: findInvoice?.deliveryReceived },
+        delivered: { decrement: findDelivery?.deliveryReceived },
       },
     });
 
@@ -599,10 +682,15 @@ const changeDeliveryStatusService = async (
         id: findItem?.id,
       },
       data: {
-        delivered: { decrement: findInvoice?.deliveryReceived },
+        delivered: { decrement: findDelivery?.deliveryReceived },
       },
     });
 
+    if (findDelivery?.carNo) {
+      await prisma.carIncomeDelivery.delete({
+        where: { deliveryId: findDelivery.id },
+      });
+    }
     await prisma.deliveryStatusActionTime.update({
       where: { deliveryId: id },
       data: { processingTime: new Date() },
@@ -613,6 +701,142 @@ const changeDeliveryStatusService = async (
   return result;
 };
 
+// DELETE DELIVERY
+const deleteDeliveryService = async (user: TAuthUser, id: string) => {
+  const findDelivery = await prisma.delivery.findFirst({ where: { id } });
+  if (!findDelivery) {
+    throw new AppError(StatusCodes.NOT_FOUND, "কোনো ডেলিভারি পাওয়া যায়নি।");
+  }
+  if (user.role === "ADMIN" || user.role === "OWNER") {
+    const result = await prisma.$transaction(async (tx) => {
+      const findItem = await tx.challan.findFirst({
+        where: {
+          id: findDelivery.invoiceId,
+          vataId: user.vataId,
+          isDeleted: false,
+        },
+        select: {
+          items: {
+            where: {
+              class: findDelivery.class,
+            },
+            select: {
+              id: true,
+            },
+          },
+        },
+      });
+
+      const itemId = findItem?.items[0]?.id;
+
+      if (!itemId) {
+        throw new AppError(
+          StatusCodes.BAD_REQUEST,
+          "চালানের সংশ্লিষ্ট আইটেম পাওয়া যায়নি।",
+        );
+      }
+
+      const delivery = await tx.delivery.update({
+        where: {
+          id,
+          invoice: { vataId: user.vataId },
+        },
+        data: {
+          isDeleted: true,
+          deleteStatus: "APPROVED",
+        },
+      });
+
+      if (findDelivery?.status === "DELIVERED") {
+        await tx.challanItem.update({
+          where: {
+            id: itemId,
+          },
+          data: {
+            delivered: {
+              decrement: findDelivery.deliveryReceived,
+            },
+          },
+        });
+      }
+
+      if (findDelivery?.carNo) {
+        const carIncomeDelivery = await tx.carIncomeDelivery.findFirst({
+          where: {
+            deliveryId: findDelivery.id,
+          },
+        });
+
+        if (carIncomeDelivery) {
+          await tx.carIncomeDelivery.delete({
+            where: {
+              id: carIncomeDelivery.id,
+            },
+          });
+        }
+      }
+
+      await ActivityService.createActivityService({
+        action: "DELETE",
+        module: "DELIVERY",
+        targetId: id,
+        userId: user.userId,
+        vataId: user.vataId,
+        referenceNumber: findDelivery.deliveryNo,
+      });
+
+      return delivery;
+    });
+
+    return {
+      result,
+      message: "ডেলিভারিটি সফলভাবে মুছে ফেলা হয়েছে।",
+    };
+  }
+
+  // HERE REQUEST CREATE FOR DELETE
+  const result = await prisma.$transaction(async (tx) => {
+    await tx.delivery.update({
+      where: {
+        id,
+        invoice: {
+          vataId: user.vataId,
+        },
+      },
+      data: {
+        deleteStatus: "PENDING",
+      },
+    });
+    const oldData = {
+      deliveryDate: findDelivery.deliveryDate,
+      deliveryNo: findDelivery.deliveryNo,
+      nextDeliveryDate: findDelivery.nextDeliveryDate,
+      quantity: findDelivery.quantity,
+      lastDelivered: findDelivery.lastDelivered,
+      deliveryReceived: findDelivery.deliveryReceived,
+      class: findDelivery.class,
+      deliveryRemaining: findDelivery.deliveryRemaining,
+    };
+
+    return tx.approvalRequest.create({
+      data: {
+        action: "DELETE",
+        module: "DELIVERY",
+        targetId: id,
+        requestedById: user.userId,
+        vataId: user.vataId,
+        status: "PENDING",
+        oldData: oldData,
+      },
+    });
+  });
+
+  return {
+    result,
+    message: "ডেলিভারিটি মুছে ফেলার অনুরোধ অ্যাডমিনের কাছে পাঠানো হয়েছে",
+  };
+};
+
 export const DeliveryService = {
   getNextDeliveryNo,
   getDeliveryThatGoTodayService,
@@ -621,4 +845,5 @@ export const DeliveryService = {
   getAllDeliveryListService,
   getSingleDeliveryService,
   changeDeliveryStatusService,
+  deleteDeliveryService,
 };

@@ -210,7 +210,7 @@ const updateLedgerController = catchAsync(async (req, res) => {
   const user = req.user as TAuthUser;
   const result = await LedgerService.updateLedgerService(user, id, body);
 
-  if (!result) {
+  if (!result?.result) {
     throw new AppError(
       StatusCodes.NOT_FOUND,
       "খতিয়ানটি পাওয়া যায়নি অথবা আপডেট করা সম্ভব হয়নি।",
@@ -219,7 +219,7 @@ const updateLedgerController = catchAsync(async (req, res) => {
     sendResponse(res, {
       statusCode: StatusCodes.OK,
       success: true,
-      message: "খতিয়ানের তথ্য সফলভাবে আপডেট করা হয়েছে।",
+      message: result.message,
       data: result,
     });
   }
@@ -231,7 +231,7 @@ const deleteLedgerController = catchAsync(async (req, res) => {
   const user = req.user as TAuthUser;
   const result = await LedgerService.deleteLedgerService(user, id);
 
-  if (!result) {
+  if (!result.result) {
     throw new AppError(
       StatusCodes.NOT_FOUND,
       "খতিয়ানটি পাওয়া যায়নি অথবা মুছে ফেলা সম্ভব হয়নি।",
@@ -240,7 +240,7 @@ const deleteLedgerController = catchAsync(async (req, res) => {
     sendResponse(res, {
       statusCode: StatusCodes.OK,
       success: true,
-      message: "খতিয়ানটি সফলভাবে মুছে ফেলা হয়েছে।",
+      message: result.message,
       data: result,
     });
   }
