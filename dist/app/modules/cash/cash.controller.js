@@ -31,7 +31,12 @@ const getAllCash = (0, catchAsync_1.default)(async (req, res) => {
     const { limit, page, date, search } = await (0, parseListQuery_1.parseListQuery)(req.query);
     const user = req.user;
     const seasonId = req.seasonId;
-    const result = await cash_service_1.CashService.getAllCashService(user, seasonId, { date, limit, page, search });
+    const result = await cash_service_1.CashService.getAllCashService(user, seasonId, {
+        date,
+        limit,
+        page,
+        search,
+    });
     if (result.data.length > 0) {
         (0, sendResponse_1.sendResponse)(res, {
             statusCode: 200,
@@ -54,7 +59,9 @@ const getAllCashReport = (0, catchAsync_1.default)(async (req, res) => {
     const { date } = await (0, parseListQuery_1.parseListQuery)(req.query);
     const user = req.user;
     const seasonId = req.seasonId;
-    const result = await cash_service_1.CashService.getCashReportService(user, seasonId, { date });
+    const result = await cash_service_1.CashService.getCashReportService(user, seasonId, {
+        date,
+    });
     if (result.length > 0) {
         (0, sendResponse_1.sendResponse)(res, {
             statusCode: 200,
@@ -104,11 +111,11 @@ const updateCash = (0, catchAsync_1.default)(async (req, res) => {
     }
     else {
         const result = await cash_service_1.CashService.updateCashService(user, id, req.body);
-        if (result) {
+        if (result.result) {
             (0, sendResponse_1.sendResponse)(res, {
                 statusCode: 200,
                 success: true,
-                message: "ক্যাশের তথ্য সফলভাবে আপডেট হয়েছে",
+                message: result.message,
                 data: result,
             });
         }
@@ -131,11 +138,11 @@ const deleteCash = (0, catchAsync_1.default)(async (req, res) => {
     }
     else {
         const result = await cash_service_1.CashService.deleteCashService(user, id);
-        if (result) {
+        if (result.result) {
             (0, sendResponse_1.sendResponse)(res, {
                 statusCode: 200,
                 success: true,
-                message: "ক্যাশের তথ্য সফলভাবে ডিলিট হয়েছে",
+                message: result.message,
                 data: result,
             });
         }
@@ -150,5 +157,5 @@ exports.CashController = {
     getSingleCash,
     updateCash,
     deleteCash,
-    getAllCashReport
+    getAllCashReport,
 };

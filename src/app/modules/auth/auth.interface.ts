@@ -3,6 +3,7 @@ export interface IAuth {
   password: string;
   extra: {
     device: string;
-    browser: string
-  }
+    browser: string;
+  };
+  ip: string;
 }

@@ -14,7 +14,7 @@ const userData = {
     role: "ADMIN",
     password: "12345678",
 };
-const loginUserToSystemService = async (payload, ip) => {
+const loginUserToSystemService = async (payload) => {
     const user = await prisma_1.prisma.user.findUnique({
         where: {
             username: payload.username,
@@ -48,7 +48,7 @@ const loginUserToSystemService = async (payload, ip) => {
             type: "Login",
             device: payload.extra?.device || "Unknown",
             browser: payload.extra?.browser || "Unknown",
-            ipAddress: ip || "Unknown",
+            ipAddress: payload.ip || "Unknown",
             userId: user.id,
         },
     });
@@ -69,10 +69,10 @@ const loginUserToSystemService = async (payload, ip) => {
     };
 };
 // LOGOUT
-const logoutUserService = async (userAuth, username, ip, payload) => {
+const logoutUserService = async (userAuth, payload) => {
     const user = await prisma_1.prisma.user.findUnique({
         where: {
-            username,
+            username: userAuth.username,
             vataId: userAuth.vataId,
         },
     });
@@ -85,7 +85,7 @@ const logoutUserService = async (userAuth, username, ip, payload) => {
                 type: "Logout",
                 device: payload?.device || "Unknown",
                 browser: payload?.browser || "Unknown",
-                ipAddress: ip || "Unknown",
+                ipAddress: payload?.ip || "Unknown",
                 userId: user.id,
             },
         });

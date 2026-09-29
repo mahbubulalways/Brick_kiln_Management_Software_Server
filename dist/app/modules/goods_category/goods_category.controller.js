@@ -84,13 +84,13 @@ const updateGoodCategoryController = (0, catchAsync_1.default)(async (req, res) 
     const { body } = req;
     const user = req.user;
     const result = await goods_category_service_1.GoodsCategoryService.updateGoodCategoryService(user, id, body);
-    if (!result.id) {
+    if (!result.result) {
         throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.BAD_REQUEST, "মালামালের ক্যাটাগরি আপডেট করা সম্ভব হয়নি। অনুগ্রহ করে আবার চেষ্টা করুন।");
     }
     (0, sendResponse_1.sendResponse)(res, {
         statusCode: http_status_codes_1.StatusCodes.OK,
         success: true,
-        message: "মালামালের ক্যাটাগরি সফলভাবে আপডেট হয়েছে।",
+        message: result?.message,
         data: result,
     });
 });
@@ -98,13 +98,13 @@ const deleteGoodCategoryController = (0, catchAsync_1.default)(async (req, res) 
     const { id } = req.params;
     const user = req.user;
     const result = await goods_category_service_1.GoodsCategoryService.deleteGoodCategoryService(user, id);
-    if (!result?.id) {
+    if (!result?.result) {
         throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.BAD_REQUEST, "মালামালের ক্যাটাগরি ডিলিট করা সম্ভব হয়নি। অনুগ্রহ করে আবার চেষ্টা করুন।");
     }
     (0, sendResponse_1.sendResponse)(res, {
         statusCode: http_status_codes_1.StatusCodes.OK,
         success: true,
-        message: "মালামালের ক্যাটাগরি সফলভাবে ডিলিট হয়েছে।",
+        message: result?.message,
         data: result,
     });
 });

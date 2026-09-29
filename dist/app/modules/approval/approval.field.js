@@ -198,6 +198,8 @@ exports.fieldNameMap = {
     LOAD_INFO: {
         id: "লোড আইডি",
         date: "লোডের তারিখ",
+        class: "শ্রেণী",
+        round: "রাউন্ড",
         roundId: "রাউন্ড",
         quantity: "লোডের পরিমাণ",
         loadType: "লোডের ধরন",

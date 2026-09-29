@@ -1,9 +1,12 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.DriverService = void 0;
+const http_status_codes_1 = require("http-status-codes");
 const paginationHelper_1 = require("../../../helpers/paginationHelper");
 const prisma_1 = require("../../../helpers/prisma");
 const createMetaConfig_1 = require("../../../utils/createMetaConfig");
+const ApplicationError_1 = require("../../errors/ApplicationError");
+const activity_service_1 = require("../activity/activity.service");
 // ড্রাইভার তৈরি
 const createDriverService = async (user, payload) => {
     const driver = await prisma_1.prisma.driver.create({
@@ -28,7 +31,7 @@ const getAllDriversService = async (user, query) => {
                 createdAt: "desc",
             },
         }),
-        prisma_1.prisma.driver.count()
+        prisma_1.prisma.driver.count(),
     ]);
     const meta = (0, createMetaConfig_1.createMetaConfig)({
         limit,
@@ -37,7 +40,7 @@ const getAllDriversService = async (user, query) => {
     });
     return {
         data: drivers,
-        meta
+        meta,
     };
 };
 // নির্দিষ্ট একজন ড্রাইভার পাওয়া
@@ -53,7 +56,6 @@ const getSingleDriverService = async (user, id) => {
     }
     return driver;
 };
-// ড্রাইভার আপডেট
 const updateDriverService = async (user, id, payload) => {
     const existingDriver = await prisma_1.prisma.driver.findFirst({
         where: {
@@ -62,25 +64,78 @@ const updateDriverService = async (user, id, payload) => {
         },
     });
     if (!existingDriver) {
-        throw new Error("ড্রাইভার খুঁজে পাওয়া যায়নি");
+        throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.NOT_FOUND, "ড্রাইভার খুঁজে পাওয়া যায়নি।");
     }
-    const driver = await prisma_1.prisma.driver.update({
+    const oldData = {
+        name: existingDriver.name,
+        PhoneNumber: existingDriver.PhoneNumber,
+        salary: existingDriver.salary,
+    };
+    const newData = {
+        name: payload.name ?? existingDriver.name,
+        PhoneNumber: payload.PhoneNumber ?? existingDriver.PhoneNumber,
+        salary: payload.salary ?? existingDriver.salary,
+    };
+    if (user.role === "ADMIN" || user.role === "OWNER") {
+        const result = await prisma_1.prisma.$transaction(async (tx) => {
+            const result = await tx.driver.update({
+                where: {
+                    id,
+                },
+                data: {
+                    ...(payload.name !== undefined && {
+                        name: payload.name,
+                    }),
+                    ...(payload.PhoneNumber !== undefined && {
+                        PhoneNumber: payload.PhoneNumber,
+                    }),
+                    ...(payload.salary !== undefined && {
+                        salary: payload.salary,
+                    }),
+                    updateStatus: "APPROVED",
+                },
+            });
+            await activity_service_1.ActivityService.createActivityService({
+                action: "UPDATE",
+                module: "DRIVER",
+                targetId: id,
+                userId: user.userId,
+                vataId: user.vataId,
+                oldData,
+                newData,
+                referenceNumber: oldData.name,
+            });
+            return result;
+        });
+        return {
+            result,
+            message: "ড্রাইভারের তথ্য সফলভাবে আপডেট করা হয়েছে।",
+        };
+    }
+    await prisma_1.prisma.driver.update({
         where: {
             id,
         },
         data: {
-            ...(payload.name !== undefined && {
-                name: payload.name,
-            }),
-            ...(payload.PhoneNumber !== undefined && {
-                PhoneNumber: payload.PhoneNumber,
-            }),
-            ...(payload.salary !== undefined && {
-                salary: payload.salary,
-            }),
+            updateStatus: "PENDING",
         },
     });
-    return driver;
+    const result = await prisma_1.prisma.approvalRequest.create({
+        data: {
+            action: "UPDATE",
+            module: "DRIVER",
+            targetId: id,
+            requestedById: user.userId,
+            vataId: user.vataId,
+            status: "PENDING",
+            oldData,
+            newData,
+        },
+    });
+    return {
+        result,
+        message: "ড্রাইভারের তথ্য আপডেটের অনুরোধ অ্যাডমিনের কাছে পাঠানো হয়েছে।",
+    };
 };
 // ড্রাইভার ডিলিট
 const deleteDriverService = async (user, id) => {
@@ -91,20 +146,65 @@ const deleteDriverService = async (user, id) => {
         },
     });
     if (!existingDriver) {
-        throw new Error("ড্রাইভার খুঁজে পাওয়া যায়নি");
+        throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.NOT_FOUND, "ড্রাইভার খুঁজে পাওয়া যায়নি।");
     }
-    await prisma_1.prisma.driver.delete({
+    const oldData = {
+        name: existingDriver.name,
+        PhoneNumber: existingDriver.PhoneNumber,
+        salary: existingDriver.salary,
+    };
+    if (user.role === "ADMIN" || user.role === "OWNER") {
+        await prisma_1.prisma.$transaction(async (tx) => {
+            await tx.driver.delete({
+                where: {
+                    id,
+                },
+            });
+            await activity_service_1.ActivityService.createActivityService({
+                action: "DELETE",
+                module: "DRIVER",
+                targetId: id,
+                userId: user.userId,
+                vataId: user.vataId,
+                oldData,
+                referenceNumber: oldData.name,
+            });
+        });
+        return {
+            result: null,
+            message: "ড্রাইভার সফলভাবে মুছে ফেলা হয়েছে।",
+        };
+    }
+    await prisma_1.prisma.driver.update({
         where: {
             id,
         },
+        data: {
+            deleteStatus: "PENDING",
+        },
     });
-    return null;
+    const result = await prisma_1.prisma.approvalRequest.create({
+        data: {
+            action: "DELETE",
+            module: "DRIVER",
+            targetId: id,
+            requestedById: user.userId,
+            vataId: user.vataId,
+            status: "PENDING",
+            oldData,
+        },
+    });
+    return {
+        result,
+        message: "ড্রাইভার মুছে ফেলার অনুরোধ অ্যাডমিনের কাছে পাঠানো হয়েছে।",
+    };
 };
 const driverOptionsForDeliveryService = async (user) => {
     const driver = await prisma_1.prisma.driver.findMany({
         where: {
-            vataId: user.vataId
-        }, select: { name: true, id: true, PhoneNumber: true }
+            vataId: user.vataId,
+        },
+        select: { name: true, id: true, PhoneNumber: true },
     });
     return driver;
 };
@@ -114,5 +214,5 @@ exports.DriverService = {
     getSingleDriverService,
     updateDriverService,
     deleteDriverService,
-    driverOptionsForDeliveryService
+    driverOptionsForDeliveryService,
 };

@@ -15,3 +15,4 @@ node_modules
 /src/generated/prisma
 
 brick-management-backup-153526dd73b8.json
+.env

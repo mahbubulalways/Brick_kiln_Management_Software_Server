@@ -11,8 +11,7 @@ const ApplicationError_1 = require("../../errors/ApplicationError");
 const sendResponse_1 = require("../../../utils/sendResponse");
 const loginUserToSystemController = (0, catchAsync_1.default)(async (req, res) => {
     const body = req.body;
-    const ipAddress = req.ip;
-    const result = await auth_service_1.AuthService.loginUserToSystemService(body, ipAddress);
+    const result = await auth_service_1.AuthService.loginUserToSystemService(body);
     if (!result?.accessToken) {
         throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.BAD_REQUEST, "লগইন করা সম্ভব হয়নি। অনুগ্রহ করে কিছুক্ষণ পর আবার চেষ্টা করুন।");
     }
@@ -36,10 +35,8 @@ const loginUserToSystemController = (0, catchAsync_1.default)(async (req, res) =
 });
 const logoutController = (0, catchAsync_1.default)(async (req, res) => {
     const body = req.body;
-    const ipAddress = req.ip;
-    const username = req.user.username;
     const user = req.user;
-    const result = await auth_service_1.AuthService.logoutUserService(user, username, ipAddress, body);
+    const result = await auth_service_1.AuthService.logoutUserService(user, body);
     if (!result?.id) {
         throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.BAD_REQUEST, "লগআউট করা সম্ভব হয়নি। অনুগ্রহ করে আবার চেষ্টা করুন।");
     }

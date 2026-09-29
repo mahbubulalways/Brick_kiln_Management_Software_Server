@@ -92,23 +92,27 @@ const dashboardAllReportService = async (user, seasonId, query) => {
     };
     const deuWhere = {
         seasonId,
+        isDeleted: false,
         customer: {
             vataId: user.vataId,
         },
     };
     const cashExpenseWhere = {
         vataId: user.vataId,
+        isDeleted: false,
         seasonId,
         type: "EXPENSE",
     };
     const cashIncomeWhere = {
         vataId: user.vataId,
         seasonId,
+        isDeleted: false,
         type: "INCOME",
     };
     const deliveryWhere = {
         invoice: {
             seasonId,
+            isDeleted: false,
             vataId: user.vataId,
         },
     };
@@ -126,7 +130,7 @@ const dashboardAllReportService = async (user, seasonId, query) => {
     const challans = await prisma_1.prisma.challan.findMany({
         where: challanWhere,
         select: {
-            // carRent: true,
+            carRent: true,
             cash: true,
             discount: true,
             due: true,

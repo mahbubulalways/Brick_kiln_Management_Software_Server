@@ -352,7 +352,9 @@ exports.LoadInfoScalarFieldEnum = {
     classId: 'classId',
     isDeleted: 'isDeleted',
     createdAt: 'createdAt',
-    updatedAt: 'updatedAt'
+    updatedAt: 'updatedAt',
+    deleteStatus: 'deleteStatus',
+    updateStatus: 'updateStatus'
 };
 exports.UnloadScalarFieldEnum = {
     id: 'id',
@@ -400,7 +402,9 @@ exports.GoodsStockCategoryScalarFieldEnum = {
     createdAt: 'createdAt',
     updatedAt: 'updatedAt',
     vataId: 'vataId',
-    isDeleted: 'isDeleted'
+    isDeleted: 'isDeleted',
+    deleteStatus: 'deleteStatus',
+    updateStatus: 'updateStatus'
 };
 exports.GoodsStockScalarFieldEnum = {
     id: 'id',
@@ -473,7 +477,9 @@ exports.CarRentScalarFieldEnum = {
     rent: 'rent',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt',
-    vataId: 'vataId'
+    vataId: 'vataId',
+    deleteStatus: 'deleteStatus',
+    updateStatus: 'updateStatus'
 };
 exports.ProductScalarFieldEnum = {
     id: 'id',
@@ -498,7 +504,9 @@ exports.TaskManagerScalarFieldEnum = {
     vataId: 'vataId',
     isDeleted: 'isDeleted',
     createdAt: 'createdAt',
-    updatedAt: 'updatedAt'
+    updatedAt: 'updatedAt',
+    deleteStatus: 'deleteStatus',
+    updateStatus: 'updateStatus'
 };
 exports.ReceivablePayableScalarFieldEnum = {
     id: 'id',
@@ -538,7 +546,9 @@ exports.ContactScalarFieldEnum = {
     phone: 'phone',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt',
-    vataId: 'vataId'
+    vataId: 'vataId',
+    deleteStatus: 'deleteStatus',
+    updateStatus: 'updateStatus'
 };
 exports.WeatherScalarFieldEnum = {
     id: 'id',
@@ -622,7 +632,9 @@ exports.DriverScalarFieldEnum = {
     salary: 'salary',
     vataId: 'vataId',
     createdAt: 'createdAt',
-    updatedAt: 'updatedAt'
+    updatedAt: 'updatedAt',
+    deleteStatus: 'deleteStatus',
+    updateStatus: 'updateStatus'
 };
 exports.VataCarScalarFieldEnum = {
     id: 'id',

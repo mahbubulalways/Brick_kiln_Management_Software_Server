@@ -26,7 +26,11 @@ const createContactController = (0, catchAsync_1.default)(async (req, res) => {
 const getAllContactController = (0, catchAsync_1.default)(async (req, res) => {
     const { limit, page, search } = await (0, parseListQuery_1.parseListQuery)(req.query);
     const user = req.user;
-    const result = await contact_service_1.ContactService.getAllContactService(user, { limit, page, search });
+    const result = await contact_service_1.ContactService.getAllContactService(user, {
+        limit,
+        page,
+        search,
+    });
     if (result.data.length > 0) {
         (0, sendResponse_1.sendResponse)(res, {
             statusCode: 200,
@@ -64,11 +68,11 @@ const updateContactController = (0, catchAsync_1.default)(async (req, res) => {
     const { id } = req.params;
     const user = req.user;
     const result = await contact_service_1.ContactService.updateContactService(user, id, req.body);
-    if (result) {
+    if (result.result) {
         (0, sendResponse_1.sendResponse)(res, {
             statusCode: 200,
             success: true,
-            message: "ফোন নম্বর সফলভাবে আপডেট করা হয়েছে",
+            message: result?.message,
             data: result,
         });
     }

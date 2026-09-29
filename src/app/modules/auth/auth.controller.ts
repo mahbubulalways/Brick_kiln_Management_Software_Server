@@ -7,9 +7,8 @@ import { TAuthUser } from "../../../interface/token";
 
 const loginUserToSystemController = catchAsync(async (req, res) => {
   const body = req.body;
-  const ipAddress = req.ip as string;
 
-  const result = await AuthService.loginUserToSystemService(body, ipAddress);
+  const result = await AuthService.loginUserToSystemService(body);
 
   if (!result?.accessToken) {
     throw new AppError(
@@ -38,15 +37,8 @@ const loginUserToSystemController = catchAsync(async (req, res) => {
 
 const logoutController = catchAsync(async (req, res) => {
   const body = req.body;
-  const ipAddress = req.ip as string;
-  const username = req.user.username;
   const user = req.user as TAuthUser;
-  const result = await AuthService.logoutUserService(
-    user,
-    username,
-    ipAddress,
-    body,
-  );
+  const result = await AuthService.logoutUserService(user, body);
 
   if (!result?.id) {
     throw new AppError(

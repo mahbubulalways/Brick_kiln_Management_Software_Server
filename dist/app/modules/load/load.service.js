@@ -9,6 +9,8 @@ const createMetaConfig_1 = require("../../../utils/createMetaConfig");
 const getDateRangeDbSearch_1 = require("../../../utils/getDateRangeDbSearch");
 const ApplicationError_1 = require("../../errors/ApplicationError");
 const load_utils_1 = require("./load.utils");
+const activity_service_1 = require("../activity/activity.service");
+const load_type_1 = require("./load.type");
 // CREATE LOAD INFO
 const createLoadInfoService = async (user, seasonId, payload) => {
     const round = payload.round;
@@ -58,7 +60,6 @@ const createLoadInfoService = async (user, seasonId, payload) => {
                 loadType: payload.loadType,
                 roundId: roundExist.id,
                 quantity,
-                classId: payload.classId || null,
             },
         });
         // UPDATE BRICK STOCK SUMMARY
@@ -193,97 +194,297 @@ const getSingleLoadInfoService = async (user, id) => {
 };
 // UPDATE LOAD INFO
 const updateLoadInfoService = async (user, seasonId, id, payload) => {
-    return await prisma_1.prisma.$transaction(async (tx) => {
-        // --------------------------------
-        // GET OLD LOAD
-        // --------------------------------
-        const oldLoad = await tx.loadInfo.findUnique({
-            where: {
-                id,
+    payload.quantity = Number(payload.quantity || 0);
+    const oldLoad = await prisma_1.prisma.loadInfo.findUnique({
+        where: {
+            id,
+        },
+        select: {
+            id: true,
+            date: true,
+            loadType: true,
+            quantity: true,
+            round: {
+                select: {
+                    name: true,
+                },
             },
-        });
-        if (!oldLoad) {
-            throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.NOT_FOUND, "লোডের তথ্য পাওয়া যায়নি।");
-        }
-        // --------------------------------
-        // ROUND
-        // --------------------------------
-        let round = await tx.round.findFirst({
-            where: {
+        },
+    });
+    if (!oldLoad) {
+        throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.NOT_FOUND, "লোডের তথ্য পাওয়া যায়নি।");
+    }
+    const round = await prisma_1.prisma.round.findFirst({
+        where: {
+            name: payload.round,
+            vataId: user.vataId,
+            seasonId,
+        },
+    });
+    let newRound = round;
+    if (!newRound) {
+        newRound = await prisma_1.prisma.round.create({
+            data: {
                 name: payload.round,
                 vataId: user.vataId,
                 seasonId,
             },
         });
-        if (!round) {
-            round = await tx.round.create({
-                data: {
-                    name: payload.round,
+    }
+    const formatOldData = {
+        date: oldLoad.date,
+        loadType: (0, load_type_1.getMovementTypeBangla)(oldLoad.loadType),
+        quantity: oldLoad.quantity,
+        round: oldLoad.round?.name,
+    };
+    const formatNewData = {
+        date: payload.date,
+        loadType: (0, load_type_1.getMovementTypeBangla)(payload.loadType),
+        quantity: Number(payload.quantity || 0),
+        round: newRound.name,
+    };
+    // ADMIN / OWNER
+    if (user.role === "ADMIN" || user.role === "OWNER") {
+        return await prisma_1.prisma.$transaction(async (tx) => {
+            const brickSummary = await tx.brickStockSummary.findFirst({
+                where: {
                     vataId: user.vataId,
-                    seasonId,
                 },
             });
-        }
-        // --------------------------------
-        // BRICK STOCK SUMMARY
-        // --------------------------------
-        const brickSummary = await tx.brickStockSummary.findFirst({
-            where: {
+            if (!brickSummary) {
+                throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.NOT_FOUND, "ইটের স্টক তথ্য পাওয়া যায়নি।");
+            }
+            const oldQuantity = Number(oldLoad.quantity);
+            const newQuantity = Number(payload.quantity || 0);
+            // পুরোনো load stock থেকে বাদ দেওয়া quantity ফেরত দেওয়া
+            await (0, load_utils_1.updateBrickStock)(tx, brickSummary.id, oldLoad.loadType, oldQuantity, true);
+            // নতুন load-এর জন্য পর্যাপ্ত stock আছে কিনা check
+            await (0, load_utils_1.checkAvailableBrick)(tx, user.vataId, payload.loadType, newQuantity);
+            // নতুন load অনুযায়ী stock update
+            await (0, load_utils_1.updateBrickStock)(tx, brickSummary.id, payload.loadType, newQuantity);
+            // এখানে শুধু id ব্যবহার করবে
+            const result = await tx.loadInfo.update({
+                where: {
+                    id,
+                },
+                data: {
+                    date: payload.date,
+                    loadType: payload.loadType,
+                    roundId: newRound.id,
+                    quantity: newQuantity,
+                    updateStatus: "APPROVED",
+                },
+            });
+            await activity_service_1.ActivityService.createActivityService({
+                action: "UPDATE",
+                module: "LOAD_INFO",
+                targetId: id,
+                userId: user.userId,
                 vataId: user.vataId,
-            },
+                newData: formatNewData,
+                oldData: formatOldData,
+                referenceNumber: formatNewData.loadType === formatOldData.loadType
+                    ? (0, load_type_1.getMovementTypeBangla)(formatNewData.loadType)
+                    : undefined,
+            });
+            return {
+                result,
+                message: "ইটের লোড সফলভাবে আপডেট করা হয়েছে।",
+            };
         });
-        if (!brickSummary) {
-            throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.NOT_FOUND, "ইটের স্টক তথ্য পাওয়া যায়নি।");
-        }
-        const oldQuantity = Number(oldLoad.quantity);
-        const newQuantity = Number(payload.quantity || 0);
-        // --------------------------------
-        // 1. REVERSE OLD LOAD
-        // --------------------------------
-        await (0, load_utils_1.updateBrickStock)(tx, brickSummary.id, oldLoad.loadType, oldQuantity, true);
-        // --------------------------------
-        // 2. CHECK NEW LOAD AVAILABILITY
-        // --------------------------------
-        await (0, load_utils_1.checkAvailableBrick)(tx, user.vataId, payload.loadType, newQuantity);
-        // --------------------------------
-        // 3. APPLY NEW LOAD
-        // --------------------------------
-        await (0, load_utils_1.updateBrickStock)(tx, brickSummary.id, payload.loadType, newQuantity);
-        // --------------------------------
-        // 4. UPDATE LOAD INFO
-        // --------------------------------
-        const load = await tx.loadInfo.update({
+    }
+    // NON ADMIN / OWNER
+    const result = await prisma_1.prisma.$transaction(async (tx) => {
+        const load = await tx.loadInfo.findFirst({
             where: {
                 id,
-            },
-            data: {
-                date: payload.date,
-                loadType: payload.loadType,
-                roundId: round.id,
-                quantity: newQuantity,
-                classId: payload.classId || null,
+                round: {
+                    vataId: user.vataId,
+                },
             },
         });
-        return load;
+        if (!load) {
+            throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.NOT_FOUND, "এই ভাটার লোডের তথ্য পাওয়া যায়নি।");
+        }
+        await tx.loadInfo.update({
+            where: {
+                id: load.id,
+            },
+            data: {
+                updateStatus: "PENDING",
+            },
+        });
+        return await tx.approvalRequest.create({
+            data: {
+                action: "UPDATE",
+                module: "LOAD_INFO",
+                targetId: id,
+                requestedById: user.userId,
+                vataId: user.vataId,
+                status: "PENDING",
+                newData: formatNewData,
+                oldData: formatOldData,
+            },
+        });
     });
+    return {
+        result,
+        message: "ইটের লোড আপডেটের অনুরোধ অ্যাডমিনের কাছে পাঠানো হয়েছে",
+    };
 };
-// DELETE LOAD INFO
 const deleteLoadInfoService = async (user, id) => {
-    return await prisma_1.prisma.loadInfo.update({
-        data: {
-            isDeleted: true,
-        },
+    const oldLoad = await prisma_1.prisma.loadInfo.findUnique({
         where: {
             id,
+        },
+        select: {
+            id: true,
+            date: true,
+            loadType: true,
+            quantity: true,
             round: {
-                vataId: user.vataId,
+                select: {
+                    name: true,
+                },
             },
         },
     });
+    if (!oldLoad) {
+        throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.NOT_FOUND, "লোডের তথ্য পাওয়া যায়নি।");
+    }
+    const formatOldData = {
+        date: oldLoad.date,
+        loadType: (0, load_type_1.getMovementTypeBangla)(oldLoad.loadType),
+        quantity: oldLoad.quantity,
+        round: oldLoad.round?.name,
+    };
+    // ADMIN / OWNER
+    if (user.role === "ADMIN" || user.role === "OWNER") {
+        const result = await prisma_1.prisma.$transaction(async (tx) => {
+            const brickSummary = await tx.brickStockSummary.findFirst({
+                where: {
+                    vataId: user.vataId,
+                },
+            });
+            if (!brickSummary) {
+                throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.NOT_FOUND, "ইটের স্টক তথ্য পাওয়া যায়নি।");
+            }
+            const quantity = Number(oldLoad.quantity);
+            switch (oldLoad.loadType) {
+                case "RAWENTRY":
+                    await tx.brickStockSummary.update({
+                        where: {
+                            id: brickSummary.id,
+                        },
+                        data: {
+                            rawBrick: {
+                                decrement: quantity,
+                            },
+                        },
+                    });
+                    break;
+                case "RAW_TO_FIELD":
+                    await tx.brickStockSummary.update({
+                        where: {
+                            id: brickSummary.id,
+                        },
+                        data: {
+                            fieldBrick: {
+                                decrement: quantity,
+                            },
+                        },
+                    });
+                    break;
+                case "FIELD_TO_STOCK":
+                    await tx.brickStockSummary.update({
+                        where: {
+                            id: brickSummary.id,
+                        },
+                        data: {
+                            stockBrick: {
+                                decrement: quantity,
+                            },
+                        },
+                    });
+                    break;
+                case "FIELD_TO_CHULLI":
+                case "STOCK_TO_CHULLI":
+                    await tx.brickStockSummary.update({
+                        where: {
+                            id: brickSummary.id,
+                        },
+                        data: {
+                            chulliBrick: {
+                                decrement: quantity,
+                            },
+                        },
+                    });
+                    break;
+                default:
+                    throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.BAD_REQUEST, "অজানা লোডের ধরন।");
+            }
+            const result = await tx.loadInfo.update({
+                data: {
+                    isDeleted: true,
+                    deleteStatus: "APPROVED",
+                },
+                where: {
+                    id,
+                    round: {
+                        vataId: user.vataId,
+                    },
+                },
+            });
+            await activity_service_1.ActivityService.createActivityService({
+                action: "DELETE",
+                module: "LOAD_INFO",
+                targetId: id,
+                userId: user.userId,
+                vataId: user.vataId,
+                oldData: formatOldData,
+                referenceNumber: `${(0, load_type_1.getMovementTypeBangla)(formatOldData?.loadType)} ${formatOldData?.quantity}`,
+            });
+            return result;
+        });
+        return {
+            result,
+            message: "ইটের লোড সফলভাবে মুছে ফেলা হয়েছে।",
+        };
+    }
+    // NON ADMIN / OWNER
+    const result = await prisma_1.prisma.$transaction(async (tx) => {
+        await tx.loadInfo.update({
+            data: {
+                deleteStatus: "PENDING",
+            },
+            where: {
+                round: { vataId: user.vataId },
+                id,
+            },
+        });
+        return await tx.approvalRequest.create({
+            data: {
+                action: "DELETE",
+                module: "LOAD_INFO",
+                targetId: id,
+                requestedById: user.userId,
+                vataId: user.vataId,
+                status: "PENDING",
+                oldData: formatOldData,
+            },
+        });
+    });
+    return {
+        result,
+        message: "ইটের লোড মুছে ফেলার অনুরোধ অ্যাডমিনের কাছে পাঠানো হয়েছে",
+    };
 };
 // LOAD REPORT
 const getLoadReportService = async (user, query) => {
-    const where = { round: { vataId: user.vataId } };
+    const where = {
+        round: { vataId: user.vataId },
+        isDeleted: false,
+    };
     if (query.date) {
         const dateRange = (0, getDateRangeDbSearch_1.getDateRangeDbSearch)(query.date);
         if (dateRange) {

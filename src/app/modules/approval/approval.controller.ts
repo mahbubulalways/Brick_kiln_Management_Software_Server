@@ -34,8 +34,10 @@ const getAlApprovalController = catchAsync(async (req, res) => {
 const changeApprovalStatusController = catchAsync(async (req, res) => {
   const user = req.user as TAuthUser;
   const body = req.body.status;
+  const seasonId = req.seasonId;
   const result = await ApprovalService.changeAprovalStatus(
     user,
+    seasonId,
     req.params.id,
     body,
   );

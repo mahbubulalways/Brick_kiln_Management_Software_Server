@@ -96,11 +96,11 @@ const updateLoadInfoController = (0, catchAsync_1.default)(async (req, res) => {
         throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.NOT_FOUND, "লোডের তথ্য পাওয়া যায়নি");
     }
     const result = await load_service_1.LoadInfoService.updateLoadInfoService(user, seasonId, id, req.body);
-    if (result) {
+    if (result.result) {
         (0, sendResponse_1.sendResponse)(res, {
             statusCode: http_status_codes_1.StatusCodes.OK,
             success: true,
-            message: "লোডের তথ্য সফলভাবে আপডেট হয়েছে",
+            message: result?.message,
             data: result,
         });
     }
@@ -122,11 +122,11 @@ const deleteLoadInfoController = (0, catchAsync_1.default)(async (req, res) => {
         throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.NOT_FOUND, "লোডের তথ্য পাওয়া যায়নি");
     }
     const result = await load_service_1.LoadInfoService.deleteLoadInfoService(user, id);
-    if (result) {
+    if (result.result) {
         (0, sendResponse_1.sendResponse)(res, {
             statusCode: http_status_codes_1.StatusCodes.OK,
             success: true,
-            message: "লোডের তথ্য সফলভাবে ডিলেট হয়েছে",
+            message: result?.message,
             data: result,
         });
     }

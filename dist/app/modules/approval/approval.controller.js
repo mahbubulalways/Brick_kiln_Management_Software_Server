@@ -37,7 +37,8 @@ const getAlApprovalController = (0, catchAsync_1.default)(async (req, res) => {
 const changeApprovalStatusController = (0, catchAsync_1.default)(async (req, res) => {
     const user = req.user;
     const body = req.body.status;
-    const result = await approval_service_1.ApprovalService.changeAprovalStatus(user, req.params.id, body);
+    const seasonId = req.seasonId;
+    const result = await approval_service_1.ApprovalService.changeAprovalStatus(user, seasonId, req.params.id, body);
     if (!result?.result) {
         (0, sendResponse_1.sendResponse)(res, {
             message: "অনুমোদনের অনুরোধ পাওয়া যায়নি।",

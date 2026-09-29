@@ -120,11 +120,11 @@ const updateLoadInfoController = catchAsync(
       req.body,
     );
 
-    if (result) {
+    if (result.result) {
       sendResponse(res, {
         statusCode: StatusCodes.OK,
         success: true,
-        message: "লোডের তথ্য সফলভাবে আপডেট হয়েছে",
+        message: result?.message,
         data: result,
       });
     } else {
@@ -155,11 +155,11 @@ const deleteLoadInfoController = catchAsync(
 
     const result = await LoadInfoService.deleteLoadInfoService(user, id);
 
-    if (result) {
+    if (result.result) {
       sendResponse(res, {
         statusCode: StatusCodes.OK,
         success: true,
-        message: "লোডের তথ্য সফলভাবে ডিলেট হয়েছে",
+        message: result?.message,
         data: result,
       });
     } else {

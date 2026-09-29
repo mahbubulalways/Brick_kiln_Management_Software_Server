@@ -3,14 +3,14 @@
 type TDashboardReport = {
   totalSale: number;
   discount: number;
-  // carRent: number;
-  // totalSaleWithRent: number;
+  carRent: number;
+  totalSaleWithRent: number;
   cash: number;
   due: number;
 };
 
 type TChallanReportData = {
-  // carRent: number | null;
+  carRent: number | null;
   cash: number | null;
   discount: number | null;
   due: number | null;
@@ -21,7 +21,7 @@ const calculateDashboardReport = (
 ): TDashboardReport => {
   return challans.reduce<TDashboardReport>(
     (acc, challan) => {
-      // const carRent = Number(challan.carRent || 0);
+      const carRent = Number(challan.carRent || 0);
       const cash = Number(challan.cash || 0);
       const discount = Number(challan.discount || 0);
       const due = Number(challan.due || 0);
@@ -29,8 +29,8 @@ const calculateDashboardReport = (
       return {
         totalSale: acc.totalSale + cash + due, //carRent,
         discount: acc.discount + discount,
-        // carRent: acc.carRent + carRent,
-        // totalSaleWithRent: acc.totalSaleWithRent + cash + due, // carRent,
+        carRent: acc.carRent + carRent,
+        totalSaleWithRent: acc.totalSaleWithRent + cash + due, // carRent,
         cash: acc.cash + cash, //+carRent,
         due: acc.due + due,
       };
@@ -38,8 +38,8 @@ const calculateDashboardReport = (
     {
       totalSale: 0,
       discount: 0,
-      // carRent: 0,
-      // totalSaleWithRent: 0,
+      carRent: 0,
+      totalSaleWithRent: 0,
       cash: 0,
       due: 0,
     },

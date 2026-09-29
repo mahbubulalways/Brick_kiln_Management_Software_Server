@@ -128,7 +128,6 @@ const updateCashService = async (
     throw new AppError(StatusCodes.NOT_FOUND, "এই ক্যাশটি পাওয়া যায়নি।");
   }
   if (user.role === "ADMIN" || user.role === "OWNER") {
-    console.log(payload);
     const result = await prisma.cash.update({
       data: {
         ...payload,
@@ -152,7 +151,7 @@ const updateCashService = async (
   }
 
   const result = await prisma.$transaction(async (tx) => {
-    await tx.ledger.update({
+    await tx.cash.update({
       data: {
         updateStatus: "PENDING",
       },

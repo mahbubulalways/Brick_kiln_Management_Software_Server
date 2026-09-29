@@ -104,7 +104,7 @@ const updateCashService = async (user, id, payload) => {
         throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.NOT_FOUND, "এই ক্যাশটি পাওয়া যায়নি।");
     }
     if (user.role === "ADMIN" || user.role === "OWNER") {
-        const result = prisma_1.prisma.cash.update({
+        const result = await prisma_1.prisma.cash.update({
             data: {
                 ...payload,
                 updateStatus: "APPROVED",
@@ -126,7 +126,7 @@ const updateCashService = async (user, id, payload) => {
         };
     }
     const result = await prisma_1.prisma.$transaction(async (tx) => {
-        await tx.ledger.update({
+        await tx.cash.update({
             data: {
                 updateStatus: "PENDING",
             },
@@ -175,13 +175,14 @@ const deleteCashService = async (user, id) => {
             data: { isDeleted: true, deleteStatus: "APPROVED" },
             where: { id, vataId: user.vataId },
         });
+        const cashType = cash?.type == "INCOME" ? "ক্যাশ ইন" : "ক্যাশ আউট";
         await activity_service_1.ActivityService.createActivityService({
             action: "DELETE",
             module: "CASH",
             targetId: id,
             userId: user.userId,
             vataId: user.vataId,
-            referenceNumber: cash?.source,
+            referenceNumber: `${cash?.source} এর ${cash.amount} টাকা ${cashType}`,
         });
         return {
             result,

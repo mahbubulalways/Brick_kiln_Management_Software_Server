@@ -370,6 +370,9 @@ model LoadInfo {
   createdAt DateTime      @default(now())
   updatedAt DateTime      @updatedAt
   round     Round         @relation(fields: [roundId], references: [id])
+
+  deleteStatus ApprovalStatus @default(DEFAULT)
+  updateStatus ApprovalStatus @default(DEFAULT)
 }
 
 // ========================== UNLOAD MODEL==================================
@@ -445,6 +448,9 @@ model GoodsStockCategory {
   isDeleted   Boolean      @default(false)
   vata        Vata         @relation(fields: [vataId], references: [id])
   goodsStocks GoodsStock[]
+
+  deleteStatus ApprovalStatus @default(DEFAULT)
+  updateStatus ApprovalStatus @default(DEFAULT)
 }
 
 // ========================== GOOD STOCK MODEL==================================
@@ -559,6 +565,9 @@ model CarRent {
   vataId    String
   vata      Vata     @relation(fields: [vataId], references: [id])
 
+  deleteStatus ApprovalStatus @default(DEFAULT)
+  updateStatus ApprovalStatus @default(DEFAULT)
+
   @@map("carrents")
 }
 
@@ -596,6 +605,9 @@ model TaskManager {
   updatedAt   DateTime   @updatedAt
   user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   vata        Vata       @relation(fields: [vataId], references: [id])
+
+  deleteStatus ApprovalStatus @default(DEFAULT)
+  updateStatus ApprovalStatus @default(DEFAULT)
 }
 
 // ========================== RECEIVABLE AND PAYABLE (DENA PAWNA) MODEL==================================
@@ -654,6 +666,9 @@ model Contact {
   updatedAt  DateTime @updatedAt
   vataId     String
   vata       Vata     @relation(fields: [vataId], references: [id])
+
+  deleteStatus ApprovalStatus @default(DEFAULT)
+  updateStatus ApprovalStatus @default(DEFAULT)
 }
 
 // ========================== WEATHER MODEL==================================
@@ -829,6 +844,10 @@ model Driver {
   updatedAt           DateTime            @updatedAt
   deliveries          Delivery[]
   carIncomeDeliveries CarIncomeDelivery[]
+
+  isDeleted    Boolean        @default(false)
+  deleteStatus ApprovalStatus @default(DEFAULT)
+  updateStatus ApprovalStatus @default(DEFAULT)
 }
 
 // ========================== VATA CAR MODEL==================================

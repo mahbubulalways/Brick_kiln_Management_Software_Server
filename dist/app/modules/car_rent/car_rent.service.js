@@ -6,6 +6,7 @@ const paginationHelper_1 = require("../../../helpers/paginationHelper");
 const prisma_1 = require("../../../helpers/prisma");
 const createMetaConfig_1 = require("../../../utils/createMetaConfig");
 const ApplicationError_1 = require("../../errors/ApplicationError");
+const activity_service_1 = require("../activity/activity.service");
 // CREATE RENT
 const createCarRentService = async (user, data) => {
     data.vataId = user.vataId;
@@ -36,7 +37,7 @@ const getALlCarRentService = async (user, query) => {
     }
     const [result, total] = await Promise.all([
         prisma_1.prisma.carRent.findMany({ where, skip, take: limit }),
-        prisma_1.prisma.carRent.count({ where })
+        prisma_1.prisma.carRent.count({ where }),
     ]);
     const meta = (0, createMetaConfig_1.createMetaConfig)({
         limit: limit,
@@ -50,52 +51,146 @@ const getALlCarRentService = async (user, query) => {
 };
 // GET SINGLE CAR RENT
 const getSingleCarRentService = async (user, id) => {
-    const result = await prisma_1.prisma.carRent.findFirst({ where: { id, vataId: user.vataId } });
+    const result = await prisma_1.prisma.carRent.findFirst({
+        where: { id, vataId: user.vataId },
+    });
     return result;
 };
-// UPDATE CAR RENT
 const updateCarRentService = async (user, id, payload) => {
-    const existing = await prisma_1.prisma.carRent.findUnique({
+    const existing = await prisma_1.prisma.carRent.findFirst({
         where: {
             id,
-            vataId: user.vataId
+            vataId: user.vataId,
         },
     });
     if (!existing) {
         throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.NOT_FOUND, "গাড়ি ভাড়ার তথ্য পাওয়া যায়নি।");
     }
-    const result = await prisma_1.prisma.carRent.update({
+    const oldData = {
+        address: existing.address,
+        rent: existing.rent,
+        area: existing.area,
+    };
+    const newData = {
+        address: payload.address,
+        rent: payload.rent,
+        area: payload.area,
+    };
+    if (user.role === "ADMIN" || user.role === "OWNER") {
+        const result = await prisma_1.prisma.$transaction(async (tx) => {
+            const result = await tx.carRent.update({
+                where: {
+                    id,
+                },
+                data: {
+                    ...payload,
+                    updateStatus: "APPROVED",
+                },
+            });
+            await activity_service_1.ActivityService.createActivityService({
+                action: "UPDATE",
+                module: "CAR_RENT",
+                targetId: id,
+                userId: user.userId,
+                vataId: user.vataId,
+                oldData,
+                newData,
+                referenceNumber: oldData.rent,
+            });
+            return result;
+        });
+        return {
+            result,
+            message: "গাড়ি ভাড়ার তথ্য সফলভাবে আপডেট করা হয়েছে।",
+        };
+    }
+    await prisma_1.prisma.carRent.update({
         where: {
             id,
-            vataId: user.vataId
         },
-        data: payload,
+        data: {
+            updateStatus: "PENDING",
+        },
     });
-    return result;
+    const result = await prisma_1.prisma.approvalRequest.create({
+        data: {
+            action: "UPDATE",
+            module: "CAR_RENT",
+            targetId: id,
+            requestedById: user.userId,
+            vataId: user.vataId,
+            status: "PENDING",
+            oldData,
+            newData,
+        },
+    });
+    return {
+        result,
+        message: "গাড়ি ভাড়ার তথ্য আপডেটের অনুরোধ অ্যাডমিনের কাছে পাঠানো হয়েছে।",
+    };
 };
 // DELETE CAR RENT
 const deleteCarRentService = async (user, id) => {
-    const existing = await prisma_1.prisma.carRent.findUnique({
+    const existing = await prisma_1.prisma.carRent.findFirst({
         where: {
             id,
-            vataId: user.vataId
+            vataId: user.vataId,
         },
     });
     if (!existing) {
         throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.NOT_FOUND, "গাড়ি ভাড়ার তথ্য পাওয়া যায়নি।");
     }
-    await prisma_1.prisma.carRent.delete({
-        where: {
-            id,
-            vataId: user.vataId
+    const oldData = {
+        address: existing.address,
+        rent: existing.rent,
+        area: existing.area,
+    };
+    if (user.role === "ADMIN" || user.role === "OWNER") {
+        await prisma_1.prisma.$transaction(async (tx) => {
+            await tx.carRent.delete({
+                where: { id },
+            });
+            await activity_service_1.ActivityService.createActivityService({
+                action: "DELETE",
+                module: "CAR_RENT",
+                targetId: id,
+                userId: user.userId,
+                vataId: user.vataId,
+                oldData,
+                referenceNumber: oldData.rent,
+            });
+        });
+        return {
+            result: null,
+            message: "গাড়ি ভাড়ার তথ্য সফলভাবে মুছে ফেলা হয়েছে।",
+        };
+    }
+    const result = await prisma_1.prisma.carRent.update({
+        where: { id },
+        data: {
+            deleteStatus: "PENDING",
         },
     });
-    return true;
+    await prisma_1.prisma.approvalRequest.create({
+        data: {
+            action: "DELETE",
+            module: "CAR_RENT",
+            targetId: id,
+            requestedById: user.userId,
+            vataId: user.vataId,
+            status: "PENDING",
+            oldData,
+        },
+    });
+    return {
+        result,
+        message: "গাড়ি ভাড়ার তথ্য মুছে ফেলার অনুরোধ অ্যাডমিনের কাছে পাঠানো হয়েছে।",
+    };
 };
 exports.CarRentService = {
     createCarRentService,
     getALlCarRentService,
     getSingleCarRentService,
     updateCarRentService,
-    deleteCarRentService
+    deleteCarRentService,
 };

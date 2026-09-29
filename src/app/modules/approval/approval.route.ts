@@ -2,6 +2,7 @@ import { Router } from "express";
 import AuthGuard from "../../middlewares/AuthGuard";
 import { UserRole } from "../../../generated/prisma/enums";
 import { ApprovalController } from "./approval.controller";
+import ActiveSeasonGuard from "../../middlewares/ActiveSeasonGuard";
 
 const router = Router();
 
@@ -13,6 +14,7 @@ router.get(
 router.patch(
   "/update-status/:id",
   AuthGuard(UserRole.ADMIN, UserRole.OWNER),
+  ActiveSeasonGuard,
   ApprovalController.changeApprovalStatusController,
 );
 

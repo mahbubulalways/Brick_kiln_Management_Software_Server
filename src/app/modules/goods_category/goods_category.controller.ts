@@ -100,7 +100,7 @@ const updateGoodCategoryController = catchAsync(async (req, res) => {
     body,
   );
 
-  if (!result.id) {
+  if (!result.result) {
     throw new AppError(
       StatusCodes.BAD_REQUEST,
       "মালামালের ক্যাটাগরি আপডেট করা সম্ভব হয়নি। অনুগ্রহ করে আবার চেষ্টা করুন।",
@@ -110,7 +110,7 @@ const updateGoodCategoryController = catchAsync(async (req, res) => {
   sendResponse(res, {
     statusCode: StatusCodes.OK,
     success: true,
-    message: "মালামালের ক্যাটাগরি সফলভাবে আপডেট হয়েছে।",
+    message: result?.message,
     data: result,
   });
 });
@@ -122,7 +122,7 @@ const deleteGoodCategoryController = catchAsync(async (req, res) => {
 
   const result = await GoodsCategoryService.deleteGoodCategoryService(user, id);
 
-  if (!result?.id) {
+  if (!result?.result) {
     throw new AppError(
       StatusCodes.BAD_REQUEST,
       "মালামালের ক্যাটাগরি ডিলিট করা সম্ভব হয়নি। অনুগ্রহ করে আবার চেষ্টা করুন।",
@@ -132,7 +132,7 @@ const deleteGoodCategoryController = catchAsync(async (req, res) => {
   sendResponse(res, {
     statusCode: StatusCodes.OK,
     success: true,
-    message: "মালামালের ক্যাটাগরি সফলভাবে ডিলিট হয়েছে।",
+    message: result?.message,
     data: result,
   });
 });

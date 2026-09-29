@@ -13,6 +13,12 @@ const challan_module_1 = require("./module/challan.module");
 const delivery_module_1 = require("./module/delivery.module");
 const due_collection_module_1 = require("./module/due.collection.module");
 const cash_module_1 = require("./module/cash.module");
+const load_module_1 = require("./module/load.module");
+const goods_category_module_1 = require("./module/goods.category.module");
+const cancel_module_1 = require("./cancel_module/cancel.module");
+const contact_module_1 = require("./module/contact.module");
+const driver_module_1 = require("./module/driver.module");
+const car_rent_module_1 = require("./module/car.rent.module");
 const getAlApprovalService = async (user, query) => {
     const { limit, page, skip } = (0, paginationHelper_1.paginationHelper)(query.page, query.limit);
     const [result, total] = await Promise.all([
@@ -43,7 +49,7 @@ const getAlApprovalService = async (user, query) => {
         data: result,
     };
 };
-const changeAprovalStatus = async (user, approvalId, status) => {
+const changeAprovalStatus = async (user, seasonId, approvalId, status) => {
     const findRequest = await prisma_1.prisma.approvalRequest.findFirst({
         where: {
             id: approvalId,
@@ -64,6 +70,22 @@ const changeAprovalStatus = async (user, approvalId, status) => {
     if (!findRequest) {
         throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.NOT_FOUND, "অনুমোদনের অনুরোধ পাওয়া যায়নি।");
     }
+    if (status === "CANCELLED") {
+        const result = await prisma_1.prisma.approvalRequest.update({
+            where: {
+                id: approvalId,
+            },
+            data: {
+                status: "CANCELLED",
+                reviewedAt: new Date(),
+            },
+        });
+        const response = await (0, cancel_module_1.cancelModule)(user, findRequest);
+        return {
+            result,
+            message: response.message,
+        };
+    }
     if (status !== "APPROVED") {
         throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.BAD_REQUEST, "অনুমোদনের স্ট্যাটাস সঠিক নয়।");
     }
@@ -82,6 +104,16 @@ const changeAprovalStatus = async (user, approvalId, status) => {
             return await (0, due_collection_module_1.dueCollectionModule)(user, findRequest, approvalId); //done
         case "CASH":
             return await (0, cash_module_1.cashModule)(user, findRequest, approvalId); //done
+        case "LOAD_INFO":
+            return await (0, load_module_1.loadModule)(user, seasonId, findRequest, approvalId); //done
+        case "GOODS_STOCK_CATEGORY":
+            return await (0, goods_category_module_1.goodsStockCategoryModule)(user, findRequest, approvalId); //done
+        case "CONTACT":
+            return await (0, contact_module_1.contactModule)(user, findRequest, approvalId); //done
+        case "DRIVER":
+            return await (0, driver_module_1.driverModule)(user, findRequest, approvalId); //done
+        case "CAR_RENT":
+            return await (0, car_rent_module_1.carRentModule)(user, findRequest, approvalId); //done
         default:
             throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.BAD_REQUEST, "এই অনুমোদনের অনুরোধের জন্য কোনো কার্যক্রম নির্ধারিত নেই।");
     }
@@ -90,18 +122,3 @@ exports.ApprovalService = {
     getAlApprovalService,
     changeAprovalStatus,
 };
-// if (status === "CANCELLED") {
-//   const result = await prisma.approvalRequest.update({
-//     where: {
-//       id: approvalId,
-//     },
-//     data: {
-//       status: "CANCELLED",
-//       reviewedAt: new Date(),
-//     },
-//   });
-//   return {
-//     result,
-//     message: "অনুমোদনের অনুরোধ সফলভাবে বাতিল করা হয়েছে।",
-//   };
-// }

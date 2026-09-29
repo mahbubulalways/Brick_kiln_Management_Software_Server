@@ -1,5 +1,4 @@
 import { StatusCodes } from "http-status-codes";
-import { ClassAndRate, Prisma } from "../../../generated/prisma/client";
 import { ApprovalStatus } from "../../../generated/prisma/enums";
 import { paginationHelper } from "../../../helpers/paginationHelper";
 import { prisma } from "../../../helpers/prisma";
@@ -7,10 +6,6 @@ import { TQuery } from "../../../interface/query";
 import { TAuthUser } from "../../../interface/token";
 import { createMetaConfig } from "../../../utils/createMetaConfig";
 import { AppError } from "../../errors/ApplicationError";
-import { ClassAndRateService } from "../classAndRate/classAndRateRoute.service";
-import { LedgerService } from "../ledger/ledger..service";
-import { InvoiceService } from "../challan/challan.service";
-import { PaymentService } from "../payment/payment.service";
 import { paymentModule } from "./module/payment.module";
 import { ledgerModule } from "./module/ledger.module";
 import { classRateModule } from "./module/class.rate.module";
@@ -18,6 +13,12 @@ import { challanModule } from "./module/challan.module";
 import { deliveryModule } from "./module/delivery.module";
 import { dueCollectionModule } from "./module/due.collection.module";
 import { cashModule } from "./module/cash.module";
+import { loadModule } from "./module/load.module";
+import { goodsStockCategoryModule } from "./module/goods.category.module";
+import { cancelModule } from "./cancel_module/cancel.module";
+import { contactModule } from "./module/contact.module";
+import { driverModule } from "./module/driver.module";
+import { carRentModule } from "./module/car.rent.module";
 
 const getAlApprovalService = async (user: TAuthUser, query: TQuery) => {
   const { limit, page, skip } = paginationHelper(query.page, query.limit);
@@ -54,6 +55,7 @@ const getAlApprovalService = async (user: TAuthUser, query: TQuery) => {
 
 const changeAprovalStatus = async (
   user: TAuthUser,
+  seasonId: string,
   approvalId: string,
   status: ApprovalStatus,
 ) => {
@@ -77,6 +79,24 @@ const changeAprovalStatus = async (
 
   if (!findRequest) {
     throw new AppError(StatusCodes.NOT_FOUND, "অনুমোদনের অনুরোধ পাওয়া যায়নি।");
+  }
+
+  if (status === "CANCELLED") {
+    const result = await prisma.approvalRequest.update({
+      where: {
+        id: approvalId,
+      },
+      data: {
+        status: "CANCELLED",
+        reviewedAt: new Date(),
+      },
+    });
+
+    const response = await cancelModule(user, findRequest);
+    return {
+      result,
+      message: response.message,
+    };
   }
 
   if (status !== "APPROVED") {
@@ -105,6 +125,21 @@ const changeAprovalStatus = async (
     case "CASH":
       return await cashModule(user, findRequest, approvalId); //done
 
+    case "LOAD_INFO":
+      return await loadModule(user, seasonId, findRequest, approvalId); //done
+
+    case "GOODS_STOCK_CATEGORY":
+      return await goodsStockCategoryModule(user, findRequest, approvalId); //done
+
+    case "CONTACT":
+      return await contactModule(user, findRequest, approvalId); //done
+
+    case "DRIVER":
+      return await driverModule(user, findRequest, approvalId); //done
+
+    case "CAR_RENT":
+      return await carRentModule(user, findRequest, approvalId); //done
+
     default:
       throw new AppError(
         StatusCodes.BAD_REQUEST,
@@ -116,20 +151,3 @@ export const ApprovalService = {
   getAlApprovalService,
   changeAprovalStatus,
 };
-
-// if (status === "CANCELLED") {
-//   const result = await prisma.approvalRequest.update({
-//     where: {
-//       id: approvalId,
-//     },
-//     data: {
-//       status: "CANCELLED",
-//       reviewedAt: new Date(),
-//     },
-//   });
-
-//   return {
-//     result,
-//     message: "অনুমোদনের অনুরোধ সফলভাবে বাতিল করা হয়েছে।",
-//   };
-// }
