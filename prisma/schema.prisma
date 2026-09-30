@@ -844,10 +844,9 @@ model Driver {
   updatedAt           DateTime            @updatedAt
   deliveries          Delivery[]
   carIncomeDeliveries CarIncomeDelivery[]
-
-  isDeleted    Boolean        @default(false)
-  deleteStatus ApprovalStatus @default(DEFAULT)
-  updateStatus ApprovalStatus @default(DEFAULT)
+  isDeleted           Boolean             @default(false)
+  deleteStatus        ApprovalStatus      @default(DEFAULT)
+  updateStatus        ApprovalStatus      @default(DEFAULT)
 }
 
 // ========================== VATA CAR MODEL==================================

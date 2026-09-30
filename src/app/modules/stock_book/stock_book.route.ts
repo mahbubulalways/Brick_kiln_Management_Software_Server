@@ -10,7 +10,12 @@ const router = Router();
 // CREATE NEW STOCK
 router.post(
   "/create",
-  AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+  AuthGuard(
+    UserRole.OWNER,
+    UserRole.ADMIN,
+    UserRole.MANAGER,
+    UserRole.OPERATOR,
+  ),
   SubscriptionGuard,
   ActiveSeasonGuard,
   StockBookController.createStockBookController,
@@ -19,14 +24,24 @@ router.post(
 // GET ALL
 router.get(
   "/all",
-  AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+  AuthGuard(
+    UserRole.OWNER,
+    UserRole.ADMIN,
+    UserRole.MANAGER,
+    UserRole.OPERATOR,
+  ),
   ActiveSeasonGuard,
   StockBookController.getAllStockController,
 );
 // GET ALL
 router.get(
   "/main",
-  AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+  AuthGuard(
+    UserRole.OWNER,
+    UserRole.ADMIN,
+    UserRole.MANAGER,
+    UserRole.OPERATOR,
+  ),
   ActiveSeasonGuard,
   StockBookController.getMainStockController,
 );
@@ -34,7 +49,12 @@ router.get(
 // DELETE
 router.delete(
   "/delete/:id",
-  AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+  AuthGuard(
+    UserRole.OWNER,
+    UserRole.ADMIN,
+    UserRole.MANAGER,
+    UserRole.OPERATOR,
+  ),
   SubscriptionGuard,
   StockBookController.deleteStockBookController,
 );

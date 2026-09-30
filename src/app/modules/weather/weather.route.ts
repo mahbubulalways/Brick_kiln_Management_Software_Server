@@ -8,14 +8,24 @@ const router = Router();
 
 router.post(
   "/create",
-  AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+  AuthGuard(
+    UserRole.OWNER,
+    UserRole.ADMIN,
+    UserRole.MANAGER,
+    UserRole.OPERATOR,
+  ),
   SubscriptionGuard,
   WeatherController.createWeatherController,
 );
 
 router.get(
   "/all",
-  AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+  AuthGuard(
+    UserRole.OWNER,
+    UserRole.ADMIN,
+    UserRole.MANAGER,
+    UserRole.OPERATOR,
+  ),
   WeatherController.getAllWeatherController,
 );
 

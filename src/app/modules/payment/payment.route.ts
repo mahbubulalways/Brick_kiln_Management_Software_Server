@@ -11,7 +11,12 @@ const router = Router();
 // CREATE PAYMENT
 router.post(
   "/create",
-  AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+  AuthGuard(
+    UserRole.OWNER,
+    UserRole.ADMIN,
+    UserRole.MANAGER,
+    UserRole.OPERATOR,
+  ),
   ActiveSeasonGuard,
   SubscriptionGuard,
   fileUploader.upload.single("file"),
@@ -20,7 +25,12 @@ router.post(
 // GET ALL PAYMENT
 router.get(
   "/all",
-  AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+  AuthGuard(
+    UserRole.OWNER,
+    UserRole.ADMIN,
+    UserRole.MANAGER,
+    UserRole.OPERATOR,
+  ),
   ActiveSeasonGuard,
   PaymentController.getAllPaymentController,
 );
@@ -28,7 +38,12 @@ router.get(
 // GET PAYMENT REPORT
 router.get(
   "/report/:date",
-  AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+  AuthGuard(
+    UserRole.OWNER,
+    UserRole.ADMIN,
+    UserRole.MANAGER,
+    UserRole.OPERATOR,
+  ),
   ActiveSeasonGuard,
   PaymentController.paymentReportViaGroupController,
 );
@@ -36,13 +51,23 @@ router.get(
 // GET SINGLE PAYMENT
 router.get(
   "/single/:id",
-  AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+  AuthGuard(
+    UserRole.OWNER,
+    UserRole.ADMIN,
+    UserRole.MANAGER,
+    UserRole.OPERATOR,
+  ),
   PaymentController.getSinglePaymentController,
 );
 
 router.patch(
   "/update/:id",
-  AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+  AuthGuard(
+    UserRole.OWNER,
+    UserRole.ADMIN,
+    UserRole.MANAGER,
+    UserRole.OPERATOR,
+  ),
   SubscriptionGuard,
   fileUploader.upload.single("file"),
   PaymentController.updatePaymentController,
@@ -51,7 +76,12 @@ router.patch(
 //  DELETE PAYMENT
 router.patch(
   "/delete/:id",
-  AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+  AuthGuard(
+    UserRole.OWNER,
+    UserRole.ADMIN,
+    UserRole.MANAGER,
+    UserRole.OPERATOR,
+  ),
   SubscriptionGuard,
   PaymentController.deletePaymentController,
 );

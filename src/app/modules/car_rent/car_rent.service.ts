@@ -177,12 +177,12 @@ const deleteCarRentService = async (user: TAuthUser, id: string) => {
   };
 
   if (user.role === "ADMIN" || user.role === "OWNER") {
-    await prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async (tx) => {
       await tx.carRent.delete({
         where: { id },
       });
 
-      await ActivityService.createActivityService({
+      return await ActivityService.createActivityService({
         action: "DELETE",
         module: "CAR_RENT",
         targetId: id,
@@ -194,7 +194,7 @@ const deleteCarRentService = async (user: TAuthUser, id: string) => {
     });
 
     return {
-      result: null,
+      result,
       message: "গাড়ি ভাড়ার তথ্য সফলভাবে মুছে ফেলা হয়েছে।",
     };
   }

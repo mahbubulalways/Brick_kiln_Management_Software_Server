@@ -9,21 +9,36 @@ const router = Router();
 
 router.get(
   "/unread",
-  AuthGuard(UserRole.ADMIN, UserRole.MANAGER, UserRole.OWNER),
+  AuthGuard(
+    UserRole.ADMIN,
+    UserRole.MANAGER,
+    UserRole.OWNER,
+    UserRole.OPERATOR,
+  ),
   ActiveSeasonGuard,
   NotificationController.getUnreadNotificationsNumber,
 );
 
 router.get(
   "/all",
-  AuthGuard(UserRole.ADMIN, UserRole.MANAGER, UserRole.OWNER),
+  AuthGuard(
+    UserRole.ADMIN,
+    UserRole.MANAGER,
+    UserRole.OWNER,
+    UserRole.OPERATOR,
+  ),
   ActiveSeasonGuard,
   NotificationController.getAllNotification,
 );
 
 router.patch(
   "/update/:id",
-  AuthGuard(UserRole.ADMIN, UserRole.MANAGER, UserRole.OWNER),
+  AuthGuard(
+    UserRole.ADMIN,
+    UserRole.MANAGER,
+    UserRole.OWNER,
+    UserRole.OPERATOR,
+  ),
   SubscriptionGuard,
   NotificationController.updateNotification,
 );

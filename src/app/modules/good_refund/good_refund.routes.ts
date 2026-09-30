@@ -8,7 +8,12 @@ import SubscriptionGuard from "../../middlewares/SubscriptionGuard";
 const router = Router();
 router.post(
   "/create",
-  AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+  AuthGuard(
+    UserRole.OWNER,
+    UserRole.ADMIN,
+    UserRole.MANAGER,
+    UserRole.OPERATOR,
+  ),
   SubscriptionGuard,
   fileUploader.upload.single("file"),
   GoodRefundController.createGoodIssueRefundController,

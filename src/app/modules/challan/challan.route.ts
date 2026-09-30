@@ -10,7 +10,12 @@ const router = Router();
 // CREATE INVOICE
 router.post(
   API_ENDPOINTS.INVOICE.CREATE_INVOICE,
-  AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+  AuthGuard(
+    UserRole.OWNER,
+    UserRole.ADMIN,
+    UserRole.MANAGER,
+    UserRole.OPERATOR,
+  ),
   SubscriptionGuard,
   ActiveSeasonGuard,
   InvoiceController.createInvoiceController,
@@ -19,21 +24,36 @@ router.post(
 // GET INVOICE SERIAL
 router.get(
   API_ENDPOINTS.INVOICE.INVOICE_SERIAL,
-  AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+  AuthGuard(
+    UserRole.OWNER,
+    UserRole.ADMIN,
+    UserRole.MANAGER,
+    UserRole.OPERATOR,
+  ),
   InvoiceController.getInvoiceSerial,
 );
 
 // SEARCH
 router.get(
   API_ENDPOINTS.INVOICE.SEARCH_CHALLAN,
-  AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+  AuthGuard(
+    UserRole.OWNER,
+    UserRole.ADMIN,
+    UserRole.MANAGER,
+    UserRole.OPERATOR,
+  ),
   InvoiceController.searchChallanForDeliveryController,
 );
 
 // GET ALL INVOICE
 router.get(
   API_ENDPOINTS.INVOICE.GET_ALL_INVOICE,
-  AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+  AuthGuard(
+    UserRole.OWNER,
+    UserRole.ADMIN,
+    UserRole.MANAGER,
+    UserRole.OPERATOR,
+  ),
   ActiveSeasonGuard,
   InvoiceController.getAllInvoiceController,
 );
@@ -41,7 +61,12 @@ router.get(
 // GET ALL ADVANCE INVOICE
 router.get(
   API_ENDPOINTS.INVOICE.GET_ADVANCE_INVOICE,
-  AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+  AuthGuard(
+    UserRole.OWNER,
+    UserRole.ADMIN,
+    UserRole.MANAGER,
+    UserRole.OPERATOR,
+  ),
   ActiveSeasonGuard,
   InvoiceController.getAllAdvanceInvoiceController,
 );
@@ -49,7 +74,12 @@ router.get(
 // GET ITEMS WITH INVOICE
 router.get(
   API_ENDPOINTS.INVOICE.GET_ITEMS_WITH_INVOICE,
-  AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+  AuthGuard(
+    UserRole.OWNER,
+    UserRole.ADMIN,
+    UserRole.MANAGER,
+    UserRole.OPERATOR,
+  ),
   ActiveSeasonGuard,
   InvoiceController.getItemsWithInvoiceController,
 );
@@ -57,21 +87,36 @@ router.get(
 // GET SINGLE INVOICE
 router.get(
   API_ENDPOINTS.INVOICE.GET_SINGLE_INVOICE,
-  AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+  AuthGuard(
+    UserRole.OWNER,
+    UserRole.ADMIN,
+    UserRole.MANAGER,
+    UserRole.OPERATOR,
+  ),
   InvoiceController.getSingleInvoiceController,
 );
 
 // GET SINGLE INVOICE ITEMS
 router.get(
   API_ENDPOINTS.INVOICE.GET_SINGLE_INVOICE_ITEMS,
-  AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+  AuthGuard(
+    UserRole.OWNER,
+    UserRole.ADMIN,
+    UserRole.MANAGER,
+    UserRole.OPERATOR,
+  ),
   InvoiceController.getSingleInvoiceItemsController,
 );
 
 // UPDATE INVOICE
 router.patch(
   API_ENDPOINTS.INVOICE.UPDATE_INVOICE,
-  AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+  AuthGuard(
+    UserRole.OWNER,
+    UserRole.ADMIN,
+    UserRole.MANAGER,
+    UserRole.OPERATOR,
+  ),
   SubscriptionGuard,
   InvoiceController.updateInvoiceController,
 );
@@ -79,7 +124,12 @@ router.patch(
 // UPDATE INVOICE DELIVERY DATE
 router.patch(
   API_ENDPOINTS.INVOICE.UPDATE_INVOICE_DELIVERY_DATE,
-  AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+  AuthGuard(
+    UserRole.OWNER,
+    UserRole.ADMIN,
+    UserRole.MANAGER,
+    UserRole.OPERATOR,
+  ),
   SubscriptionGuard,
   InvoiceController.updateInvoiceDeliveryDateController,
 );
@@ -87,7 +137,12 @@ router.patch(
 // UPDATE INVOICE ITEM DELIVERY DATE
 router.patch(
   API_ENDPOINTS.INVOICE.UPDATE_INVOICE_ITEM_DELIVERY_DATE,
-  AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+  AuthGuard(
+    UserRole.OWNER,
+    UserRole.ADMIN,
+    UserRole.MANAGER,
+    UserRole.OPERATOR,
+  ),
   SubscriptionGuard,
   InvoiceController.updateInvoiceItemDeliveryDateController,
 );
@@ -95,7 +150,12 @@ router.patch(
 // DELETE INVOICE
 router.patch(
   API_ENDPOINTS.INVOICE.DELETE_INVOICE,
-  AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+  AuthGuard(
+    UserRole.OWNER,
+    UserRole.ADMIN,
+    UserRole.MANAGER,
+    UserRole.OPERATOR,
+  ),
   SubscriptionGuard,
   InvoiceController.deleteInvoiceController,
 );

@@ -9,7 +9,12 @@ const router = Router();
 
 router.post(
   "/create",
-  AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+  AuthGuard(
+    UserRole.OWNER,
+    UserRole.ADMIN,
+    UserRole.MANAGER,
+    UserRole.OPERATOR,
+  ),
   SubscriptionGuard,
   ActiveSeasonGuard,
   UnloadController.createUnloadInfoController,
@@ -17,21 +22,36 @@ router.post(
 
 router.get(
   "/all",
-  AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+  AuthGuard(
+    UserRole.OWNER,
+    UserRole.ADMIN,
+    UserRole.MANAGER,
+    UserRole.OPERATOR,
+  ),
   ActiveSeasonGuard,
   UnloadController.getAllUnloadInfoController,
 );
 
 router.get(
   "/report",
-  AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+  AuthGuard(
+    UserRole.OWNER,
+    UserRole.ADMIN,
+    UserRole.MANAGER,
+    UserRole.OPERATOR,
+  ),
   ActiveSeasonGuard,
   UnloadController.getAllUnloadDataNoPaginateController,
 );
 
 router.delete(
   "/delete/:id",
-  AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+  AuthGuard(
+    UserRole.OWNER,
+    UserRole.ADMIN,
+    UserRole.MANAGER,
+    UserRole.OPERATOR,
+  ),
   SubscriptionGuard,
   UnloadController.getAllUnloadInfoController,
 );

@@ -100,11 +100,11 @@ const deleteContactController = catchAsync(
     const user = req.user as TAuthUser;
     const result = await ContactService.deleteContactService(user, id);
 
-    if (result) {
+    if (result.result) {
       sendResponse(res, {
         statusCode: 200,
         success: true,
-        message: "ফোন নম্বর সফলভাবে মুছে ফেলা হয়েছে",
+        message: result.message,
         data: result,
       });
     } else {

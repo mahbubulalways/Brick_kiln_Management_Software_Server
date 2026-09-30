@@ -81,11 +81,7 @@ const updateDriverController = catchAsync(async (req, res) => {
       message: result.message,
     });
   } else {
-    sendResponse(res, {
-      statusCode: 404,
-      success: false,
-      message: "ড্রাইভার খুঁজে পাওয়া যায়নি",
-    });
+    throw new AppError(StatusCodes.BAD_REQUEST, "ড্রাইভার খুঁজে পাওয়া যায়নি");
   }
 });
 
@@ -102,11 +98,7 @@ const deleteDriverController = catchAsync(async (req, res) => {
       message: result.message,
     });
   } else {
-    sendResponse(res, {
-      statusCode: 404,
-      success: false,
-      message: "ড্রাইভার মুছে ফেলা যায়নি",
-    });
+    throw new AppError(StatusCodes.BAD_REQUEST, "ড্রাইভার মুছে ফেলা যায়নি");
   }
 });
 

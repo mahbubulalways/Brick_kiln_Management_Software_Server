@@ -10,28 +10,48 @@ const router = Router();
 
 router.get(
   API_ENDPOINTS.DUE_COLLECTION.TODAYS_HAVE_DUE,
-  AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+  AuthGuard(
+    UserRole.OWNER,
+    UserRole.ADMIN,
+    UserRole.MANAGER,
+    UserRole.OPERATOR,
+  ),
   ActiveSeasonGuard,
   DueCollectionController.todayPayDueController,
 );
 
 router.get(
   API_ENDPOINTS.DUE_COLLECTION.TODAY_PAID,
-  AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+  AuthGuard(
+    UserRole.OWNER,
+    UserRole.ADMIN,
+    UserRole.MANAGER,
+    UserRole.OPERATOR,
+  ),
   ActiveSeasonGuard,
   DueCollectionController.getTodaysDuePaidController,
 );
 
 router.get(
   API_ENDPOINTS.DUE_COLLECTION.ALL_DUE,
-  AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+  AuthGuard(
+    UserRole.OWNER,
+    UserRole.ADMIN,
+    UserRole.MANAGER,
+    UserRole.OPERATOR,
+  ),
   ActiveSeasonGuard,
   DueCollectionController.getAllDueListController,
 );
 
 router.post(
   API_ENDPOINTS.DUE_COLLECTION.COLLECTION,
-  AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+  AuthGuard(
+    UserRole.OWNER,
+    UserRole.ADMIN,
+    UserRole.MANAGER,
+    UserRole.OPERATOR,
+  ),
   SubscriptionGuard,
   ActiveSeasonGuard,
   DueCollectionController.collectionNewDueController,
@@ -39,48 +59,83 @@ router.post(
 
 router.get(
   API_ENDPOINTS.DUE_COLLECTION.GET_CUSTOMER_DUE,
-  AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+  AuthGuard(
+    UserRole.OWNER,
+    UserRole.ADMIN,
+    UserRole.MANAGER,
+    UserRole.OPERATOR,
+  ),
   ActiveSeasonGuard,
   DueCollectionController.getDueOfCustomerController,
 );
 
 router.get(
   API_ENDPOINTS.DUE_COLLECTION.GET_SINGLE,
-  AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+  AuthGuard(
+    UserRole.OWNER,
+    UserRole.ADMIN,
+    UserRole.MANAGER,
+    UserRole.OPERATOR,
+  ),
   DueCollectionController.getSingleDueCollectionController,
 );
 
 // SEARCH CUSTOMER VIA NAME AND GET DEU
 router.get(
   API_ENDPOINTS.DUE_COLLECTION.SEARCH_CUSTOMER,
-  AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+  AuthGuard(
+    UserRole.OWNER,
+    UserRole.ADMIN,
+    UserRole.MANAGER,
+    UserRole.OPERATOR,
+  ),
   ActiveSeasonGuard,
   DueCollectionController.searchCustomerForDeuController,
 );
 
 router.get(
   API_ENDPOINTS.DUE_COLLECTION.GET_SINGLE_DATE,
-  AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+  AuthGuard(
+    UserRole.OWNER,
+    UserRole.ADMIN,
+    UserRole.MANAGER,
+    UserRole.OPERATOR,
+  ),
   DueCollectionController.getSingleDueCollectionDateController,
 );
 
 router.patch(
   API_ENDPOINTS.DUE_COLLECTION.UPDATE_DUE_COLLECTION,
-  AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+  AuthGuard(
+    UserRole.OWNER,
+    UserRole.ADMIN,
+    UserRole.MANAGER,
+    UserRole.OPERATOR,
+  ),
   SubscriptionGuard,
   DueCollectionController.updateDueCollectionController,
 );
 
 router.patch(
   API_ENDPOINTS.DUE_COLLECTION.UPDATE_DUE_COLLECTION_DATE,
-  AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+  AuthGuard(
+    UserRole.OWNER,
+    UserRole.ADMIN,
+    UserRole.MANAGER,
+    UserRole.OPERATOR,
+  ),
   SubscriptionGuard,
   DueCollectionController.updateDueCollectionDateController,
 );
 
 router.patch(
   API_ENDPOINTS.DUE_COLLECTION.DELETE_DUE_COLLECTION,
-  AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+  AuthGuard(
+    UserRole.OWNER,
+    UserRole.ADMIN,
+    UserRole.MANAGER,
+    UserRole.OPERATOR,
+  ),
   DueCollectionController.deleteDueCollectionController,
 );
 

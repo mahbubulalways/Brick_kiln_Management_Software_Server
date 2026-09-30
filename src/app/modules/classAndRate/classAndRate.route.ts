@@ -11,7 +11,12 @@ const router = Router();
 // POST A CLASS AND RATE
 router.post(
   API_ENDPOINTS.CLASS_AND_RATE.CREATE,
-  AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+  AuthGuard(
+    UserRole.OWNER,
+    UserRole.ADMIN,
+    UserRole.MANAGER,
+    UserRole.OPERATOR,
+  ),
   SubscriptionGuard,
   VALIDATE_REQUEST(CLASS_AND_RATE_VALIDATION),
   ClassAndRateController.createClassAndRateController,
@@ -20,33 +25,58 @@ router.post(
 // GET ALL CLASS AND RATE
 router.get(
   API_ENDPOINTS.CLASS_AND_RATE.GET_ALL_ClASS,
-  AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+  AuthGuard(
+    UserRole.OWNER,
+    UserRole.ADMIN,
+    UserRole.MANAGER,
+    UserRole.OPERATOR,
+  ),
   ClassAndRateController.getClassAndRateController,
 );
 
 // GET ALL CLASS AND RATE OPTIONS
 router.get(
   API_ENDPOINTS.CLASS_AND_RATE.OPTIONS,
-  AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+  AuthGuard(
+    UserRole.OWNER,
+    UserRole.ADMIN,
+    UserRole.MANAGER,
+    UserRole.OPERATOR,
+  ),
   ClassAndRateController.getClassAndRateOptionsController,
 );
 
 // GET SINGLE CLASS AND RATE BY ID
 router.get(
   API_ENDPOINTS.CLASS_AND_RATE.GET_CLASS_BY_ID,
-  AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+  AuthGuard(
+    UserRole.OWNER,
+    UserRole.ADMIN,
+    UserRole.MANAGER,
+    UserRole.OPERATOR,
+  ),
   ClassAndRateController.getSingleClassAndRateController,
 );
 router.patch(
   API_ENDPOINTS.CLASS_AND_RATE.UPDATE_CLASS_BY_ID,
-  AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+  AuthGuard(
+    UserRole.OWNER,
+    UserRole.ADMIN,
+    UserRole.MANAGER,
+    UserRole.OPERATOR,
+  ),
   SubscriptionGuard,
   ClassAndRateController.updateClassAndRateController,
 );
 
 router.delete(
   API_ENDPOINTS.CLASS_AND_RATE.DELETE,
-  AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+  AuthGuard(
+    UserRole.OWNER,
+    UserRole.ADMIN,
+    UserRole.MANAGER,
+    UserRole.OPERATOR,
+  ),
   SubscriptionGuard,
   ClassAndRateController.deleteClassAndRateController,
 );

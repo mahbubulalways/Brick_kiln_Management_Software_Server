@@ -10,7 +10,12 @@ const router = express.Router();
 // CREATE
 router.post(
   "/create",
-  AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+  AuthGuard(
+    UserRole.OWNER,
+    UserRole.ADMIN,
+    UserRole.MANAGER,
+    UserRole.OPERATOR,
+  ),
   SubscriptionGuard,
   ActiveSeasonGuard,
   LoadInfoController.createLoadInfoController,
@@ -19,7 +24,12 @@ router.post(
 // GET ALL
 router.get(
   "/all",
-  AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+  AuthGuard(
+    UserRole.OWNER,
+    UserRole.ADMIN,
+    UserRole.MANAGER,
+    UserRole.OPERATOR,
+  ),
   ActiveSeasonGuard,
   LoadInfoController.getAllLoadInfoController,
 );
@@ -27,21 +37,36 @@ router.get(
 // REPORT
 router.get(
   "/report",
-  AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+  AuthGuard(
+    UserRole.OWNER,
+    UserRole.ADMIN,
+    UserRole.MANAGER,
+    UserRole.OPERATOR,
+  ),
   LoadInfoController.getLoadInfoReportController,
 );
 
 // GET SINGLE
 router.get(
   "/single/:id",
-  AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+  AuthGuard(
+    UserRole.OWNER,
+    UserRole.ADMIN,
+    UserRole.MANAGER,
+    UserRole.OPERATOR,
+  ),
   LoadInfoController.getSingleLoadInfoController,
 );
 
 // UPDATE
 router.patch(
   "/update/:id",
-  AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+  AuthGuard(
+    UserRole.OWNER,
+    UserRole.ADMIN,
+    UserRole.MANAGER,
+    UserRole.OPERATOR,
+  ),
   SubscriptionGuard,
   ActiveSeasonGuard,
   LoadInfoController.updateLoadInfoController,
@@ -50,7 +75,12 @@ router.patch(
 // DELETE
 router.delete(
   "/delete/:id",
-  AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+  AuthGuard(
+    UserRole.OWNER,
+    UserRole.ADMIN,
+    UserRole.MANAGER,
+    UserRole.OPERATOR,
+  ),
   SubscriptionGuard,
   LoadInfoController.deleteLoadInfoController,
 );

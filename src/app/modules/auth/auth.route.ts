@@ -22,6 +22,7 @@ router.post(
     UserRole.OWNER,
     UserRole.SYSTEM_ADMIN,
     UserRole.SUPER_ADMIN,
+    UserRole.OPERATOR,
   ),
   AuthController.logoutController,
 );
@@ -31,7 +32,8 @@ router.post(
   AuthGuard(
     UserRole.ADMIN,
     UserRole.MANAGER,
-    UserRole.OWNER
+    UserRole.OWNER,
+    UserRole.OPERATOR,
   ),
   AuthController.changePasswordController,
 );

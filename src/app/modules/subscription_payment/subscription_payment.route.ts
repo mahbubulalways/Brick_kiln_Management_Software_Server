@@ -8,7 +8,12 @@ const router = Router();
 // CREATE NEW SUBSCRIPTION PAYMENT
 router.post(
   "/create",
-  AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+  AuthGuard(
+    UserRole.OWNER,
+    UserRole.ADMIN,
+    UserRole.MANAGER,
+    UserRole.OPERATOR,
+  ),
   SubscriptionPaymentController.createNewSubscriptionPaymentController,
 );
 
@@ -39,7 +44,12 @@ router.get(
 // GET VATA SUBSCRIPTION PAYMENT HISTORY
 router.get(
   "/history",
-  AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+  AuthGuard(
+    UserRole.OWNER,
+    UserRole.ADMIN,
+    UserRole.MANAGER,
+    UserRole.OPERATOR,
+  ),
   SubscriptionPaymentController.getVataSubscriptionPaymentHistoryController,
 );
 

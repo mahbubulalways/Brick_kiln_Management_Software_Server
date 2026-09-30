@@ -19,6 +19,7 @@ router.get(
     UserRole.ADMIN,
     UserRole.MANAGER,
     UserRole.OWNER,
+    UserRole.OPERATOR,
   ),
   NoteController.getNotes,
 );

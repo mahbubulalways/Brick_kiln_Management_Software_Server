@@ -4,21 +4,41 @@ import AuthGuard from "../../middlewares/AuthGuard";
 import { UserRole } from "../../../generated/prisma/enums";
 import ActiveSeasonGuard from "../../middlewares/ActiveSeasonGuard";
 
-const router = Router()
+const router = Router();
 
-router.get("/area",
-    AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
-    ReportController.getAllCustomertController)
-    
-router.get("/dashboard",
-    AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
-    ActiveSeasonGuard,
-    ReportController.dashboardAllReportController)
+router.get(
+  "/area",
+  AuthGuard(
+    UserRole.OWNER,
+    UserRole.ADMIN,
+    UserRole.MANAGER,
+    UserRole.OPERATOR,
+  ),
+  ReportController.getAllCustomertController,
+);
 
-router.get("/load-unload",
-    AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
-    ActiveSeasonGuard,
-    ReportController.getLoadUnloadReportController)
+router.get(
+  "/dashboard",
+  AuthGuard(
+    UserRole.OWNER,
+    UserRole.ADMIN,
+    UserRole.MANAGER,
+    UserRole.OPERATOR,
+  ),
+  ActiveSeasonGuard,
+  ReportController.dashboardAllReportController,
+);
 
+router.get(
+  "/load-unload",
+  AuthGuard(
+    UserRole.OWNER,
+    UserRole.ADMIN,
+    UserRole.MANAGER,
+    UserRole.OPERATOR,
+  ),
+  ActiveSeasonGuard,
+  ReportController.getLoadUnloadReportController,
+);
 
-export default router
+export default router;

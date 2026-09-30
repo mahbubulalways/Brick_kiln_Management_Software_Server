@@ -9,23 +9,39 @@ const router = Router();
 
 // router.post(
 //   "/create",
-//   AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+//   AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER,
+// UserRole.OPERATOR,),
 // );
 
 router.get(
   "/",
-  AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+  AuthGuard(
+    UserRole.OWNER,
+    UserRole.ADMIN,
+    UserRole.MANAGER,
+    UserRole.OPERATOR,
+  ),
   SeasonController.getAllSeasons,
 );
 router.get(
   "/active",
-  AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+  AuthGuard(
+    UserRole.OWNER,
+    UserRole.ADMIN,
+    UserRole.MANAGER,
+    UserRole.OPERATOR,
+  ),
   SeasonController.getActiveSeason,
 );
 
 router.patch(
   "/select/:id",
-  AuthGuard(UserRole.OWNER, UserRole.ADMIN, UserRole.MANAGER),
+  AuthGuard(
+    UserRole.OWNER,
+    UserRole.ADMIN,
+    UserRole.MANAGER,
+    UserRole.OPERATOR,
+  ),
   SeasonController.changeActiveSeason,
 );
 

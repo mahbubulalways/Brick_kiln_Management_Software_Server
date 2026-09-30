@@ -15,10 +15,11 @@ import { dueCollectionModule } from "./module/due.collection.module";
 import { cashModule } from "./module/cash.module";
 import { loadModule } from "./module/load.module";
 import { goodsStockCategoryModule } from "./module/goods.category.module";
-import { cancelModule } from "./cancel_module/cancel.module";
 import { contactModule } from "./module/contact.module";
 import { driverModule } from "./module/driver.module";
 import { carRentModule } from "./module/car.rent.module";
+import { cancelUpdateModule } from "./cancel_module/cancel.update.module";
+import { cancelDeleteModule } from "./cancel_module/cancel.delete.module";
 
 const getAlApprovalService = async (user: TAuthUser, query: TQuery) => {
   const { limit, page, skip } = paginationHelper(query.page, query.limit);
@@ -92,11 +93,20 @@ const changeAprovalStatus = async (
       },
     });
 
-    const response = await cancelModule(user, findRequest);
-    return {
-      result,
-      message: response.message,
-    };
+    if (findRequest?.action === "UPDATE") {
+      const response = await cancelUpdateModule(user, findRequest);
+      return {
+        result,
+        message: response.message,
+      };
+    }
+    if (findRequest?.action === "DELETE") {
+      const response = await cancelDeleteModule(user, findRequest);
+      return {
+        result,
+        message: response.message,
+      };
+    }
   }
 
   if (status !== "APPROVED") {
