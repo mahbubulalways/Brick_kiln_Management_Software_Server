@@ -183,6 +183,48 @@ export const cancelDeleteModule = async (
         message: "গাড়ির ভাড়া ডিলিটের অনুরোধ বাতিল করা হয়েছে।",
       };
 
+    case "STOCK":
+      await prisma.stockBook.update({
+        data: {
+          deleteStatus: "CANCELLED",
+        },
+        where: {
+          vataId: user.vataId,
+          id: findRequest.targetId!,
+        },
+      });
+      return {
+        message: "স্টকের তথ্য ডিলিটের অনুরোধ বাতিল করা হয়েছে।",
+      };
+
+    case "CUSTOMER":
+      await prisma.customer.update({
+        data: {
+          deleteStatus: "CANCELLED",
+        },
+        where: {
+          vataId: user.vataId,
+          id: findRequest.targetId!,
+        },
+      });
+      return {
+        message: "কাস্টমারের তথ্য ডিলিটের অনুরোধ বাতিল করা হয়েছে।",
+      };
+
+    case "USER":
+      await prisma.user.update({
+        data: {
+          deleteStatus: "CANCELLED",
+        },
+        where: {
+          vataId: user.vataId,
+          id: findRequest.targetId!,
+        },
+      });
+      return {
+        message: "ইউজারের তথ্য ডিলিটের অনুরোধ বাতিল করা হয়েছে।",
+      };
+
     default:
       return {
         message: "এই মডিউলের জন্য ডিলিট বাতিল করার ব্যবস্থা নেই।",

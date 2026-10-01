@@ -29,10 +29,13 @@ const createStockBookController = (0, catchAsync_1.default)(async (req, res) => 
 });
 // GET ALL STOCK
 const getAllStockController = (0, catchAsync_1.default)(async (req, res) => {
-    const { limit, page, } = await (0, parseListQuery_1.parseListQuery)(req.query);
+    const { limit, page } = await (0, parseListQuery_1.parseListQuery)(req.query);
     const seasonId = req.seasonId;
     const user = req.user;
-    const result = await stock_book_service_1.StockBookService.getAllStockService(user, seasonId, { limit, page });
+    const result = await stock_book_service_1.StockBookService.getAllStockService(user, seasonId, {
+        limit,
+        page,
+    });
     if (!result.data.length) {
         return (0, sendResponse_1.sendResponse)(res, {
             statusCode: http_status_codes_1.StatusCodes.OK,
@@ -51,13 +54,14 @@ const getAllStockController = (0, catchAsync_1.default)(async (req, res) => {
 // DELETE
 const deleteStockBookController = (0, catchAsync_1.default)(async (req, res) => {
     const { id } = req.params;
-    const result = await stock_book_service_1.StockBookService.deleteStockService(id);
-    if (!result) {
+    const user = req.user;
+    const result = await stock_book_service_1.StockBookService.deleteStockService(user, id);
+    if (!result.result) {
         throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.BAD_REQUEST, "স্টকের তথ্য ডিলেট করা সম্ভব হয়নি। অনুগ্রহ করে আবার চেষ্টা করুন।");
     }
     else {
         (0, sendResponse_1.sendResponse)(res, {
-            message: "স্টকের তথ্য সফলভাবে ডিলেট হয়েছে।",
+            message: result.message,
             statusCode: http_status_codes_1.StatusCodes.OK,
             success: true,
         });
@@ -88,5 +92,5 @@ exports.StockBookController = {
     createStockBookController,
     getAllStockController,
     deleteStockBookController,
-    getMainStockController
+    getMainStockController,
 };

@@ -60,28 +60,40 @@ const getSingleUserController = (0, catchAsync_1.default)(async (req, res) => {
 const updateUserController = (0, catchAsync_1.default)(async (req, res) => {
     const user = req.user;
     const result = await user_service_1.UserService.updateUserService(user, req.params.id, req.body);
-    (0, sendResponse_1.sendResponse)(res, {
-        statusCode: http_status_codes_1.StatusCodes.OK,
-        success: true,
-        message: "ইউজারের তথ্য সফলভাবে আপডেট হয়েছে।",
-        data: result,
-    });
+    if (result?.result) {
+        (0, sendResponse_1.sendResponse)(res, {
+            statusCode: http_status_codes_1.StatusCodes.OK,
+            success: true,
+            message: result.message,
+        });
+    }
+    else {
+        throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.BAD_REQUEST, "ইউজারের তথ্য আপডেট করা যায়নি।");
+    }
 });
 // Delete User
 const deleteUserController = (0, catchAsync_1.default)(async (req, res) => {
     const user = req.user;
     const result = await user_service_1.UserService.deleteUserService(user, req.params.id);
-    (0, sendResponse_1.sendResponse)(res, {
-        statusCode: http_status_codes_1.StatusCodes.OK,
-        success: true,
-        message: "ইউজার সফলভাবে মুছে ফেলা হয়েছে।",
-        data: result,
-    });
+    if (result?.result) {
+        (0, sendResponse_1.sendResponse)(res, {
+            statusCode: http_status_codes_1.StatusCodes.OK,
+            success: true,
+            message: result.message,
+            data: result.result,
+        });
+    }
+    else {
+        throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.BAD_REQUEST, "ইউজার মুছে ফেলা যায়নি।");
+    }
 });
 const getUserHistoryController = (0, catchAsync_1.default)(async (req, res) => {
     const { limit, page } = await (0, parseListQuery_1.parseListQuery)(req.query);
     const user = req.user;
-    const result = await user_service_1.UserService.getUserLoginHistoryService(user, { page, limit });
+    const result = await user_service_1.UserService.getUserLoginHistoryService(user, {
+        page,
+        limit,
+    });
     if (!result.data.length) {
         (0, sendResponse_1.sendResponse)(res, {
             statusCode: http_status_codes_1.StatusCodes.OK,
@@ -122,5 +134,5 @@ exports.UserController = {
     updateUserController,
     deleteUserController,
     getUserHistoryController,
-    getUserOptionController
+    getUserOptionController,
 };

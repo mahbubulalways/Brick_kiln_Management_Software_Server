@@ -1,9 +1,12 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.StockBookService = void 0;
+const http_status_codes_1 = require("http-status-codes");
 const paginationHelper_1 = require("../../../helpers/paginationHelper");
 const prisma_1 = require("../../../helpers/prisma");
 const createMetaConfig_1 = require("../../../utils/createMetaConfig");
+const ApplicationError_1 = require("../../errors/ApplicationError");
+const activity_service_1 = require("../activity/activity.service");
 // CREATE STOCK BOOK SERVICE
 const createStockBookService = async (user, seasonId, payload) => {
     payload.createdById = user.userId;
@@ -22,13 +25,15 @@ const getAllStockService = async (user, seasonId, query) => {
                 createdBy: {
                     select: {
                         name: true,
-                    }
-                }
+                    },
+                },
             },
             take: limit,
-            skip
+            skip,
         }),
-        prisma_1.prisma.stockBook.count({ where: { isDeleted: false, seasonId, vataId: user.vataId } })
+        prisma_1.prisma.stockBook.count({
+            where: { isDeleted: false, seasonId, vataId: user.vataId },
+        }),
     ]);
     const meta = (0, createMetaConfig_1.createMetaConfig)({
         limit: limit,
@@ -41,8 +46,62 @@ const getAllStockService = async (user, seasonId, query) => {
     };
 };
 // DELETE
-const deleteStockService = async (id) => {
-    return await prisma_1.prisma.stockBook.delete({ where: { id } });
+const deleteStockService = async (user, id) => {
+    const existingStock = await prisma_1.prisma.stockBook.findFirst({
+        where: {
+            id,
+            vataId: user.vataId,
+        },
+    });
+    if (!existingStock) {
+        throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.NOT_FOUND, "স্টকের তথ্য পাওয়া যায়নি।");
+    }
+    const oldData = {
+        name: existingStock.class,
+        stockIn: existingStock.stockIn,
+        stockOut: existingStock.stockOut,
+    };
+    if (user.role === "ADMIN" || user.role === "OWNER") {
+        const result = await prisma_1.prisma.$transaction(async (tx) => {
+            await tx.stockBook.delete({
+                where: { id },
+            });
+            return await activity_service_1.ActivityService.createActivityService({
+                action: "DELETE",
+                module: "STOCK",
+                targetId: id,
+                userId: user.userId,
+                vataId: user.vataId,
+                oldData,
+                referenceNumber: `${existingStock.class} | ইন: ${existingStock.stockIn} | আউট: ${existingStock.stockOut}`,
+            });
+        });
+        return {
+            result,
+            message: "স্টকের তথ্য সফলভাবে মুছে ফেলা হয়েছে।",
+        };
+    }
+    const result = await prisma_1.prisma.stockBook.update({
+        where: { id },
+        data: {
+            deleteStatus: "PENDING",
+        },
+    });
+    await prisma_1.prisma.approvalRequest.create({
+        data: {
+            action: "DELETE",
+            module: "STOCK",
+            targetId: id,
+            requestedById: user.userId,
+            vataId: user.vataId,
+            status: "PENDING",
+            oldData,
+        },
+    });
+    return {
+        result,
+        message: "স্টকের তথ্য মুছে ফেলার অনুরোধ অ্যাডমিনের কাছে পাঠানো হয়েছে।",
+    };
 };
 // GET MAIN STOCK
 // const getMainStockInformation = async (user: TAuthUser, seasonId: string) => {
@@ -178,9 +237,7 @@ const getMainStockInformation = async (user, seasonId) => {
         .flatMap((challan) => challan.items)
         .reduce((acc, item) => {
         const className = item.class;
-        acc[className] =
-            (acc[className] || 0) +
-                Number(item.delivered || 0);
+        acc[className] = (acc[className] || 0) + Number(item.delivered || 0);
         return acc;
     }, {});
     // ==========================================
@@ -191,11 +248,8 @@ const getMainStockInformation = async (user, seasonId) => {
         .flatMap((challan) => challan.items)
         .reduce((acc, item) => {
         const className = item.class;
-        const pending = Number(item.quantity || 0) -
-            Number(item.delivered || 0);
-        acc[className] =
-            (acc[className] || 0) +
-                Math.max(pending, 0);
+        const pending = Number(item.quantity || 0) - Number(item.delivered || 0);
+        acc[className] = (acc[className] || 0) + Math.max(pending, 0);
         return acc;
     }, {});
     // ==========================================
@@ -208,9 +262,7 @@ const getMainStockInformation = async (user, seasonId) => {
         if (!className) {
             return acc;
         }
-        acc[className] =
-            (acc[className] || 0) +
-                Number(item.quantity || 0);
+        acc[className] = (acc[className] || 0) + Number(item.quantity || 0);
         return acc;
     }, {});
     // ==========================================
@@ -220,8 +272,7 @@ const getMainStockInformation = async (user, seasonId) => {
         const className = classInfo.className;
         // Stock Book
         const stock = stockMap[className];
-        const stockBookStock = (stock?.stockIn || 0) -
-            (stock?.stockOut || 0);
+        const stockBookStock = (stock?.stockIn || 0) - (stock?.stockOut || 0);
         // Unload
         const unloadQuantity = unloadMap[className] || 0;
         // ======================================
@@ -266,16 +317,11 @@ const getMainStockInformation = async (user, seasonId) => {
     // TOTAL
     // ==========================================
     const total = data.reduce((acc, item) => ({
-        totalStock: acc.totalStock +
-            item.totalStock,
-        delivered: acc.delivered +
-            item.delivered,
-        deliveryPending: acc.deliveryPending +
-            item.deliveryPending,
-        mainStock: acc.mainStock +
-            item.mainStock,
-        stockValue: acc.stockValue +
-            item.stockValue,
+        totalStock: acc.totalStock + item.totalStock,
+        delivered: acc.delivered + item.delivered,
+        deliveryPending: acc.deliveryPending + item.deliveryPending,
+        mainStock: acc.mainStock + item.mainStock,
+        stockValue: acc.stockValue + item.stockValue,
     }), {
         totalStock: 0,
         delivered: 0,
@@ -292,5 +338,5 @@ exports.StockBookService = {
     createStockBookService,
     getAllStockService,
     deleteStockService,
-    getMainStockInformation
+    getMainStockInformation,
 };

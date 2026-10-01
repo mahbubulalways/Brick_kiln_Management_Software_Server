@@ -11,15 +11,15 @@ const ActiveSeasonGuard_1 = __importDefault(require("../../middlewares/ActiveSea
 const SubscriptionGuard_1 = __importDefault(require("../../middlewares/SubscriptionGuard"));
 const router = express_1.default.Router();
 // CREATE
-router.post("/create", (0, AuthGuard_1.default)(enums_1.UserRole.OWNER, enums_1.UserRole.ADMIN, enums_1.UserRole.MANAGER), SubscriptionGuard_1.default, ActiveSeasonGuard_1.default, load_controller_1.LoadInfoController.createLoadInfoController);
+router.post("/create", (0, AuthGuard_1.default)(enums_1.UserRole.OWNER, enums_1.UserRole.ADMIN, enums_1.UserRole.MANAGER, enums_1.UserRole.OPERATOR), SubscriptionGuard_1.default, ActiveSeasonGuard_1.default, load_controller_1.LoadInfoController.createLoadInfoController);
 // GET ALL
-router.get("/all", (0, AuthGuard_1.default)(enums_1.UserRole.OWNER, enums_1.UserRole.ADMIN, enums_1.UserRole.MANAGER), ActiveSeasonGuard_1.default, load_controller_1.LoadInfoController.getAllLoadInfoController);
+router.get("/all", (0, AuthGuard_1.default)(enums_1.UserRole.OWNER, enums_1.UserRole.ADMIN, enums_1.UserRole.MANAGER, enums_1.UserRole.OPERATOR), ActiveSeasonGuard_1.default, load_controller_1.LoadInfoController.getAllLoadInfoController);
 // REPORT
-router.get("/report", (0, AuthGuard_1.default)(enums_1.UserRole.OWNER, enums_1.UserRole.ADMIN, enums_1.UserRole.MANAGER), load_controller_1.LoadInfoController.getLoadInfoReportController);
+router.get("/report", (0, AuthGuard_1.default)(enums_1.UserRole.OWNER, enums_1.UserRole.ADMIN, enums_1.UserRole.MANAGER, enums_1.UserRole.OPERATOR), load_controller_1.LoadInfoController.getLoadInfoReportController);
 // GET SINGLE
-router.get("/single/:id", (0, AuthGuard_1.default)(enums_1.UserRole.OWNER, enums_1.UserRole.ADMIN, enums_1.UserRole.MANAGER), load_controller_1.LoadInfoController.getSingleLoadInfoController);
+router.get("/single/:id", (0, AuthGuard_1.default)(enums_1.UserRole.OWNER, enums_1.UserRole.ADMIN, enums_1.UserRole.MANAGER, enums_1.UserRole.OPERATOR), load_controller_1.LoadInfoController.getSingleLoadInfoController);
 // UPDATE
-router.patch("/update/:id", (0, AuthGuard_1.default)(enums_1.UserRole.OWNER, enums_1.UserRole.ADMIN, enums_1.UserRole.MANAGER), SubscriptionGuard_1.default, ActiveSeasonGuard_1.default, load_controller_1.LoadInfoController.updateLoadInfoController);
+router.patch("/update/:id", (0, AuthGuard_1.default)(enums_1.UserRole.OWNER, enums_1.UserRole.ADMIN, enums_1.UserRole.MANAGER, enums_1.UserRole.OPERATOR), SubscriptionGuard_1.default, ActiveSeasonGuard_1.default, load_controller_1.LoadInfoController.updateLoadInfoController);
 // DELETE
-router.delete("/delete/:id", (0, AuthGuard_1.default)(enums_1.UserRole.OWNER, enums_1.UserRole.ADMIN, enums_1.UserRole.MANAGER), SubscriptionGuard_1.default, load_controller_1.LoadInfoController.deleteLoadInfoController);
+router.delete("/delete/:id", (0, AuthGuard_1.default)(enums_1.UserRole.OWNER, enums_1.UserRole.ADMIN, enums_1.UserRole.MANAGER, enums_1.UserRole.OPERATOR), SubscriptionGuard_1.default, load_controller_1.LoadInfoController.deleteLoadInfoController);
 exports.default = router;

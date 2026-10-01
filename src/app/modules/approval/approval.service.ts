@@ -20,6 +20,9 @@ import { driverModule } from "./module/driver.module";
 import { carRentModule } from "./module/car.rent.module";
 import { cancelUpdateModule } from "./cancel_module/cancel.update.module";
 import { cancelDeleteModule } from "./cancel_module/cancel.delete.module";
+import { stockModule } from "./module/stock.module";
+import { customerModule } from "./module/customer.module";
+import { userModule } from "./module/user.module";
 
 const getAlApprovalService = async (user: TAuthUser, query: TQuery) => {
   const { limit, page, skip } = paginationHelper(query.page, query.limit);
@@ -149,6 +152,15 @@ const changeAprovalStatus = async (
 
     case "CAR_RENT":
       return await carRentModule(user, findRequest, approvalId); //done
+
+    case "STOCK":
+      return await stockModule(user, findRequest, approvalId); //done
+
+    case "CUSTOMER":
+      return await customerModule(user, findRequest, approvalId); //done
+
+    case "USER":
+      return await userModule(user, findRequest, approvalId); //done
 
     default:
       throw new AppError(

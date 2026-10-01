@@ -10,5 +10,5 @@ const good_refund_controller_1 = require("./good_refund.controller");
 const enums_1 = require("../../../generated/prisma/enums");
 const SubscriptionGuard_1 = __importDefault(require("../../middlewares/SubscriptionGuard"));
 const router = (0, express_1.Router)();
-router.post("/create", (0, AuthGuard_1.default)(enums_1.UserRole.OWNER, enums_1.UserRole.ADMIN, enums_1.UserRole.MANAGER), SubscriptionGuard_1.default, uploader_1.fileUploader.upload.single("file"), good_refund_controller_1.GoodRefundController.createGoodIssueRefundController);
+router.post("/create", (0, AuthGuard_1.default)(enums_1.UserRole.OWNER, enums_1.UserRole.ADMIN, enums_1.UserRole.MANAGER, enums_1.UserRole.OPERATOR), SubscriptionGuard_1.default, uploader_1.fileUploader.upload.single("file"), good_refund_controller_1.GoodRefundController.createGoodIssueRefundController);
 exports.default = router;

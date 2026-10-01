@@ -11,6 +11,7 @@ import {
 } from "./customer.utils";
 import { getDateRangeDbSearch } from "../../../utils/getDateRangeDbSearch";
 import { TAuthUser } from "../../../interface/token";
+import { ActivityService } from "../activity/activity.service";
 
 // GET SINGLE INFO
 const getSingleCustomerService = async (user: TAuthUser, id: string) => {
@@ -27,28 +28,95 @@ const getSingleCustomerService = async (user: TAuthUser, id: string) => {
   return result;
 };
 
-// UPDATE
 const updateCustomerService = async (
   user: TAuthUser,
   id: string,
   data: Customer,
 ) => {
   const exist = await getSingleCustomerService(user, id);
+
   if (!exist?.id) {
     throw new AppError(StatusCodes.NOT_FOUND, "কোনো কাস্টমার পাওয়া যায়নি।");
   }
-  const result = await prisma.customer.update({
+
+  const oldData = {
+    name: exist.name,
+    phoneNumber: exist.phoneNumber,
+    address: exist.address,
+    customerCode: exist.customerCode,
+  };
+
+  const newData = {
+    name: data.name ?? exist.name,
+    phoneNumber: data.phoneNumber ?? exist.phoneNumber,
+    address: data.address ?? exist.address,
+    customerCode: data.customerCode ?? exist.customerCode,
+  };
+
+  if (user.role === "ADMIN" || user.role === "OWNER") {
+    const result = await prisma.$transaction(async (tx) => {
+      const result = await tx.customer.update({
+        where: {
+          vataId_customerCode: {
+            customerCode: id,
+            vataId: user.vataId,
+          },
+        },
+        data: {
+          ...data,
+          updateStatus: "APPROVED",
+        },
+      });
+
+      await ActivityService.createActivityService({
+        action: "UPDATE",
+        module: "CUSTOMER",
+        targetId: id,
+        userId: user.userId,
+        vataId: user.vataId,
+        oldData,
+        newData,
+      });
+
+      return result;
+    });
+
+    return {
+      result,
+      message: "কাস্টমারের তথ্য সফলভাবে আপডেট করা হয়েছে।",
+    };
+  }
+
+  await prisma.customer.update({
     where: {
       vataId_customerCode: {
         customerCode: id,
         vataId: user.vataId,
       },
     },
-    data,
+    data: {
+      updateStatus: "PENDING",
+    },
   });
-  return result;
-};
 
+  const result = await prisma.approvalRequest.create({
+    data: {
+      action: "UPDATE",
+      module: "CUSTOMER",
+      targetId: id,
+      requestedById: user.userId,
+      vataId: user.vataId,
+      status: "PENDING",
+      oldData,
+      newData,
+    },
+  });
+
+  return {
+    result,
+    message: "কাস্টমারের তথ্য আপডেটের অনুরোধ অ্যাডমিনের কাছে পাঠানো হয়েছে।",
+  };
+};
 // const getAllCustomerService = async (user: TAuthUser, query: TQuery) => {
 //   const { limit, page, skip } = paginationHelper(query.page, query.limit);
 //   const where: Prisma.CustomerWhereInput = {

@@ -9,6 +9,6 @@ const enums_1 = require("../../../generated/prisma/enums");
 const vata_sms_sittings_controller_1 = require("./vata_sms_sittings.controller");
 const SubscriptionGuard_1 = __importDefault(require("../../middlewares/SubscriptionGuard"));
 const router = (0, express_1.Router)();
-router.post("/create", (0, AuthGuard_1.default)(enums_1.UserRole.OWNER, enums_1.UserRole.ADMIN, enums_1.UserRole.MANAGER), SubscriptionGuard_1.default, vata_sms_sittings_controller_1.VataSmsSettingsController.createOrUpdateVataSmsController);
-router.get("/", (0, AuthGuard_1.default)(enums_1.UserRole.OWNER, enums_1.UserRole.ADMIN, enums_1.UserRole.MANAGER), vata_sms_sittings_controller_1.VataSmsSettingsController.getVataSmsSettingController);
+router.post("/create", (0, AuthGuard_1.default)(enums_1.UserRole.OWNER, enums_1.UserRole.ADMIN, enums_1.UserRole.MANAGER, enums_1.UserRole.OPERATOR), SubscriptionGuard_1.default, vata_sms_sittings_controller_1.VataSmsSettingsController.createOrUpdateVataSmsController);
+router.get("/", (0, AuthGuard_1.default)(enums_1.UserRole.OWNER, enums_1.UserRole.ADMIN, enums_1.UserRole.MANAGER, enums_1.UserRole.OPERATOR), vata_sms_sittings_controller_1.VataSmsSettingsController.getVataSmsSettingController);
 exports.default = router;

@@ -15,7 +15,7 @@ const formatCustomerData = (customers) => {
         }, 0);
         // Due collections
         const totalDueCollection = customer.dueCollections.reduce((totalDueCollect, due) => {
-            return (totalDueCollect + due.collect);
+            return totalDueCollect + due.collect;
         }, 0);
         // মোট বাকি quantity
         const totalRemainingQuantity = totalPurchasedQuantity - totalDeliveredQuantity;
@@ -104,6 +104,8 @@ const formatCustomerDataWithPrevDue = (customers, previousDues, previousCollecti
             phoneNumber: customer.phoneNumber,
             customerCode: customer.customerCode,
             createdAt: customer.createdAt,
+            updateStatus: customer.updateStatus,
+            deleteStatus: customer.deleteStatus,
             totalPurchasedQuantity,
             totalDeliveredQuantity,
             totalRemainingQuantity,

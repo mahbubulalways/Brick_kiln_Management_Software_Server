@@ -14,12 +14,12 @@ const createStockBookController = catchAsync(async (req, res) => {
   const result = await StockBookService.createStockBookService(
     user,
     seasonId,
-    body
+    body,
   );
   if (!result.id) {
     throw new AppError(
       StatusCodes.BAD_REQUEST,
-      "স্টক বুক তৈরি করা সম্ভব হয়নি। অনুগ্রহ করে আবার চেষ্টা করুন।"
+      "স্টক বুক তৈরি করা সম্ভব হয়নি। অনুগ্রহ করে আবার চেষ্টা করুন।",
     );
   } else {
     sendResponse(res, {
@@ -30,13 +30,15 @@ const createStockBookController = catchAsync(async (req, res) => {
   }
 });
 
-
 // GET ALL STOCK
 const getAllStockController = catchAsync(async (req, res) => {
-  const { limit, page, } = await parseListQuery(req.query);
-  const seasonId = req.seasonId
-  const user = req.user as TAuthUser
-  const result = await StockBookService.getAllStockService(user, seasonId, { limit, page });
+  const { limit, page } = await parseListQuery(req.query);
+  const seasonId = req.seasonId;
+  const user = req.user as TAuthUser;
+  const result = await StockBookService.getAllStockService(user, seasonId, {
+    limit,
+    page,
+  });
   if (!result.data.length) {
     return sendResponse(res, {
       statusCode: StatusCodes.OK,
@@ -54,33 +56,31 @@ const getAllStockController = catchAsync(async (req, res) => {
   });
 });
 
-
 // DELETE
 const deleteStockBookController = catchAsync(async (req, res) => {
   const { id } = req.params;
-  const result = await StockBookService.deleteStockService(id);
+  const user = req.user as TAuthUser;
+  const result = await StockBookService.deleteStockService(user, id);
 
-  if (!result) {
+  if (!result.result) {
     throw new AppError(
       StatusCodes.BAD_REQUEST,
-      "স্টকের তথ্য ডিলেট করা সম্ভব হয়নি। অনুগ্রহ করে আবার চেষ্টা করুন।"
+      "স্টকের তথ্য ডিলেট করা সম্ভব হয়নি। অনুগ্রহ করে আবার চেষ্টা করুন।",
     );
   } else {
     sendResponse(res, {
-      message: "স্টকের তথ্য সফলভাবে ডিলেট হয়েছে।",
+      message: result.message,
       statusCode: StatusCodes.OK,
       success: true,
     });
   }
 });
 
-
-
 // MAIN STOCK ==============
 // GET ALL STOCK
 const getMainStockController = catchAsync(async (req, res) => {
-  const seasonId = req.seasonId
-  const user = req.user as TAuthUser
+  const seasonId = req.seasonId;
+  const user = req.user as TAuthUser;
   const result = await StockBookService.getMainStockInformation(user, seasonId);
   if (!result.data.length) {
     return sendResponse(res, {
@@ -99,10 +99,9 @@ const getMainStockController = catchAsync(async (req, res) => {
   });
 });
 
-
 export const StockBookController = {
   createStockBookController,
   getAllStockController,
   deleteStockBookController,
-  getMainStockController
+  getMainStockController,
 };

@@ -82,11 +82,7 @@ const updateDriverController = (0, catchAsync_1.default)(async (req, res) => {
         });
     }
     else {
-        (0, sendResponse_1.sendResponse)(res, {
-            statusCode: 404,
-            success: false,
-            message: "ড্রাইভার খুঁজে পাওয়া যায়নি",
-        });
+        throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.BAD_REQUEST, "ড্রাইভার খুঁজে পাওয়া যায়নি");
     }
 });
 // ড্রাইভার ডিলিট
@@ -102,11 +98,7 @@ const deleteDriverController = (0, catchAsync_1.default)(async (req, res) => {
         });
     }
     else {
-        (0, sendResponse_1.sendResponse)(res, {
-            statusCode: 404,
-            success: false,
-            message: "ড্রাইভার মুছে ফেলা যায়নি",
-        });
+        throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.BAD_REQUEST, "ড্রাইভার মুছে ফেলা যায়নি");
     }
 });
 // GET OPTIONS

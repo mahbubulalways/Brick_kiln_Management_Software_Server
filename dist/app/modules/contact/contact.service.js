@@ -169,13 +169,9 @@ const deleteContactService = async (user, id) => {
     };
     if (user.role === "ADMIN" || user.role === "OWNER") {
         const result = await prisma_1.prisma.$transaction(async (tx) => {
-            const result = await tx.contact.update({
+            const result = await tx.contact.delete({
                 where: {
                     id,
-                },
-                data: {
-                    isDeleted: true,
-                    deleteStatus: "APPROVED",
                 },
             });
             await activity_service_1.ActivityService.createActivityService({

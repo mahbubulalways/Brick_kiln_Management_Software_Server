@@ -30,14 +30,14 @@ const getSingleCustomerInfoController = (0, catchAsync_1.default)(async (req, re
 const updateCustomerInfoController = (0, catchAsync_1.default)(async (req, res) => {
     const user = req.user;
     const result = await customer_service_1.CustomerService.updateCustomerService(user, req.params.id, req.body);
-    if (!result) {
+    if (!result.result) {
         throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.NOT_FOUND, "কোনো কাস্টমার পাওয়া যায়নি।");
     }
     else {
         (0, sendResponse_1.sendResponse)(res, {
             statusCode: http_status_codes_1.StatusCodes.OK,
             success: true,
-            message: "সফলভাবে আপডেট করেছে",
+            message: result.message,
             data: result,
         });
     }
@@ -47,7 +47,11 @@ const getAllCustomertController = (0, catchAsync_1.default)(async (req, res) => 
     const { limit, page, search } = await (0, parseListQuery_1.parseListQuery)(req.query);
     const user = req.user;
     const seasonId = req.seasonId;
-    const result = await customer_service_1.CustomerService.getAllCustomerService(user, seasonId, { limit, page, search });
+    const result = await customer_service_1.CustomerService.getAllCustomerService(user, seasonId, {
+        limit,
+        page,
+        search,
+    });
     if (!result || result.data.length === 0) {
         (0, sendResponse_1.sendResponse)(res, {
             statusCode: http_status_codes_1.StatusCodes.OK,

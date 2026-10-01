@@ -4,34 +4,31 @@ type CustomerWithDetails = Prisma.CustomerGetPayload<{
   include: {
     dueCollections: {
       where: {
-        isDeleted: false,
-      },
+        isDeleted: false;
+      };
       select: {
-        collect: true,
-      },
-      orderBy: { createdAt: "desc" }
-    },
+        collect: true;
+      };
+      orderBy: { createdAt: "desc" };
+    };
     customerDues: {
       select: {
-        dueAmount: true,
-        paidAmount: true,
-        totalAmount: true,
-      },
-      orderBy: { createdAt: "desc" }
-    }
+        dueAmount: true;
+        paidAmount: true;
+        totalAmount: true;
+      };
+      orderBy: { createdAt: "desc" };
+    };
     challans: {
       include: {
         items: true;
         deliveries: true;
       };
     };
-
   };
 }>;
 
-export const formatCustomerData = (
-  customers: CustomerWithDetails[]
-) => {
+export const formatCustomerData = (customers: CustomerWithDetails[]) => {
   return customers.map((customer) => {
     // মোট কেনা quantity
     const totalPurchasedQuantity = customer.challans.reduce(
@@ -40,11 +37,11 @@ export const formatCustomerData = (
           challanTotal +
           challan.items.reduce(
             (itemTotal, item) => itemTotal + item.quantity,
-            0
+            0,
           )
         );
       },
-      0
+      0,
     );
 
     // মোট delivered quantity
@@ -55,19 +52,20 @@ export const formatCustomerData = (
           challan.deliveries.reduce(
             (deliveryTotal, delivery) =>
               deliveryTotal + delivery.deliveryReceived,
-            0
+            0,
           )
         );
       },
-      0
+      0,
     );
 
     // Due collections
-    const totalDueCollection = customer.dueCollections.reduce((totalDueCollect, due) => {
-      return (
-        totalDueCollect + due.collect
-      )
-    }, 0)
+    const totalDueCollection = customer.dueCollections.reduce(
+      (totalDueCollect, due) => {
+        return totalDueCollect + due.collect;
+      },
+      0,
+    );
 
     // মোট বাকি quantity
     const totalRemainingQuantity =
@@ -76,22 +74,22 @@ export const formatCustomerData = (
     // মোট বিল
     const totalAmount = customer.customerDues.reduce(
       (total, due) => total + Number(due.totalAmount),
-      0
+      0,
     );
 
     // মোট payment
-    const totalPaid = customer.customerDues.reduce(
-      (total, due) => total + Number(due.paidAmount),
-      0
-    ) + totalDueCollection;
+    const totalPaid =
+      customer.customerDues.reduce(
+        (total, due) => total + Number(due.paidAmount),
+        0,
+      ) + totalDueCollection;
 
     // টাকা বাকি
     const totalDue = totalAmount - totalPaid;
 
-
     // DUE PAYMENT DATE
 
-    const nexnextPaymentDate = customer.nextPaymentDate
+    const nexnextPaymentDate = customer.nextPaymentDate;
 
     return {
       id: customer.id,
@@ -105,15 +103,14 @@ export const formatCustomerData = (
       totalAmount,
       totalPaid,
       totalDue,
-      note: customer.note ,
+      note: customer.note,
 
       nextPaymentDate: nexnextPaymentDate,
     };
   });
 };
 
-
-// SECOND DUE + CURRENT 
+// SECOND DUE + CURRENT
 
 type PreviousDue = Prisma.CustomerDueGetPayload<{
   select: {
@@ -133,7 +130,7 @@ type PreviousCollection = Prisma.Due_CollectionGetPayload<{
 export const formatCustomerDataWithPrevDue = (
   customers: CustomerWithDetails[],
   previousDues: PreviousDue[],
-  previousCollections: PreviousCollection[]
+  previousCollections: PreviousCollection[],
 ) => {
   return customers.map((customer) => {
     // ==========================================
@@ -146,11 +143,11 @@ export const formatCustomerDataWithPrevDue = (
           challanTotal +
           challan.items.reduce(
             (itemTotal, item) => itemTotal + item.quantity,
-            0
+            0,
           )
         );
       },
-      0
+      0,
     );
 
     // ==========================================
@@ -164,11 +161,11 @@ export const formatCustomerDataWithPrevDue = (
           challan.deliveries.reduce(
             (deliveryTotal, delivery) =>
               deliveryTotal + delivery.deliveryReceived,
-            0
+            0,
           )
         );
       },
-      0
+      0,
     );
 
     // ==========================================
@@ -177,7 +174,7 @@ export const formatCustomerDataWithPrevDue = (
 
     const totalDueCollection = customer.dueCollections.reduce(
       (total, due) => total + Number(due.collect),
-      0
+      0,
     );
 
     // ==========================================
@@ -186,13 +183,13 @@ export const formatCustomerDataWithPrevDue = (
 
     const totalAmount = customer.customerDues.reduce(
       (total, due) => total + Number(due.totalAmount),
-      0
+      0,
     );
 
     const totalPaid =
       customer.customerDues.reduce(
         (total, due) => total + Number(due.paidAmount),
-        0
+        0,
       ) + totalDueCollection;
 
     // Current season due
@@ -204,39 +201,27 @@ export const formatCustomerDataWithPrevDue = (
 
     const previousDue = previousDues
       .filter((due) => due.customerId === customer.id)
-      .reduce(
-        (total, due) => total + Number(due.dueAmount),
-        0
-      );
+      .reduce((total, due) => total + Number(due.dueAmount), 0);
 
     // ==========================================
     // PREVIOUS SEASON COLLECTION
     // ==========================================
 
     const previousDueCollection = previousCollections
-      .filter(
-        (collection) =>
-          collection.customerId === customer.id
-      )
-      .reduce(
-        (total, collection) =>
-          total + Number(collection.collect),
-        0
-      );
+      .filter((collection) => collection.customerId === customer.id)
+      .reduce((total, collection) => total + Number(collection.collect), 0);
 
     // ==========================================
     // PREVIOUS REMAINING DUE
     // ==========================================
 
-    const previousRemainingDue =
-      previousDue - previousDueCollection;
+    const previousRemainingDue = previousDue - previousDueCollection;
 
     // ==========================================
     // TOTAL DUE
     // ==========================================
 
-    const totalDue =
-      currentSeasonDue + previousRemainingDue;
+    const totalDue = currentSeasonDue + previousRemainingDue;
 
     // ==========================================
     // REMAINING QUANTITY
@@ -251,8 +236,9 @@ export const formatCustomerDataWithPrevDue = (
       address: customer.address,
       phoneNumber: customer.phoneNumber,
       customerCode: customer.customerCode,
-      createdAt:customer.createdAt,
-
+      createdAt: customer.createdAt,
+      updateStatus: customer.updateStatus,
+      deleteStatus: customer.deleteStatus,
       totalPurchasedQuantity,
       totalDeliveredQuantity,
       totalRemainingQuantity,

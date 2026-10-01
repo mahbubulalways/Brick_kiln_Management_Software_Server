@@ -10,15 +10,15 @@ const enums_1 = require("../../../generated/prisma/enums");
 const SubscriptionGuard_1 = __importDefault(require("../../middlewares/SubscriptionGuard"));
 const router = (0, express_1.Router)();
 // Create Task
-router.post("/create", (0, AuthGuard_1.default)(enums_1.UserRole.OWNER, enums_1.UserRole.ADMIN, enums_1.UserRole.MANAGER), SubscriptionGuard_1.default, task_controller_1.TaskManagerController.createTaskController);
+router.post("/create", (0, AuthGuard_1.default)(enums_1.UserRole.OWNER, enums_1.UserRole.ADMIN, enums_1.UserRole.MANAGER, enums_1.UserRole.OPERATOR), SubscriptionGuard_1.default, task_controller_1.TaskManagerController.createTaskController);
 // Get Pending Tasks
-router.get("/pending", (0, AuthGuard_1.default)(enums_1.UserRole.OWNER, enums_1.UserRole.ADMIN, enums_1.UserRole.MANAGER), task_controller_1.TaskManagerController.getPendingTasksController);
+router.get("/pending", (0, AuthGuard_1.default)(enums_1.UserRole.OWNER, enums_1.UserRole.ADMIN, enums_1.UserRole.MANAGER, enums_1.UserRole.OPERATOR), task_controller_1.TaskManagerController.getPendingTasksController);
 // Get Complete Tasks
-router.get("/complete", (0, AuthGuard_1.default)(enums_1.UserRole.OWNER, enums_1.UserRole.ADMIN, enums_1.UserRole.MANAGER), task_controller_1.TaskManagerController.getCompleteTasksController);
+router.get("/complete", (0, AuthGuard_1.default)(enums_1.UserRole.OWNER, enums_1.UserRole.ADMIN, enums_1.UserRole.MANAGER, enums_1.UserRole.OPERATOR), task_controller_1.TaskManagerController.getCompleteTasksController);
 // Get Single Task
-router.get("/single/:id", (0, AuthGuard_1.default)(enums_1.UserRole.OWNER, enums_1.UserRole.ADMIN, enums_1.UserRole.MANAGER), task_controller_1.TaskManagerController.getSingleTaskController);
+router.get("/single/:id", (0, AuthGuard_1.default)(enums_1.UserRole.OWNER, enums_1.UserRole.ADMIN, enums_1.UserRole.MANAGER, enums_1.UserRole.OPERATOR), task_controller_1.TaskManagerController.getSingleTaskController);
 // Update Task
-router.patch("/update/:id", (0, AuthGuard_1.default)(enums_1.UserRole.OWNER, enums_1.UserRole.ADMIN, enums_1.UserRole.MANAGER), SubscriptionGuard_1.default, task_controller_1.TaskManagerController.updateTaskController);
+router.patch("/update/:id", (0, AuthGuard_1.default)(enums_1.UserRole.OWNER, enums_1.UserRole.ADMIN, enums_1.UserRole.MANAGER, enums_1.UserRole.OPERATOR), SubscriptionGuard_1.default, task_controller_1.TaskManagerController.updateTaskController);
 // Delete Task
-router.delete("/delete/:id", (0, AuthGuard_1.default)(enums_1.UserRole.OWNER, enums_1.UserRole.ADMIN, enums_1.UserRole.MANAGER), SubscriptionGuard_1.default, task_controller_1.TaskManagerController.deleteTaskController);
+router.delete("/delete/:id", (0, AuthGuard_1.default)(enums_1.UserRole.OWNER, enums_1.UserRole.ADMIN, enums_1.UserRole.MANAGER, enums_1.UserRole.OPERATOR), SubscriptionGuard_1.default, task_controller_1.TaskManagerController.deleteTaskController);
 exports.default = router;

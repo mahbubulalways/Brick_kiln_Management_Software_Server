@@ -28,6 +28,9 @@ model User {
   approvalRequests ApprovalRequest[]
   activityLogs     ActivityLog[]
 
+  deleteStatus ApprovalStatus @default(DEFAULT)
+  updateStatus ApprovalStatus @default(DEFAULT)
+
   @@map("users")
 }
 
@@ -139,6 +142,9 @@ model Customer {
   vata            Vata             @relation(fields: [vataId], references: [id])
   dueCollections  Due_Collection[]
   customerDues    CustomerDue[]
+
+  deleteStatus ApprovalStatus @default(DEFAULT)
+  updateStatus ApprovalStatus @default(DEFAULT)
 
   @@unique([vataId, customerCode])
   @@map("customers")
@@ -436,6 +442,9 @@ model StockBook {
   season      Season   @relation(fields: [seasonId], references: [id])
   vataId      String
   vata        Vata     @relation(fields: [vataId], references: [id])
+
+  deleteStatus ApprovalStatus @default(DEFAULT)
+  updateStatus ApprovalStatus @default(DEFAULT)
 }
 
 // ========================== GOODS STOCK CATEGORY MODEL==================================

@@ -84,11 +84,11 @@ const deleteContactController = (0, catchAsync_1.default)(async (req, res) => {
     const { id } = req.params;
     const user = req.user;
     const result = await contact_service_1.ContactService.deleteContactService(user, id);
-    if (result) {
+    if (result.result) {
         (0, sendResponse_1.sendResponse)(res, {
             statusCode: 200,
             success: true,
-            message: "ফোন নম্বর সফলভাবে মুছে ফেলা হয়েছে",
+            message: result.message,
             data: result,
         });
     }

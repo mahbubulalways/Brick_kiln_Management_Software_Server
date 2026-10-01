@@ -9,7 +9,7 @@ const enums_1 = require("../../../generated/prisma/enums");
 const subscription_payment_controller_1 = require("./subscription_payment.controller");
 const router = (0, express_1.Router)();
 // CREATE NEW SUBSCRIPTION PAYMENT
-router.post("/create", (0, AuthGuard_1.default)(enums_1.UserRole.OWNER, enums_1.UserRole.ADMIN, enums_1.UserRole.MANAGER), subscription_payment_controller_1.SubscriptionPaymentController.createNewSubscriptionPaymentController);
+router.post("/create", (0, AuthGuard_1.default)(enums_1.UserRole.OWNER, enums_1.UserRole.ADMIN, enums_1.UserRole.MANAGER, enums_1.UserRole.OPERATOR), subscription_payment_controller_1.SubscriptionPaymentController.createNewSubscriptionPaymentController);
 // GET ALL PENDING SUBSCRIPTION PAYMENT
 // SYSTEM ADMIN
 router.get("/pending", (0, AuthGuard_1.default)(enums_1.UserRole.SUPER_ADMIN, enums_1.UserRole.SYSTEM_ADMIN), subscription_payment_controller_1.SubscriptionPaymentController.getAllSubscriptionPaymentController);
@@ -20,7 +20,7 @@ router.get("/paid", (0, AuthGuard_1.default)(enums_1.UserRole.SUPER_ADMIN, enums
 // SYSTEM ADMIN
 router.get("/other", (0, AuthGuard_1.default)(enums_1.UserRole.SUPER_ADMIN, enums_1.UserRole.SYSTEM_ADMIN), subscription_payment_controller_1.SubscriptionPaymentController.getOtherSubscriptionController);
 // GET VATA SUBSCRIPTION PAYMENT HISTORY
-router.get("/history", (0, AuthGuard_1.default)(enums_1.UserRole.OWNER, enums_1.UserRole.ADMIN, enums_1.UserRole.MANAGER), subscription_payment_controller_1.SubscriptionPaymentController.getVataSubscriptionPaymentHistoryController);
+router.get("/history", (0, AuthGuard_1.default)(enums_1.UserRole.OWNER, enums_1.UserRole.ADMIN, enums_1.UserRole.MANAGER, enums_1.UserRole.OPERATOR), subscription_payment_controller_1.SubscriptionPaymentController.getVataSubscriptionPaymentHistoryController);
 // UPDATE SUBSCRIPTION PAYMENT STATUS
 // SYSTEM ADMIN
 router.patch("/update-status/:id", (0, AuthGuard_1.default)(enums_1.UserRole.SUPER_ADMIN, enums_1.UserRole.SYSTEM_ADMIN), subscription_payment_controller_1.SubscriptionPaymentController.updateSubscriptionPaymentControllerStatus);

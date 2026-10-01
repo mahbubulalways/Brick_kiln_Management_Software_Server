@@ -26,12 +26,15 @@ const getAllDriversService = async (user, query) => {
         prisma_1.prisma.driver.findMany({
             where: {
                 vataId: user.vataId,
+                isDeleted: false,
             },
             orderBy: {
                 createdAt: "desc",
             },
+            take: limit,
+            skip,
         }),
-        prisma_1.prisma.driver.count(),
+        prisma_1.prisma.driver.count({ where: { isDeleted: false } }),
     ]);
     const meta = (0, createMetaConfig_1.createMetaConfig)({
         limit,
@@ -154,13 +157,16 @@ const deleteDriverService = async (user, id) => {
         salary: existingDriver.salary,
     };
     if (user.role === "ADMIN" || user.role === "OWNER") {
-        await prisma_1.prisma.$transaction(async (tx) => {
-            await tx.driver.delete({
+        const result = await prisma_1.prisma.$transaction(async (tx) => {
+            await tx.driver.update({
                 where: {
                     id,
                 },
+                data: {
+                    isDeleted: true,
+                },
             });
-            await activity_service_1.ActivityService.createActivityService({
+            return await activity_service_1.ActivityService.createActivityService({
                 action: "DELETE",
                 module: "DRIVER",
                 targetId: id,
@@ -171,7 +177,7 @@ const deleteDriverService = async (user, id) => {
             });
         });
         return {
-            result: null,
+            result,
             message: "ড্রাইভার সফলভাবে মুছে ফেলা হয়েছে।",
         };
     }

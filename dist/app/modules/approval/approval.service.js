@@ -15,10 +15,14 @@ const due_collection_module_1 = require("./module/due.collection.module");
 const cash_module_1 = require("./module/cash.module");
 const load_module_1 = require("./module/load.module");
 const goods_category_module_1 = require("./module/goods.category.module");
-const cancel_module_1 = require("./cancel_module/cancel.module");
 const contact_module_1 = require("./module/contact.module");
 const driver_module_1 = require("./module/driver.module");
 const car_rent_module_1 = require("./module/car.rent.module");
+const cancel_update_module_1 = require("./cancel_module/cancel.update.module");
+const cancel_delete_module_1 = require("./cancel_module/cancel.delete.module");
+const stock_module_1 = require("./module/stock.module");
+const customer_module_1 = require("./module/customer.module");
+const user_module_1 = require("./module/user.module");
 const getAlApprovalService = async (user, query) => {
     const { limit, page, skip } = (0, paginationHelper_1.paginationHelper)(query.page, query.limit);
     const [result, total] = await Promise.all([
@@ -80,11 +84,20 @@ const changeAprovalStatus = async (user, seasonId, approvalId, status) => {
                 reviewedAt: new Date(),
             },
         });
-        const response = await (0, cancel_module_1.cancelModule)(user, findRequest);
-        return {
-            result,
-            message: response.message,
-        };
+        if (findRequest?.action === "UPDATE") {
+            const response = await (0, cancel_update_module_1.cancelUpdateModule)(user, findRequest);
+            return {
+                result,
+                message: response.message,
+            };
+        }
+        if (findRequest?.action === "DELETE") {
+            const response = await (0, cancel_delete_module_1.cancelDeleteModule)(user, findRequest);
+            return {
+                result,
+                message: response.message,
+            };
+        }
     }
     if (status !== "APPROVED") {
         throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.BAD_REQUEST, "অনুমোদনের স্ট্যাটাস সঠিক নয়।");
@@ -114,6 +127,12 @@ const changeAprovalStatus = async (user, seasonId, approvalId, status) => {
             return await (0, driver_module_1.driverModule)(user, findRequest, approvalId); //done
         case "CAR_RENT":
             return await (0, car_rent_module_1.carRentModule)(user, findRequest, approvalId); //done
+        case "STOCK":
+            return await (0, stock_module_1.stockModule)(user, findRequest, approvalId); //done
+        case "CUSTOMER":
+            return await (0, customer_module_1.customerModule)(user, findRequest, approvalId); //done
+        case "USER":
+            return await (0, user_module_1.userModule)(user, findRequest, approvalId); //done
         default:
             throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.BAD_REQUEST, "এই অনুমোদনের অনুরোধের জন্য কোনো কার্যক্রম নির্ধারিত নেই।");
     }

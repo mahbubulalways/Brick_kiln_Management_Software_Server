@@ -195,6 +195,38 @@ export const cancelUpdateModule = async (
         message: "গাড়ির ভাড়া আপডেটের অনুরোধ বাতিল করা হয়েছে।",
       };
 
+    case "CUSTOMER":
+      await prisma.customer.update({
+        data: {
+          updateStatus: "CANCELLED",
+        },
+        where: {
+          vataId_customerCode: {
+            customerCode: findRequest.targetId as string,
+            vataId: user.vataId,
+          },
+        },
+      });
+
+      return {
+        message: "কাস্টমারের তথ্য আপডেটের অনুরোধ বাতিল করা হয়েছে।",
+      };
+
+    case "USER":
+      await prisma.user.update({
+        data: {
+          updateStatus: "CANCELLED",
+        },
+        where: {
+          id: findRequest.targetId,
+          vataId: user.vataId,
+        },
+      });
+
+      return {
+        message: "ইউজারের তথ্য আপডেটের অনুরোধ বাতিল করা হয়েছে।",
+      };
+
     default:
       return {
         message: "এই মডিউলের জন্য বাতিল করার ব্যবস্থা নেই।",

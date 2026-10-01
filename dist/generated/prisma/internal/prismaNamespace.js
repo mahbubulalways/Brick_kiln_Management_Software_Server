@@ -177,7 +177,9 @@ exports.UserScalarFieldEnum = {
     isDeleted: 'isDeleted',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt',
-    vataId: 'vataId'
+    vataId: 'vataId',
+    deleteStatus: 'deleteStatus',
+    updateStatus: 'updateStatus'
 };
 exports.LoginHistoryScalarFieldEnum = {
     id: 'id',
@@ -250,7 +252,9 @@ exports.CustomerScalarFieldEnum = {
     isDeleted: 'isDeleted',
     nextPaymentDate: 'nextPaymentDate',
     note: 'note',
-    vataId: 'vataId'
+    vataId: 'vataId',
+    deleteStatus: 'deleteStatus',
+    updateStatus: 'updateStatus'
 };
 exports.CustomerDueScalarFieldEnum = {
     id: 'id',
@@ -422,7 +426,9 @@ exports.StockBookScalarFieldEnum = {
     updatedAt: 'updatedAt',
     createdById: 'createdById',
     seasonId: 'seasonId',
-    vataId: 'vataId'
+    vataId: 'vataId',
+    deleteStatus: 'deleteStatus',
+    updateStatus: 'updateStatus'
 };
 exports.GoodsStockCategoryScalarFieldEnum = {
     id: 'id',
@@ -661,6 +667,7 @@ exports.DriverScalarFieldEnum = {
     vataId: 'vataId',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt',
+    isDeleted: 'isDeleted',
     deleteStatus: 'deleteStatus',
     updateStatus: 'updateStatus'
 };

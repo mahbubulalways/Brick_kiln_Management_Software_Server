@@ -12,14 +12,14 @@ const ActiveSeasonGuard_1 = __importDefault(require("../../middlewares/ActiveSea
 const SubscriptionGuard_1 = __importDefault(require("../../middlewares/SubscriptionGuard"));
 const router = (0, express_1.Router)();
 // CREATE PAYMENT
-router.post("/create", (0, AuthGuard_1.default)(enums_1.UserRole.OWNER, enums_1.UserRole.ADMIN, enums_1.UserRole.MANAGER), ActiveSeasonGuard_1.default, SubscriptionGuard_1.default, uploader_1.fileUploader.upload.single("file"), payment_controller_1.PaymentController.createPaymentController);
+router.post("/create", (0, AuthGuard_1.default)(enums_1.UserRole.OWNER, enums_1.UserRole.ADMIN, enums_1.UserRole.MANAGER, enums_1.UserRole.OPERATOR), ActiveSeasonGuard_1.default, SubscriptionGuard_1.default, uploader_1.fileUploader.upload.single("file"), payment_controller_1.PaymentController.createPaymentController);
 // GET ALL PAYMENT
-router.get("/all", (0, AuthGuard_1.default)(enums_1.UserRole.OWNER, enums_1.UserRole.ADMIN, enums_1.UserRole.MANAGER), ActiveSeasonGuard_1.default, payment_controller_1.PaymentController.getAllPaymentController);
+router.get("/all", (0, AuthGuard_1.default)(enums_1.UserRole.OWNER, enums_1.UserRole.ADMIN, enums_1.UserRole.MANAGER, enums_1.UserRole.OPERATOR), ActiveSeasonGuard_1.default, payment_controller_1.PaymentController.getAllPaymentController);
 // GET PAYMENT REPORT
-router.get("/report/:date", (0, AuthGuard_1.default)(enums_1.UserRole.OWNER, enums_1.UserRole.ADMIN, enums_1.UserRole.MANAGER), ActiveSeasonGuard_1.default, payment_controller_1.PaymentController.paymentReportViaGroupController);
+router.get("/report/:date", (0, AuthGuard_1.default)(enums_1.UserRole.OWNER, enums_1.UserRole.ADMIN, enums_1.UserRole.MANAGER, enums_1.UserRole.OPERATOR), ActiveSeasonGuard_1.default, payment_controller_1.PaymentController.paymentReportViaGroupController);
 // GET SINGLE PAYMENT
-router.get("/single/:id", (0, AuthGuard_1.default)(enums_1.UserRole.OWNER, enums_1.UserRole.ADMIN, enums_1.UserRole.MANAGER), payment_controller_1.PaymentController.getSinglePaymentController);
-router.patch("/update/:id", (0, AuthGuard_1.default)(enums_1.UserRole.OWNER, enums_1.UserRole.ADMIN, enums_1.UserRole.MANAGER), SubscriptionGuard_1.default, uploader_1.fileUploader.upload.single("file"), payment_controller_1.PaymentController.updatePaymentController);
+router.get("/single/:id", (0, AuthGuard_1.default)(enums_1.UserRole.OWNER, enums_1.UserRole.ADMIN, enums_1.UserRole.MANAGER, enums_1.UserRole.OPERATOR), payment_controller_1.PaymentController.getSinglePaymentController);
+router.patch("/update/:id", (0, AuthGuard_1.default)(enums_1.UserRole.OWNER, enums_1.UserRole.ADMIN, enums_1.UserRole.MANAGER, enums_1.UserRole.OPERATOR), SubscriptionGuard_1.default, uploader_1.fileUploader.upload.single("file"), payment_controller_1.PaymentController.updatePaymentController);
 //  DELETE PAYMENT
-router.patch("/delete/:id", (0, AuthGuard_1.default)(enums_1.UserRole.OWNER, enums_1.UserRole.ADMIN, enums_1.UserRole.MANAGER), SubscriptionGuard_1.default, payment_controller_1.PaymentController.deletePaymentController);
+router.patch("/delete/:id", (0, AuthGuard_1.default)(enums_1.UserRole.OWNER, enums_1.UserRole.ADMIN, enums_1.UserRole.MANAGER, enums_1.UserRole.OPERATOR), SubscriptionGuard_1.default, payment_controller_1.PaymentController.deletePaymentController);
 exports.default = router;
