@@ -40,6 +40,7 @@ import faqRoute from "../app/modules/system_modules/faq/faq.route";
 import aboutUsRoute from "../app/modules/system_modules/about_us/about_us.route";
 import helpRoute from "../app/modules/system_modules/helpline/helpline.route";
 import youtubeRoute from "../app/modules/system_modules/youtube/youtube.route";
+import vataBackupRouter from "../app/modules/backup/backup.route";
 
 // ADMIN MODULES
 import adminRoutes from "../app/modules/system_modules/admin/admin.route";
@@ -89,6 +90,7 @@ const applicationRoutes: IApplicationRoute[] = [
   { path: "/faq", route: faqRoute },
   { path: "/approval", route: approvalRoute },
   { path: "/activity", route: activityRoute },
+  { path: "/backup", route: vataBackupRouter },
 
   // ADMIN MODULES
   {

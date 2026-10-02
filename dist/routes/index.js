@@ -44,6 +44,7 @@ const faq_route_1 = __importDefault(require("../app/modules/system_modules/faq/f
 const about_us_route_1 = __importDefault(require("../app/modules/system_modules/about_us/about_us.route"));
 const helpline_route_1 = __importDefault(require("../app/modules/system_modules/helpline/helpline.route"));
 const youtube_route_1 = __importDefault(require("../app/modules/system_modules/youtube/youtube.route"));
+const backup_route_1 = __importDefault(require("../app/modules/backup/backup.route"));
 // ADMIN MODULES
 const admin_route_1 = __importDefault(require("../app/modules/system_modules/admin/admin.route"));
 const vata_route_2 = __importDefault(require("../app/modules/system_modules/vata/vata.route"));
@@ -91,6 +92,7 @@ const applicationRoutes = [
     { path: "/faq", route: faq_route_1.default },
     { path: "/approval", route: approval_route_1.default },
     { path: "/activity", route: activity_route_1.default },
+    { path: "/backup", route: backup_route_1.default },
     // ADMIN MODULES
     {
         path: "/system/admin",

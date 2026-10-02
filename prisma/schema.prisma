@@ -750,6 +750,7 @@ model Vata {
   seasons                       Season[]
   approvalRequests              ApprovalRequest[]
   activityLogs                  ActivityLog[]
+  vataBackup                    VataBackup?
 
   @@map("vatainformation")
 }
@@ -1116,13 +1117,40 @@ model ActivityLog {
   @@index([vataId, module])
 }
 
+// ===============================VATA INFO BACKUP================================
+model VataBackup {
+  id String @id @default(uuid())
+
+  vataId String @unique
+  vata   Vata   @relation(fields: [vataId], references: [id], onDelete: Cascade)
+
+  backupData Json
+
+  jsonFileName String?
+  jsonFilePath String?
+  jsonFileSize BigInt?
+
+  sqlFileName String?
+  sqlFilePath String?
+  sqlFileSize BigInt?
+
+  tableCount     Int    @default(0)
+  totalRowCount  BigInt @default(0)
+  tableRowCounts Json?
+
+  createdAt DateTime @default(now())
+
+  @@map("vata_backups")
+}
+
+// ======================================ENUMS ======================================
+
 enum ActivityAction {
   CREATE
   UPDATE
   DELETE
 }
 
-// ======================================ENUMS ======================================
 enum ApprovalAction {
   UPDATE
   DELETE

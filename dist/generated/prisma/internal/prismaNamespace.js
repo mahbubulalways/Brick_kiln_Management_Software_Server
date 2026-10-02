@@ -49,7 +49,7 @@ var __importStar = (this && this.__importStar) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ContactScalarFieldEnum = exports.ReceivablePayableTransactionScalarFieldEnum = exports.ReceivablePayableScalarFieldEnum = exports.TaskManagerScalarFieldEnum = exports.ProductScalarFieldEnum = exports.CarRentScalarFieldEnum = exports.DocumentScalarFieldEnum = exports.GoodsLossScalarFieldEnum = exports.GoodHistoryLogScalarFieldEnum = exports.GoodsIssueScalarFieldEnum = exports.GoodsStockScalarFieldEnum = exports.GoodsStockCategoryScalarFieldEnum = exports.StockBookScalarFieldEnum = exports.BrickStockSummaryScalarFieldEnum = exports.UnloadItemScalarFieldEnum = exports.UnloadScalarFieldEnum = exports.LoadInfoScalarFieldEnum = exports.RoundScalarFieldEnum = exports.CashScalarFieldEnum = exports.PaymentScalarFieldEnum = exports.LedgerScalarFieldEnum = exports.Due_CollectionScalarFieldEnum = exports.DeliveryStatusActionTimeScalarFieldEnum = exports.DeliveryScalarFieldEnum = exports.CustomerDueScalarFieldEnum = exports.CustomerScalarFieldEnum = exports.ChallanItemScalarFieldEnum = exports.ChallanScalarFieldEnum = exports.ClassAndRateScalarFieldEnum = exports.LoginHistoryScalarFieldEnum = exports.UserScalarFieldEnum = exports.TransactionIsolationLevel = exports.ModelName = exports.AnyNull = exports.JsonNull = exports.DbNull = exports.NullTypes = exports.prismaVersion = exports.getExtensionContext = exports.Decimal = exports.Sql = exports.raw = exports.join = exports.empty = exports.sql = exports.PrismaClientValidationError = exports.PrismaClientInitializationError = exports.PrismaClientRustPanicError = exports.PrismaClientUnknownRequestError = exports.PrismaClientKnownRequestError = void 0;
-exports.defineExtension = exports.JsonNullValueFilter = exports.NullsOrder = exports.QueryMode = exports.NullableJsonNullValueInput = exports.SortOrder = exports.ActivityLogScalarFieldEnum = exports.ApprovalRequestScalarFieldEnum = exports.DatabaseBackupScalarFieldEnum = exports.DatabaseBackupPermissionScalarFieldEnum = exports.YoutubeLinkScalarFieldEnum = exports.HelpLineScalarFieldEnum = exports.AboutUsScalarFieldEnum = exports.FaqScalarFieldEnum = exports.NotificationScalarFieldEnum = exports.NoteScalarFieldEnum = exports.SmsLogScalarFieldEnum = exports.VataSmsSettingsScalarFieldEnum = exports.SmsRechargeHistoryScalarFieldEnum = exports.SmsWalletScalarFieldEnum = exports.SmsSettingScalarFieldEnum = exports.CarIncomeDeliveryScalarFieldEnum = exports.VataCarScalarFieldEnum = exports.DriverScalarFieldEnum = exports.SeasonScalarFieldEnum = exports.SubscriptionPaymentScalarFieldEnum = exports.SubscriptionPlanScalarFieldEnum = exports.VataScalarFieldEnum = exports.WeatherScalarFieldEnum = void 0;
+exports.defineExtension = exports.JsonNullValueFilter = exports.NullsOrder = exports.QueryMode = exports.JsonNullValueInput = exports.NullableJsonNullValueInput = exports.SortOrder = exports.VataBackupScalarFieldEnum = exports.ActivityLogScalarFieldEnum = exports.ApprovalRequestScalarFieldEnum = exports.DatabaseBackupScalarFieldEnum = exports.DatabaseBackupPermissionScalarFieldEnum = exports.YoutubeLinkScalarFieldEnum = exports.HelpLineScalarFieldEnum = exports.AboutUsScalarFieldEnum = exports.FaqScalarFieldEnum = exports.NotificationScalarFieldEnum = exports.NoteScalarFieldEnum = exports.SmsLogScalarFieldEnum = exports.VataSmsSettingsScalarFieldEnum = exports.SmsRechargeHistoryScalarFieldEnum = exports.SmsWalletScalarFieldEnum = exports.SmsSettingScalarFieldEnum = exports.CarIncomeDeliveryScalarFieldEnum = exports.VataCarScalarFieldEnum = exports.DriverScalarFieldEnum = exports.SeasonScalarFieldEnum = exports.SubscriptionPaymentScalarFieldEnum = exports.SubscriptionPlanScalarFieldEnum = exports.VataScalarFieldEnum = exports.WeatherScalarFieldEnum = void 0;
 const runtime = __importStar(require("@prisma/client/runtime/client"));
 /**
  * Prisma Errors
@@ -157,7 +157,8 @@ exports.ModelName = {
     DatabaseBackupPermission: 'DatabaseBackupPermission',
     DatabaseBackup: 'DatabaseBackup',
     ApprovalRequest: 'ApprovalRequest',
-    ActivityLog: 'ActivityLog'
+    ActivityLog: 'ActivityLog',
+    VataBackup: 'VataBackup'
 };
 /**
  * Enums
@@ -821,12 +822,30 @@ exports.ActivityLogScalarFieldEnum = {
     isDeleted: 'isDeleted',
     createdAt: 'createdAt'
 };
+exports.VataBackupScalarFieldEnum = {
+    id: 'id',
+    vataId: 'vataId',
+    backupData: 'backupData',
+    jsonFileName: 'jsonFileName',
+    jsonFilePath: 'jsonFilePath',
+    jsonFileSize: 'jsonFileSize',
+    sqlFileName: 'sqlFileName',
+    sqlFilePath: 'sqlFilePath',
+    sqlFileSize: 'sqlFileSize',
+    tableCount: 'tableCount',
+    totalRowCount: 'totalRowCount',
+    tableRowCounts: 'tableRowCounts',
+    createdAt: 'createdAt'
+};
 exports.SortOrder = {
     asc: 'asc',
     desc: 'desc'
 };
 exports.NullableJsonNullValueInput = {
     DbNull: exports.DbNull,
+    JsonNull: exports.JsonNull
+};
+exports.JsonNullValueInput = {
     JsonNull: exports.JsonNull
 };
 exports.QueryMode = {
