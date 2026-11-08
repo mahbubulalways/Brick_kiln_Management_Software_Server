@@ -82,4 +82,11 @@ router.delete(
   UserController.deleteUserController,
 );
 
+// UNBLOCK USER FOR LOGIN
+router.patch(
+  "/unblock/:id",
+  AuthGuard(UserRole.OWNER, UserRole.ADMIN),
+  UserController.unblockUserForLoginSystemController,
+);
+
 export default router;

@@ -36,7 +36,6 @@ const getVataBackupController = (0, catchAsync_1.default)(async (req, res) => {
     if (user?.vataId) {
         const result = await backup_service_1.VataBackupService.getVataBackupService(user);
         if (result) {
-            console.log(result);
             (0, sendResponse_1.sendResponse)(res, {
                 statusCode: http_status_codes_1.StatusCodes.OK,
                 success: true,

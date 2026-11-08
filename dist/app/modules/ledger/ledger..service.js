@@ -185,7 +185,7 @@ const getAllLedgerWithChildrenPaginationService = async (user, seasonId, query) 
             skip,
             take: limit,
             orderBy: {
-                parentId: "asc",
+                createdAt: "desc",
             },
         }),
         prisma_1.prisma.ledger.count({ where }),
@@ -292,6 +292,9 @@ const getDetailsLedgerService = async (user, seasonId, id, query) => {
             where.paymentDate = dateRange;
         }
     }
+    if (query?.search && query.search !== "সব") {
+        where.paymentType = query.search;
+    }
     const ledger = await prisma_1.prisma.ledger.findUnique({
         where: { id, vataId: user.vataId, seasonId, isDeleted: false },
         select: {
@@ -321,7 +324,7 @@ const getDetailsLedgerService = async (user, seasonId, id, query) => {
     else {
         throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.NOT_FOUND, "খতিয়ানের তথ্য পাওয়া যায়নি");
     }
-    const [payment, total, allPayments] = await Promise.all([
+    const [payment, total] = await Promise.all([
         prisma_1.prisma.payment.findMany({
             where,
             skip,
@@ -329,59 +332,62 @@ const getDetailsLedgerService = async (user, seasonId, id, query) => {
             orderBy: { createdAt: "desc" },
         }),
         prisma_1.prisma.payment.count({ where }),
-        prisma_1.prisma.payment.findMany({
-            where,
-            select: {
-                paymentType: true,
-                payment: true,
-                paymentDifference: true,
-                totalBill: true,
-                cutting: true,
-                quantity: true,
-            },
-        }),
+        // prisma.payment.findMany({
+        //   where,
+        //   select: {
+        //     paymentType: true,
+        //     payment: true,
+        //     paymentDifference: true,
+        //     totalBill: true,
+        //     cutting: true,
+        //     quantity: true,
+        //   },
+        // }),
     ]);
-    const summary = allPayments.reduce((acc, row) => {
-        const payment = Number(row.payment || 0);
-        const totalBill = Number(row.totalBill || 0);
-        const cutting = Number(row.cutting || 0);
-        const quantity = Number(row.quantity || 0);
-        if (row.paymentType === "অগ্রিম পেমেন্ট") {
-            acc.totalAdvance += payment;
-            const difference = Number(row.paymentDifference || 0);
-            acc.totalAdvanceDue += Math.max(difference, 0);
-        }
-        if (row.paymentType === "বাকি পেমেন্ট") {
-            acc.totalLoanPayment += payment;
-            const difference = Number(row.paymentDifference || 0);
-            acc.totalLoanPayment += Math.max(difference, 0);
-        }
-        if (row.paymentType !== "অগ্রিম পেমেন্ট") {
-            acc.totalPayment += payment;
-        }
-        const due = totalBill - cutting - payment;
-        acc.totalDue += Math.max(due, 0);
-        acc.totalQuantity += quantity;
-        acc.totalBill += totalBill;
-        acc.totalPaymentAmount += payment;
-        acc.totalCutting += cutting;
-        return acc;
-    }, {
-        totalAdvance: 0,
-        totalPayment: 0,
-        totalAdvanceDue: 0,
-        totalDue: 0,
-        totalQuantity: 0,
-        totalBill: 0,
-        totalPaymentAmount: 0,
-        totalCutting: 0,
-        totalLoanPayment: 0,
-    });
+    // const summary = allPayments.reduce(
+    //   (acc, row) => {
+    //     const payment = Number(row.payment || 0);
+    //     const totalBill = Number(row.totalBill || 0);
+    //     const cutting = Number(row.cutting || 0);
+    //     const quantity = Number(row.quantity || 0);
+    //     if (row.paymentType === "অগ্রিম পেমেন্ট") {
+    //       acc.totalAdvance += payment;
+    //       const difference = Number(row.paymentDifference || 0);
+    //       acc.totalAdvanceDue += Math.max(difference, 0);
+    //     }
+    //     if (row.paymentType === "বাকি পেমেন্ট") {
+    //       acc.totalLoanPayment += payment;
+    //       const difference = Number(row.paymentDifference || 0);
+    //       acc.totalLoanPayment += Math.max(difference, 0);
+    //     }
+    //     if (row.paymentType !== "অগ্রিম পেমেন্ট") {
+    //       acc.totalPayment += payment;
+    //     }
+    //     const due = totalBill - cutting - payment;
+    //     acc.totalDue += Math.max(due, 0);
+    //     acc.totalQuantity += quantity;
+    //     acc.totalBill += totalBill;
+    //     acc.totalPaymentAmount += payment;
+    //     acc.totalCutting += cutting;
+    //     return acc;
+    //   },
+    //   {
+    //     totalAdvance: 0,
+    //     totalPayment: 0,
+    //     totalAdvanceDue: 0,
+    //     totalDue: 0,
+    //     totalQuantity: 0,
+    //     totalBill: 0,
+    //     totalPaymentAmount: 0,
+    //     totalCutting: 0,
+    //     totalLoanPayment: 0,
+    //   },
+    // );
     const format = {
         ledger,
         id: ledger?.id,
         data: payment,
-        summary,
+        // summary,
     };
     const meta = (0, createMetaConfig_1.createMetaConfig)({
         limit: limit,
@@ -441,34 +447,37 @@ const updateLedgerService = async (user, id, data) => {
         throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.NOT_FOUND, "এই খতিয়ানটি পাওয়া যায়নি।");
     }
     if (user.role === "ADMIN" || user.role === "OWNER") {
-        const result = await prisma_1.prisma.ledger.update({
-            where: {
-                id,
+        const result = await prisma_1.prisma.$transaction(async (tx) => {
+            const result = await tx.ledger.update({
+                where: {
+                    id,
+                    vataId: user.vataId,
+                },
+                data: {
+                    ...data,
+                    serial: Number(data.serial),
+                    quantity: Number(data.quantity || 0),
+                    rate: Number(data.rate || 0),
+                    salary: Number(data.salary || 0),
+                    weeklyFood: Number(data.weeklyFood || 0),
+                    openingBalance: Number(data.openingBalance || 0),
+                    parentId: data.parentId || null,
+                    openingBalanceType: data.openingBalanceType || null,
+                    updateStatus: "APPROVED",
+                },
+            });
+            await activity_service_1.ActivityService.createActivityService({
+                tx,
+                action: "UPDATE",
+                module: "LEDGER",
+                targetId: id,
+                userId: user.userId,
                 vataId: user.vataId,
-            },
-            data: {
-                ...data,
-                serial: Number(data.serial),
-                quantity: Number(data.quantity || 0),
-                rate: Number(data.rate || 0),
-                salary: Number(data.salary || 0),
-                weeklyFood: Number(data.weeklyFood || 0),
-                openingBalance: Number(data.openingBalance || 0),
-                parentId: data.parentId || null,
-                openingBalanceType: data.openingBalanceType || null,
-                updateStatus: "APPROVED",
-            },
-        });
-        data.serial == Number(data.serial);
-        await activity_service_1.ActivityService.createActivityService({
-            action: "UPDATE",
-            module: "LEDGER",
-            targetId: id,
-            userId: user.userId,
-            vataId: user.vataId,
-            newData: data,
-            oldData: ledger,
-            referenceNumber: ledger?.serial,
+                newData: data,
+                oldData: ledger,
+                referenceNumber: ledger?.serial,
+            });
+            return result;
         });
         return {
             result,
@@ -528,23 +537,27 @@ const deleteLedgerService = async (user, id) => {
         throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.NOT_FOUND, "এই খতিয়ানটি পাওয়া যায়নি।");
     }
     if (user.role === "ADMIN" || user.role === "OWNER") {
-        const result = await prisma_1.prisma.ledger.update({
-            where: {
-                id,
+        const result = await prisma_1.prisma.$transaction(async (tx) => {
+            const result = await tx.ledger.update({
+                where: {
+                    id,
+                    vataId: user.vataId,
+                },
+                data: {
+                    isDeleted: true,
+                    deleteStatus: "APPROVED",
+                },
+            });
+            await activity_service_1.ActivityService.createActivityService({
+                tx,
+                action: "DELETE",
+                module: "LEDGER",
+                targetId: id,
+                userId: user.userId,
                 vataId: user.vataId,
-            },
-            data: {
-                isDeleted: true,
-                deleteStatus: "APPROVED",
-            },
-        });
-        await activity_service_1.ActivityService.createActivityService({
-            action: "DELETE",
-            module: "LEDGER",
-            targetId: id,
-            userId: user.userId,
-            vataId: user.vataId,
-            referenceNumber: ledger?.serial,
+                referenceNumber: ledger?.serial,
+            });
+            return result;
         });
         return {
             result,

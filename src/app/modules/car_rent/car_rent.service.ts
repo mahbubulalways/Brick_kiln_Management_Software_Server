@@ -107,6 +107,7 @@ const updateCarRentService = async (
       });
 
       await ActivityService.createActivityService({
+        tx,
         action: "UPDATE",
         module: "CAR_RENT",
         targetId: id,
@@ -126,27 +127,31 @@ const updateCarRentService = async (
     };
   }
 
-  await prisma.carRent.update({
-    where: {
-      id,
-    },
-    data: {
-      updateStatus: "PENDING",
-    },
-  });
+  const result = await prisma.$transaction(
+    async (tx: Prisma.TransactionClient) => {
+      await tx.carRent.update({
+        where: {
+          id,
+        },
+        data: {
+          updateStatus: "PENDING",
+        },
+      });
 
-  const result = await prisma.approvalRequest.create({
-    data: {
-      action: "UPDATE",
-      module: "CAR_RENT",
-      targetId: id,
-      requestedById: user.userId,
-      vataId: user.vataId,
-      status: "PENDING",
-      oldData,
-      newData,
+      return await tx.approvalRequest.create({
+        data: {
+          action: "UPDATE",
+          module: "CAR_RENT",
+          targetId: id,
+          requestedById: user.userId,
+          vataId: user.vataId,
+          status: "PENDING",
+          oldData,
+          newData,
+        },
+      });
     },
-  });
+  );
 
   return {
     result,
@@ -181,8 +186,8 @@ const deleteCarRentService = async (user: TAuthUser, id: string) => {
       await tx.carRent.delete({
         where: { id },
       });
-
       return await ActivityService.createActivityService({
+        tx,
         action: "DELETE",
         module: "CAR_RENT",
         targetId: id,
@@ -199,24 +204,28 @@ const deleteCarRentService = async (user: TAuthUser, id: string) => {
     };
   }
 
-  const result = await prisma.carRent.update({
-    where: { id },
-    data: {
-      deleteStatus: "PENDING",
-    },
-  });
+  const result = await prisma.$transaction(
+    async (tx: Prisma.TransactionClient) => {
+      await tx.carRent.update({
+        where: { id },
+        data: {
+          deleteStatus: "PENDING",
+        },
+      });
 
-  await prisma.approvalRequest.create({
-    data: {
-      action: "DELETE",
-      module: "CAR_RENT",
-      targetId: id,
-      requestedById: user.userId,
-      vataId: user.vataId,
-      status: "PENDING",
-      oldData,
+      return await tx.approvalRequest.create({
+        data: {
+          action: "DELETE",
+          module: "CAR_RENT",
+          targetId: id,
+          requestedById: user.userId,
+          vataId: user.vataId,
+          status: "PENDING",
+          oldData,
+        },
+      });
     },
-  });
+  );
 
   return {
     result,

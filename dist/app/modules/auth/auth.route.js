@@ -13,4 +13,9 @@ router.post("/login",
 auth_controller_1.AuthController.loginUserToSystemController);
 router.post("/logout", (0, AuthGuard_1.default)(enums_1.UserRole.ADMIN, enums_1.UserRole.MANAGER, enums_1.UserRole.OWNER, enums_1.UserRole.SYSTEM_ADMIN, enums_1.UserRole.SUPER_ADMIN, enums_1.UserRole.OPERATOR), auth_controller_1.AuthController.logoutController);
 router.post("/change-password", (0, AuthGuard_1.default)(enums_1.UserRole.ADMIN, enums_1.UserRole.MANAGER, enums_1.UserRole.OWNER, enums_1.UserRole.OPERATOR), auth_controller_1.AuthController.changePasswordController);
+// FORGOT PASSWORD
+router.post("/forgot-password", auth_controller_1.AuthController.forgotPasswordController);
+router.post("/resend-code", auth_controller_1.AuthController.resendRecoveryCodeController);
+router.post("/verify-code", auth_controller_1.AuthController.verifyRecoveryCodeController);
+router.post("/reset-password", auth_controller_1.AuthController.resetPasswordController);
 exports.default = router;

@@ -31,6 +31,7 @@ export type TAdminVata = {
     name: string;
     username: string;
     password: string;
+    email: string;
   };
 };
 
@@ -39,7 +40,11 @@ export type TAdminVataUpdate = {
   nameBangla: string;
   nameEnglish: string;
   ownerName: string;
-  challansPhoneNumber: string;
   ownerPhoneNumber: string;
+  challanManagerPhoneNumber: string;
+  challanPersonOneName: string;
+  challanPersonOnePhoneNumber: string;
+  challanPersonTwoName: string;
+  challanPersonTwoPhoneNumber: string;
   subdomain: string;
 };

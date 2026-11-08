@@ -62,8 +62,66 @@ const changePasswordController = (0, catchAsync_1.default)(async (req, res) => {
         message: "আপনার পাসওয়ার্ড সফলভাবে পরিবর্তন করা হয়েছে।",
     });
 });
+// FORGOT PASS
+const forgotPasswordController = (0, catchAsync_1.default)(async (req, res) => {
+    const result = await auth_service_1.AuthService.forgotPasswordService(req.body.email);
+    if (!result) {
+        throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.BAD_REQUEST, "রিকভারি কোড পাঠানো যায়নি");
+    }
+    else {
+        (0, sendResponse_1.sendResponse)(res, {
+            statusCode: http_status_codes_1.StatusCodes.OK,
+            success: true,
+            message: "আপনার ইমেইলে পাসওয়ার্ড পুনরুদ্ধার কোড পাঠানো হয়েছে",
+        });
+    }
+});
+// Resend Recovery Code Controller
+const resendRecoveryCodeController = (0, catchAsync_1.default)(async (req, res) => {
+    const result = await auth_service_1.AuthService.resendRecoveryCodeService(req.body.email);
+    if (!result) {
+        throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.BAD_REQUEST, "নতুন কোড পাঠানো যায়নি");
+    }
+    else {
+        (0, sendResponse_1.sendResponse)(res, {
+            statusCode: http_status_codes_1.StatusCodes.OK,
+            success: true,
+            message: "নতুন পুনরুদ্ধার কোড আপনার ইমেইলে পাঠানো হয়েছে",
+        });
+    }
+});
+// Verify Recovery Code Controller
+const verifyRecoveryCodeController = (0, catchAsync_1.default)(async (req, res) => {
+    const result = await auth_service_1.AuthService.verifyRecoveryCodeService(req.body.email, req.body.recoveryCode);
+    if (!result.verified) {
+        throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.BAD_REQUEST, "ভেরিফিকেশন ব্যর্থ হয়েছে");
+    }
+    else {
+        (0, sendResponse_1.sendResponse)(res, {
+            statusCode: http_status_codes_1.StatusCodes.OK,
+            success: true,
+            message: "ভেরিফিকেশন সফল হয়েছে",
+        });
+    }
+});
+// RESET PASSWORD
+const resetPasswordController = (0, catchAsync_1.default)(async (req, res) => {
+    const result = await auth_service_1.AuthService.resetPasswordService(req.body);
+    if (!result) {
+        throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.BAD_REQUEST, "পাসওয়ার্ড পরিবর্তন করা যায়নি।");
+    }
+    (0, sendResponse_1.sendResponse)(res, {
+        statusCode: http_status_codes_1.StatusCodes.OK,
+        success: true,
+        message: "পাসওয়ার্ড সফলভাবে পরিবর্তন করা হয়েছে।",
+    });
+});
 exports.AuthController = {
     loginUserToSystemController,
     logoutController,
     changePasswordController,
+    forgotPasswordController,
+    resendRecoveryCodeController,
+    verifyRecoveryCodeController,
+    resetPasswordController,
 };

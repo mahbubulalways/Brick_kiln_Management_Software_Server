@@ -38,4 +38,10 @@ router.post(
   AuthController.changePasswordController,
 );
 
+// FORGOT PASSWORD
+router.post("/forgot-password", AuthController.forgotPasswordController);
+router.post("/resend-code", AuthController.resendRecoveryCodeController);
+router.post("/verify-code", AuthController.verifyRecoveryCodeController);
+router.post("/reset-password", AuthController.resetPasswordController);
+
 export default router;

@@ -127,6 +127,20 @@ const getUserOptionController = (0, catchAsync_1.default)(async (req, res) => {
         data: result,
     });
 });
+// UNBLOCK USER FOR LOGIN
+const unblockUserForLoginSystemController = (0, catchAsync_1.default)(async (req, res) => {
+    const result = await user_service_1.UserService.unblockUserForLoginSystemService(req.params.id);
+    if (result) {
+        (0, sendResponse_1.sendResponse)(res, {
+            statusCode: http_status_codes_1.StatusCodes.OK,
+            success: true,
+            message: "অ্যাকাউন্ট আনব্লক করা হয়েছে।",
+        });
+    }
+    else {
+        throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.BAD_REQUEST, "অ্যাকাউন্ট আনব্লক করা যায়নি।");
+    }
+});
 exports.UserController = {
     createUserController,
     getAllUsersController,
@@ -135,4 +149,5 @@ exports.UserController = {
     deleteUserController,
     getUserHistoryController,
     getUserOptionController,
+    unblockUserForLoginSystemController,
 };

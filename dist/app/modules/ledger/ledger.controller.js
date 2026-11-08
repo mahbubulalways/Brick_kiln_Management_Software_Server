@@ -136,19 +136,21 @@ const getLedgerWithAmountController = (0, catchAsync_1.default)(async (req, res)
 // GET KHOTIYAN DETAILS
 const getLedgerDetailsController = (0, catchAsync_1.default)(async (req, res) => {
     const id = req.params.id;
-    const { limit, page, date } = await (0, parseListQuery_1.parseListQuery)(req.query);
+    const { limit, page, date, search } = await (0, parseListQuery_1.parseListQuery)(req.query);
     const user = req.user;
     const seasonId = req.seasonId;
     const result = await ledger__service_1.LedgerService.getDetailsLedgerService(user, seasonId, id, {
         limit,
         page,
         date,
+        search,
     });
-    if (!result.data.data.length) {
+    if (!result.data.ledger) {
         (0, sendResponse_1.sendResponse)(res, {
             statusCode: http_status_codes_1.StatusCodes.OK,
             success: true,
             message: "এই খতিয়ানের কোনো বিস্তারিত তথ্য পাওয়া যায়নি।",
+            data: [],
         });
     }
     else {

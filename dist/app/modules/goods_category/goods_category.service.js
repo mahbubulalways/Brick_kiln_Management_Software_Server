@@ -80,6 +80,7 @@ const updateGoodCategoryService = async (user, id, payload) => {
                 },
             });
             await activity_service_1.ActivityService.createActivityService({
+                tx,
                 action: "UPDATE",
                 module: "GOODS_STOCK_CATEGORY",
                 targetId: id,
@@ -149,6 +150,7 @@ const deleteGoodCategoryService = async (user, id) => {
                 },
             });
             await activity_service_1.ActivityService.createActivityService({
+                tx,
                 action: "DELETE",
                 module: "GOODS_STOCK_CATEGORY",
                 targetId: id,

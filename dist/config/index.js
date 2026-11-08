@@ -15,4 +15,6 @@ exports.Config = {
     MRAM_API_KEY: process.env.MRAM_API_KEY,
     MRAM_SENDER_ID: process.env.MRAM_SENDER_ID,
     MRAM_BASE_URL: process.env.MRAM_BASE_URL,
+    MAIL_SENDER_ADDRESS: process.env.MAIL_SENDER_ADDRESS,
+    MAIL_PASSWORD: process.env.MAIL_PASSWORD,
 };

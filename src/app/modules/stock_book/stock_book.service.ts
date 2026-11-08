@@ -84,6 +84,7 @@ const deleteStockService = async (user: TAuthUser, id: string) => {
       });
 
       return await ActivityService.createActivityService({
+        tx,
         action: "DELETE",
         module: "STOCK",
         targetId: id,

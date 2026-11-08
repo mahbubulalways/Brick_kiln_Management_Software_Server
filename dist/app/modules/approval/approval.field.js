@@ -6,6 +6,7 @@ exports.fieldNameMap = {
         id: "ইউজার আইডি",
         name: "ইউজারের নাম",
         username: "ইউজারনেম",
+        email: "ইমেইল",
         role: "ইউজারের ভূমিকা",
         password: "পাসওয়ার্ড",
         isDeleted: "ডিলেট স্ট্যাটাস",

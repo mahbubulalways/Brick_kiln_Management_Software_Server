@@ -5,9 +5,9 @@ const paginationHelper_1 = require("../../../helpers/paginationHelper");
 const prisma_1 = require("../../../helpers/prisma");
 const createMetaConfig_1 = require("../../../utils/createMetaConfig");
 const approval_utils_1 = require("../approval/approval.utils");
-const createActivityService = async ({ vataId, userId, action, module, targetId, newData, oldData, referenceNumber, }) => {
+const createActivityService = async ({ tx, vataId, userId, action, module, targetId, newData, oldData, referenceNumber, }) => {
     const description = (0, approval_utils_1.generateActivityDescription)(module, action, oldData, newData, referenceNumber);
-    const result = await prisma_1.prisma.activityLog.create({
+    const result = await tx.activityLog.create({
         data: {
             vataId,
             userId,

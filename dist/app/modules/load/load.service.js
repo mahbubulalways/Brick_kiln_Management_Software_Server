@@ -276,6 +276,7 @@ const updateLoadInfoService = async (user, seasonId, id, payload) => {
                 },
             });
             await activity_service_1.ActivityService.createActivityService({
+                tx,
                 action: "UPDATE",
                 module: "LOAD_INFO",
                 targetId: id,
@@ -436,6 +437,7 @@ const deleteLoadInfoService = async (user, id) => {
                 },
             });
             await activity_service_1.ActivityService.createActivityService({
+                tx,
                 action: "DELETE",
                 module: "LOAD_INFO",
                 targetId: id,

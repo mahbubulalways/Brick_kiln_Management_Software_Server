@@ -791,26 +791,27 @@ const updateInvoiceService = async (
           });
         }
 
+        await ActivityService.createActivityService({
+          tx,
+          action: "UPDATE",
+          module: "CHALLAN",
+          targetId: serialId,
+          userId: user.userId,
+          vataId: user.vataId,
+          newData: {
+            invoice,
+            items,
+          },
+          oldData: {
+            invoice: rest,
+            items: formatItems,
+          },
+          referenceNumber: invoiceId.serial,
+        });
+
         return updateInvoice;
       },
     );
-
-    await ActivityService.createActivityService({
-      action: "UPDATE",
-      module: "CHALLAN",
-      targetId: serialId,
-      userId: user.userId,
-      vataId: user.vataId,
-      newData: {
-        invoice,
-        items,
-      },
-      oldData: {
-        invoice: rest,
-        items: formatItems,
-      },
-      referenceNumber: invoiceId.serial,
-    });
 
     return {
       result,
@@ -898,34 +899,41 @@ const deleteInvoiceService = async (user: TAuthUser, invoiceId: string) => {
     throw new AppError(StatusCodes.BAD_REQUEST, "চ্যালান পাওয়া যায়নি।");
   }
   if (user.role === "ADMIN" || user.role === "OWNER") {
-    const result = await prisma.challan.update({
-      data: {
-        isDeleted: true,
-        deleteStatus: "APPROVED",
-      },
-      where: {
-        id: invoiceId,
-        vataId: user.vataId,
-      },
-    });
+    const result = await prisma.$transaction(
+      async (tx: Prisma.TransactionClient) => {
+        const result = await tx.challan.update({
+          data: {
+            isDeleted: true,
+            deleteStatus: "APPROVED",
+          },
+          where: {
+            id: invoiceId,
+            vataId: user.vataId,
+          },
+        });
 
-    await prisma.challanItem.updateMany({
-      data: {
-        isDeleted: true,
-      },
-      where: {
-        challanId: invoiceId,
-      },
-    });
+        await tx.challanItem.updateMany({
+          data: {
+            isDeleted: true,
+          },
+          where: {
+            challanId: invoiceId,
+          },
+        });
 
-    await ActivityService.createActivityService({
-      action: "DELETE",
-      module: "CHALLAN",
-      targetId: invoiceId,
-      userId: user.userId,
-      vataId: user.vataId,
-      referenceNumber: findInvoice?.serial,
-    });
+        await ActivityService.createActivityService({
+          tx,
+          action: "DELETE",
+          module: "CHALLAN",
+          targetId: invoiceId,
+          userId: user.userId,
+          vataId: user.vataId,
+          referenceNumber: findInvoice?.serial,
+        });
+
+        return result;
+      },
+    );
 
     return {
       result,

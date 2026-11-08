@@ -16,4 +16,6 @@ router.get("/history", (0, AuthGuard_1.default)(enums_1.UserRole.OWNER, enums_1.
 router.get("/single/:id", (0, AuthGuard_1.default)(enums_1.UserRole.OWNER, enums_1.UserRole.ADMIN, enums_1.UserRole.MANAGER, enums_1.UserRole.OPERATOR), user_controller_1.UserController.getSingleUserController);
 router.patch("/update/:id", (0, AuthGuard_1.default)(enums_1.UserRole.OWNER, enums_1.UserRole.ADMIN, enums_1.UserRole.MANAGER, enums_1.UserRole.OPERATOR), user_controller_1.UserController.updateUserController);
 router.delete("/delete/:id", (0, AuthGuard_1.default)(enums_1.UserRole.OWNER, enums_1.UserRole.ADMIN, enums_1.UserRole.MANAGER, enums_1.UserRole.OPERATOR), user_controller_1.UserController.deleteUserController);
+// UNBLOCK USER FOR LOGIN
+router.patch("/unblock/:id", (0, AuthGuard_1.default)(enums_1.UserRole.OWNER, enums_1.UserRole.ADMIN), user_controller_1.UserController.unblockUserForLoginSystemController);
 exports.default = router;

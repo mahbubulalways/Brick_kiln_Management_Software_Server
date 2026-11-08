@@ -23,7 +23,8 @@ app.use((0, cors_1.default)({
         const isLocalhost = /^http:\/\/([a-zA-Z0-9-]+\.)?localhost:3000$/.test(origin);
         const isProduction = /^https:\/\/([a-zA-Z0-9-]+\.)?evatabd\.com$/.test(origin);
         const isVercel = origin === "https://itvata.vercel.app";
-        if (isLocalhost || isProduction || isVercel) {
+        const mobileIp = origin === "http://192.168.0.104:3000";
+        if (isLocalhost || isProduction || isVercel || mobileIp) {
             return callback(null, true);
         }
         return callback(new Error("Not allowed by CORS"));

@@ -674,6 +674,7 @@ const deleteDeliveryService = async (user, id) => {
                 }
             }
             await activity_service_1.ActivityService.createActivityService({
+                tx,
                 action: "DELETE",
                 module: "DELIVERY",
                 targetId: id,

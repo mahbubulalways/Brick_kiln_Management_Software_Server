@@ -525,17 +525,18 @@ const updateDueCollectionService = async (user, id, payload) => {
                 },
                 where: { id },
             });
+            await activity_service_1.ActivityService.createActivityService({
+                tx,
+                action: "UPDATE",
+                module: "DUE",
+                targetId: id,
+                userId: user.userId,
+                vataId: user.vataId,
+                newData: data,
+                oldData: rest,
+                referenceNumber: `কাস্টমার আইডি ${customer?.customerCode}`,
+            });
             return update;
-        });
-        await activity_service_1.ActivityService.createActivityService({
-            action: "UPDATE",
-            module: "DUE",
-            targetId: id,
-            userId: user.userId,
-            vataId: user.vataId,
-            newData: data,
-            oldData: rest,
-            referenceNumber: `কাস্টমার আইডি ${customer?.customerCode}`,
         });
         return {
             result,
@@ -617,25 +618,29 @@ const deleteDueCollectionService = async (user, id) => {
         throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.NOT_FOUND, "এই বাকি পাওয়া যায়নি।");
     }
     if (user.role === "ADMIN" || user.role === "OWNER") {
-        const result = await prisma_1.prisma.due_Collection.update({
-            where: {
-                id,
-                customer: {
-                    vataId: user.vataId,
+        const result = await prisma_1.prisma.$transaction(async (tx) => {
+            const result = await tx.due_Collection.update({
+                where: {
+                    id,
+                    customer: {
+                        vataId: user.vataId,
+                    },
                 },
-            },
-            data: {
-                isDeleted: true,
-                deleteStatus: "APPROVED",
-            },
-        });
-        await activity_service_1.ActivityService.createActivityService({
-            action: "DELETE",
-            module: "DUE",
-            targetId: id,
-            userId: user.userId,
-            vataId: user.vataId,
-            referenceNumber: `কাস্টমার আইডি ${due?.customer.customerCode} এর ${due?.collect} টাকার একটি বাকি আদায় `,
+                data: {
+                    isDeleted: true,
+                    deleteStatus: "APPROVED",
+                },
+            });
+            await activity_service_1.ActivityService.createActivityService({
+                tx,
+                action: "DELETE",
+                module: "DUE",
+                targetId: id,
+                userId: user.userId,
+                vataId: user.vataId,
+                referenceNumber: `কাস্টমার আইডি ${due?.customer.customerCode} এর ${due?.collect} টাকার একটি বাকি আদায়`,
+            });
+            return result;
         });
         return {
             result,

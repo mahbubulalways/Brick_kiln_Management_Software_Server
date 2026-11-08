@@ -660,20 +660,21 @@ const updateDueCollectionService = async (
           },
           where: { id },
         });
+
+        await ActivityService.createActivityService({
+          tx,
+          action: "UPDATE",
+          module: "DUE",
+          targetId: id,
+          userId: user.userId,
+          vataId: user.vataId,
+          newData: data,
+          oldData: rest,
+          referenceNumber: `কাস্টমার আইডি ${customer?.customerCode}`,
+        });
         return update;
       },
     );
-
-    await ActivityService.createActivityService({
-      action: "UPDATE",
-      module: "DUE",
-      targetId: id,
-      userId: user.userId,
-      vataId: user.vataId,
-      newData: data,
-      oldData: rest,
-      referenceNumber: `কাস্টমার আইডি ${customer?.customerCode}`,
-    });
 
     return {
       result,
@@ -771,27 +772,34 @@ const deleteDueCollectionService = async (user: TAuthUser, id: string) => {
   }
 
   if (user.role === "ADMIN" || user.role === "OWNER") {
-    const result = await prisma.due_Collection.update({
-      where: {
-        id,
-        customer: {
-          vataId: user.vataId,
-        },
-      },
-      data: {
-        isDeleted: true,
-        deleteStatus: "APPROVED",
-      },
-    });
+    const result = await prisma.$transaction(
+      async (tx: Prisma.TransactionClient) => {
+        const result = await tx.due_Collection.update({
+          where: {
+            id,
+            customer: {
+              vataId: user.vataId,
+            },
+          },
+          data: {
+            isDeleted: true,
+            deleteStatus: "APPROVED",
+          },
+        });
 
-    await ActivityService.createActivityService({
-      action: "DELETE",
-      module: "DUE",
-      targetId: id,
-      userId: user.userId,
-      vataId: user.vataId,
-      referenceNumber: `কাস্টমার আইডি ${due?.customer.customerCode} এর ${due?.collect} টাকার একটি বাকি আদায় `,
-    });
+        await ActivityService.createActivityService({
+          tx,
+          action: "DELETE",
+          module: "DUE",
+          targetId: id,
+          userId: user.userId,
+          vataId: user.vataId,
+          referenceNumber: `কাস্টমার আইডি ${due?.customer.customerCode} এর ${due?.collect} টাকার একটি বাকি আদায়`,
+        });
+
+        return result;
+      },
+    );
 
     return {
       result,

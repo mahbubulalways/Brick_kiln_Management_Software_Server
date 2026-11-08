@@ -127,30 +127,33 @@ const updateContactService = async (
   };
 
   if (user.role === "ADMIN" || user.role === "OWNER") {
-    const result = await prisma.$transaction(async (tx) => {
-      const result = await tx.contact.update({
-        where: {
-          id,
-        },
-        data: {
-          ...payload,
-          updateStatus: "APPROVED",
-        },
-      });
+    const result = await prisma.$transaction(
+      async (tx: Prisma.TransactionClient) => {
+        const result = await tx.contact.update({
+          where: {
+            id,
+          },
+          data: {
+            ...payload,
+            updateStatus: "APPROVED",
+          },
+        });
 
-      await ActivityService.createActivityService({
-        action: "UPDATE",
-        module: "CONTACT",
-        targetId: id,
-        userId: user.userId,
-        vataId: user.vataId,
-        oldData,
-        newData,
-        referenceNumber: oldData.name,
-      });
+        await ActivityService.createActivityService({
+          tx,
+          action: "UPDATE",
+          module: "CONTACT",
+          targetId: id,
+          userId: user.userId,
+          vataId: user.vataId,
+          oldData,
+          newData,
+          referenceNumber: oldData.name,
+        });
 
-      return result;
-    });
+        return result;
+      },
+    );
 
     return {
       result,
@@ -158,27 +161,31 @@ const updateContactService = async (
     };
   }
 
-  await prisma.contact.update({
-    where: {
-      id,
-    },
-    data: {
-      updateStatus: "PENDING",
-    },
-  });
+  const result = await prisma.$transaction(
+    async (tx: Prisma.TransactionClient) => {
+      await tx.contact.update({
+        where: {
+          id,
+        },
+        data: {
+          updateStatus: "PENDING",
+        },
+      });
 
-  const result = await prisma.approvalRequest.create({
-    data: {
-      action: "UPDATE",
-      module: "CONTACT",
-      targetId: id,
-      requestedById: user.userId,
-      vataId: user.vataId,
-      status: "PENDING",
-      oldData,
-      newData,
+      return await tx.approvalRequest.create({
+        data: {
+          action: "UPDATE",
+          module: "CONTACT",
+          targetId: id,
+          requestedById: user.userId,
+          vataId: user.vataId,
+          status: "PENDING",
+          oldData,
+          newData,
+        },
+      });
     },
-  });
+  );
 
   return {
     result,
@@ -207,23 +214,27 @@ const deleteContactService = async (user: TAuthUser, id: string) => {
   };
 
   if (user.role === "ADMIN" || user.role === "OWNER") {
-    const result = await prisma.$transaction(async (tx) => {
-      const result = await tx.contact.delete({
-        where: {
-          id,
-        },
-      });
+    const result = await prisma.$transaction(
+      async (tx: Prisma.TransactionClient) => {
+        const result = await tx.contact.delete({
+          where: {
+            id,
+          },
+        });
 
-      await ActivityService.createActivityService({
-        action: "DELETE",
-        module: "CONTACT",
-        targetId: id,
-        userId: user.userId,
-        vataId: user.vataId,
-        oldData,
-      });
-      return result;
-    });
+        await ActivityService.createActivityService({
+          tx,
+          action: "DELETE",
+          module: "CONTACT",
+          targetId: id,
+          userId: user.userId,
+          vataId: user.vataId,
+          oldData,
+        });
+
+        return result;
+      },
+    );
 
     return {
       result,
@@ -231,26 +242,30 @@ const deleteContactService = async (user: TAuthUser, id: string) => {
     };
   }
 
-  await prisma.contact.update({
-    where: {
-      id,
-    },
-    data: {
-      deleteStatus: "PENDING",
-    },
-  });
+  const result = await prisma.$transaction(
+    async (tx: Prisma.TransactionClient) => {
+      await tx.contact.update({
+        where: {
+          id,
+        },
+        data: {
+          deleteStatus: "PENDING",
+        },
+      });
 
-  const result = await prisma.approvalRequest.create({
-    data: {
-      action: "DELETE",
-      module: "CONTACT",
-      targetId: id,
-      requestedById: user.userId,
-      vataId: user.vataId,
-      status: "PENDING",
-      oldData,
+      return await tx.approvalRequest.create({
+        data: {
+          action: "DELETE",
+          module: "CONTACT",
+          targetId: id,
+          requestedById: user.userId,
+          vataId: user.vataId,
+          status: "PENDING",
+          oldData,
+        },
+      });
     },
-  });
+  );
 
   return {
     result,

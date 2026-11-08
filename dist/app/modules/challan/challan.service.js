@@ -673,23 +673,24 @@ const updateInvoiceService = async (user, serialId, invoice, items) => {
                     data: invokeInvoiceId,
                 });
             }
+            await activity_service_1.ActivityService.createActivityService({
+                tx,
+                action: "UPDATE",
+                module: "CHALLAN",
+                targetId: serialId,
+                userId: user.userId,
+                vataId: user.vataId,
+                newData: {
+                    invoice,
+                    items,
+                },
+                oldData: {
+                    invoice: rest,
+                    items: formatItems,
+                },
+                referenceNumber: invoiceId.serial,
+            });
             return updateInvoice;
-        });
-        await activity_service_1.ActivityService.createActivityService({
-            action: "UPDATE",
-            module: "CHALLAN",
-            targetId: serialId,
-            userId: user.userId,
-            vataId: user.vataId,
-            newData: {
-                invoice,
-                items,
-            },
-            oldData: {
-                invoice: rest,
-                items: formatItems,
-            },
-            referenceNumber: invoiceId.serial,
         });
         return {
             result,
@@ -766,31 +767,35 @@ const deleteInvoiceService = async (user, invoiceId) => {
         throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.BAD_REQUEST, "চ্যালান পাওয়া যায়নি।");
     }
     if (user.role === "ADMIN" || user.role === "OWNER") {
-        const result = await prisma_1.prisma.challan.update({
-            data: {
-                isDeleted: true,
-                deleteStatus: "APPROVED",
-            },
-            where: {
-                id: invoiceId,
+        const result = await prisma_1.prisma.$transaction(async (tx) => {
+            const result = await tx.challan.update({
+                data: {
+                    isDeleted: true,
+                    deleteStatus: "APPROVED",
+                },
+                where: {
+                    id: invoiceId,
+                    vataId: user.vataId,
+                },
+            });
+            await tx.challanItem.updateMany({
+                data: {
+                    isDeleted: true,
+                },
+                where: {
+                    challanId: invoiceId,
+                },
+            });
+            await activity_service_1.ActivityService.createActivityService({
+                tx,
+                action: "DELETE",
+                module: "CHALLAN",
+                targetId: invoiceId,
+                userId: user.userId,
                 vataId: user.vataId,
-            },
-        });
-        await prisma_1.prisma.challanItem.updateMany({
-            data: {
-                isDeleted: true,
-            },
-            where: {
-                challanId: invoiceId,
-            },
-        });
-        await activity_service_1.ActivityService.createActivityService({
-            action: "DELETE",
-            module: "CHALLAN",
-            targetId: invoiceId,
-            userId: user.userId,
-            vataId: user.vataId,
-            referenceNumber: findInvoice?.serial,
+                referenceNumber: findInvoice?.serial,
+            });
+            return result;
         });
         return {
             result,

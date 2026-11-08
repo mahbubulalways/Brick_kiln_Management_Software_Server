@@ -114,6 +114,7 @@ const createNewVataService = async (payload: TAdminVata) => {
           name: ownerInformation.name,
           role: "OWNER",
           vataId: vata.id,
+          email: ownerInformation.email,
         },
       });
       return vata;
@@ -147,6 +148,9 @@ const getAllVataService = async () => {
           price: true,
         },
       },
+    },
+    orderBy: {
+      createdAt: "desc",
     },
   });
   return result;
@@ -236,7 +240,11 @@ const getSingleVataInformationService = async (id: string) => {
       nameBangla: true,
       nameEnglish: true,
       ownerName: true,
-      challansPhoneNumber: true,
+      challanManagerPhoneNumber: true,
+      challanPersonOneName: true,
+      challanPersonOnePhoneNumber: true,
+      challanPersonTwoName: true,
+      challanPersonTwoPhoneNumber: true,
       ownerPhoneNumber: true,
       subdomain: true,
       shortDescription: true,
@@ -253,7 +261,11 @@ const updateVataInfoService = async (id: string, info: TAdminVataUpdate) => {
     nameEnglish: info.nameEnglish,
     ownerName: info.ownerName,
     ownerPhoneNumber: info.ownerPhoneNumber,
-    challansPhoneNumber: info.challansPhoneNumber,
+    challanManagerPhoneNumber: info.challanManagerPhoneNumber,
+    challanPersonOneName: info.challanPersonOneName,
+    challanPersonOnePhoneNumber: info.challanPersonOnePhoneNumber,
+    challanPersonTwoName: info.challanPersonTwoName,
+    challanPersonTwoPhoneNumber: info.challanPersonTwoPhoneNumber,
     address: info.address,
     subdomain: info.subdomain,
   };

@@ -99,6 +99,7 @@ const updateGoodCategoryService = async (
       });
 
       await ActivityService.createActivityService({
+        tx,
         action: "UPDATE",
         module: "GOODS_STOCK_CATEGORY",
         targetId: id,
@@ -181,6 +182,7 @@ const deleteGoodCategoryService = async (user: TAuthUser, id: string) => {
       });
 
       await ActivityService.createActivityService({
+        tx,
         action: "DELETE",
         module: "GOODS_STOCK_CATEGORY",
         targetId: id,

@@ -54,32 +54,35 @@ const updateCustomerService = async (
   };
 
   if (user.role === "ADMIN" || user.role === "OWNER") {
-    const result = await prisma.$transaction(async (tx) => {
-      const result = await tx.customer.update({
-        where: {
-          vataId_customerCode: {
-            customerCode: id,
-            vataId: user.vataId,
+    const result = await prisma.$transaction(
+      async (tx: Prisma.TransactionClient) => {
+        const result = await tx.customer.update({
+          where: {
+            vataId_customerCode: {
+              customerCode: id,
+              vataId: user.vataId,
+            },
           },
-        },
-        data: {
-          ...data,
-          updateStatus: "APPROVED",
-        },
-      });
+          data: {
+            ...data,
+            updateStatus: "APPROVED",
+          },
+        });
 
-      await ActivityService.createActivityService({
-        action: "UPDATE",
-        module: "CUSTOMER",
-        targetId: id,
-        userId: user.userId,
-        vataId: user.vataId,
-        oldData,
-        newData,
-      });
+        await ActivityService.createActivityService({
+          tx,
+          action: "UPDATE",
+          module: "CUSTOMER",
+          targetId: id,
+          userId: user.userId,
+          vataId: user.vataId,
+          oldData,
+          newData,
+        });
 
-      return result;
-    });
+        return result;
+      },
+    );
 
     return {
       result,
@@ -87,31 +90,34 @@ const updateCustomerService = async (
     };
   }
 
-  await prisma.customer.update({
-    where: {
-      vataId_customerCode: {
-        customerCode: id,
-        vataId: user.vataId,
-      },
-    },
-    data: {
-      updateStatus: "PENDING",
-    },
-  });
+  const result = await prisma.$transaction(
+    async (tx: Prisma.TransactionClient) => {
+      await tx.customer.update({
+        where: {
+          vataId_customerCode: {
+            customerCode: id,
+            vataId: user.vataId,
+          },
+        },
+        data: {
+          updateStatus: "PENDING",
+        },
+      });
 
-  const result = await prisma.approvalRequest.create({
-    data: {
-      action: "UPDATE",
-      module: "CUSTOMER",
-      targetId: id,
-      requestedById: user.userId,
-      vataId: user.vataId,
-      status: "PENDING",
-      oldData,
-      newData,
+      return await tx.approvalRequest.create({
+        data: {
+          action: "UPDATE",
+          module: "CUSTOMER",
+          targetId: id,
+          requestedById: user.userId,
+          vataId: user.vataId,
+          status: "PENDING",
+          oldData,
+          newData,
+        },
+      });
     },
-  });
-
+  );
   return {
     result,
     message: "কাস্টমারের তথ্য আপডেটের অনুরোধ অ্যাডমিনের কাছে পাঠানো হয়েছে।",

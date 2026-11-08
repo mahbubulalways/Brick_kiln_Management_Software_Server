@@ -12,26 +12,38 @@ import { ActivityService } from "../activity/activity.service";
 const createUserServie = async (user: TAuthUser, payload: User) => {
   const existUsername = await prisma.user.findFirst({
     where: {
-      username: payload.username,
-      vataId: user.vataId,
+      OR: [
+        {
+          username: payload.username,
+          vataId: user.vataId,
+        },
+        {
+          vataId: user.vataId,
+          email: payload.email,
+        },
+      ],
     },
   });
-
-  if (existUsername) {
+  if (existUsername?.username === payload.username) {
     throw new AppError(
       StatusCodes.CONFLICT,
-      "এই ইউজারনেমটি ইতোমধ্যে ব্যবহার করা হয়েছে।",
+      "এই ইউজারনেমটি  ইতোমধ্যে ব্যবহার করা হয়েছে।",
+    );
+  }
+
+  if (existUsername?.email === payload.email) {
+    throw new AppError(
+      StatusCodes.CONFLICT,
+      "এই ইমেইলটি ইতোমধ্যে ব্যবহার করা হয়েছে।",
     );
   }
 
   const hashPassword = await bcryptHelper.hashPassword(payload.password);
-
   payload.password = hashPassword;
   payload.vataId = user.vataId;
   const result = await prisma.user.create({
     data: payload,
   });
-
   return result;
 };
 
@@ -44,6 +56,16 @@ const getAllUsersService = async (user: TAuthUser) => {
     where: {
       isDeleted: false,
       vataId: user.vataId,
+    },
+    include: {
+      loginLimits: {
+        select: {
+          status: true,
+          blockTime: true,
+          totalTry: true,
+          id: true,
+        },
+      },
     },
   });
 
@@ -63,7 +85,6 @@ const getSingleUserService = async (user: TAuthUser, id: string) => {
 };
 
 // UPDATE USER
-
 const updateUserService = async (
   userAuth: TAuthUser,
   id: string,
@@ -78,6 +99,19 @@ const updateUserService = async (
 
   if (!existingUser) {
     throw new AppError(StatusCodes.NOT_FOUND, "ইউজার খুঁজে পাওয়া যায়নি।");
+  }
+
+  const isEmailExist = await prisma.user.findFirst({
+    where: {
+      email: payload.email,
+    },
+  });
+
+  if (isEmailExist) {
+    throw new AppError(
+      StatusCodes.CONFLICT,
+      "এই ইমেইলটি ইতোমধ্যে ব্যবহার করা হয়েছে।",
+    );
   }
 
   if (payload.username && payload.username !== existingUser.username) {
@@ -103,12 +137,14 @@ const updateUserService = async (
     username: existingUser.username,
     role: existingUser.role,
     name: existingUser.name,
+    email: existingUser.email,
   };
 
   const newData = {
     username: payload.username ?? existingUser.username,
     role: payload.role ?? existingUser.role,
     name: payload.name ?? existingUser.name,
+    email: payload.email ?? existingUser.email,
   };
 
   if (userAuth.role === "ADMIN" || userAuth.role === "OWNER") {
@@ -132,6 +168,7 @@ const updateUserService = async (
       });
 
       await ActivityService.createActivityService({
+        tx,
         action: "UPDATE",
         module: "USER",
         targetId: id,
@@ -151,27 +188,31 @@ const updateUserService = async (
     };
   }
 
-  await prisma.user.update({
-    where: {
-      id,
-    },
-    data: {
-      updateStatus: "PENDING",
-    },
-  });
+  const result = await prisma.$transaction(
+    async (tx: Prisma.TransactionClient) => {
+      await tx.user.update({
+        where: {
+          id,
+        },
+        data: {
+          updateStatus: "PENDING",
+        },
+      });
 
-  const result = await prisma.approvalRequest.create({
-    data: {
-      action: "UPDATE",
-      module: "USER",
-      targetId: id,
-      requestedById: userAuth.userId,
-      vataId: userAuth.vataId,
-      status: "PENDING",
-      oldData,
-      newData,
+      return await tx.approvalRequest.create({
+        data: {
+          action: "UPDATE",
+          module: "USER",
+          targetId: id,
+          requestedById: userAuth.userId,
+          vataId: userAuth.vataId,
+          status: "PENDING",
+          oldData,
+          newData,
+        },
+      });
     },
-  });
+  );
 
   return {
     result,
@@ -180,7 +221,6 @@ const updateUserService = async (
 };
 
 // DELETE USER
-
 const deleteUserService = async (userAuth: TAuthUser, id: string) => {
   const existingUser = await prisma.user.findFirst({
     where: {
@@ -212,6 +252,7 @@ const deleteUserService = async (userAuth: TAuthUser, id: string) => {
       });
 
       await ActivityService.createActivityService({
+        tx,
         action: "DELETE",
         module: "USER",
         targetId: id,
@@ -230,26 +271,30 @@ const deleteUserService = async (userAuth: TAuthUser, id: string) => {
     };
   }
 
-  await prisma.user.update({
-    where: {
-      id,
-    },
-    data: {
-      deleteStatus: "PENDING",
-    },
-  });
+  const result = await prisma.$transaction(
+    async (tx: Prisma.TransactionClient) => {
+      await tx.user.update({
+        where: {
+          id,
+        },
+        data: {
+          deleteStatus: "PENDING",
+        },
+      });
 
-  const result = await prisma.approvalRequest.create({
-    data: {
-      action: "DELETE",
-      module: "USER",
-      targetId: id,
-      requestedById: userAuth.userId,
-      vataId: userAuth.vataId,
-      status: "PENDING",
-      oldData,
+      return await tx.approvalRequest.create({
+        data: {
+          action: "DELETE",
+          module: "USER",
+          targetId: id,
+          requestedById: userAuth.userId,
+          vataId: userAuth.vataId,
+          status: "PENDING",
+          oldData,
+        },
+      });
     },
-  });
+  );
 
   return {
     result,
@@ -304,6 +349,18 @@ const getUserOptionService = async (user: TAuthUser) => {
   return result;
 };
 
+// UNBLOCK USER FOR LOGIN
+const unblockUserForLoginSystemService = async (userId: string) => {
+  return await prisma.loginLimit.update({
+    where: { userId },
+    data: {
+      totalTry: 0,
+      status: false,
+      blockTime: null,
+    },
+  });
+};
+
 export const UserService = {
   createUserServie,
   getAllUsersService,
@@ -312,4 +369,5 @@ export const UserService = {
   deleteUserService,
   getUserLoginHistoryService,
   getUserOptionService,
+  unblockUserForLoginSystemService,
 };

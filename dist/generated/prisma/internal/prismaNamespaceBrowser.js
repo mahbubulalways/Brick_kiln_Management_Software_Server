@@ -48,8 +48,8 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.VataSmsSettingsScalarFieldEnum = exports.SmsRechargeHistoryScalarFieldEnum = exports.SmsWalletScalarFieldEnum = exports.SmsSettingScalarFieldEnum = exports.CarIncomeDeliveryScalarFieldEnum = exports.VataCarScalarFieldEnum = exports.DriverScalarFieldEnum = exports.SeasonScalarFieldEnum = exports.SubscriptionPaymentScalarFieldEnum = exports.SubscriptionPlanScalarFieldEnum = exports.VataScalarFieldEnum = exports.WeatherScalarFieldEnum = exports.ContactScalarFieldEnum = exports.ReceivablePayableTransactionScalarFieldEnum = exports.ReceivablePayableScalarFieldEnum = exports.TaskManagerScalarFieldEnum = exports.ProductScalarFieldEnum = exports.CarRentScalarFieldEnum = exports.DocumentScalarFieldEnum = exports.GoodsLossScalarFieldEnum = exports.GoodHistoryLogScalarFieldEnum = exports.GoodsIssueScalarFieldEnum = exports.GoodsStockScalarFieldEnum = exports.GoodsStockCategoryScalarFieldEnum = exports.StockBookScalarFieldEnum = exports.BrickStockSummaryScalarFieldEnum = exports.UnloadItemScalarFieldEnum = exports.UnloadScalarFieldEnum = exports.LoadInfoScalarFieldEnum = exports.RoundScalarFieldEnum = exports.CashScalarFieldEnum = exports.PaymentScalarFieldEnum = exports.LedgerScalarFieldEnum = exports.Due_CollectionScalarFieldEnum = exports.DeliveryStatusActionTimeScalarFieldEnum = exports.DeliveryScalarFieldEnum = exports.CustomerDueScalarFieldEnum = exports.CustomerScalarFieldEnum = exports.ChallanItemScalarFieldEnum = exports.ChallanScalarFieldEnum = exports.ClassAndRateScalarFieldEnum = exports.LoginHistoryScalarFieldEnum = exports.UserScalarFieldEnum = exports.TransactionIsolationLevel = exports.ModelName = exports.AnyNull = exports.JsonNull = exports.DbNull = exports.NullTypes = exports.Decimal = void 0;
-exports.JsonNullValueFilter = exports.NullsOrder = exports.QueryMode = exports.JsonNullValueInput = exports.NullableJsonNullValueInput = exports.SortOrder = exports.VataBackupScalarFieldEnum = exports.ActivityLogScalarFieldEnum = exports.ApprovalRequestScalarFieldEnum = exports.DatabaseBackupScalarFieldEnum = exports.DatabaseBackupPermissionScalarFieldEnum = exports.YoutubeLinkScalarFieldEnum = exports.HelpLineScalarFieldEnum = exports.AboutUsScalarFieldEnum = exports.FaqScalarFieldEnum = exports.NotificationScalarFieldEnum = exports.NoteScalarFieldEnum = exports.SmsLogScalarFieldEnum = void 0;
+exports.SmsRechargeHistoryScalarFieldEnum = exports.SmsWalletScalarFieldEnum = exports.SmsSettingScalarFieldEnum = exports.CarIncomeDeliveryScalarFieldEnum = exports.VataCarScalarFieldEnum = exports.DriverScalarFieldEnum = exports.SeasonScalarFieldEnum = exports.SubscriptionPaymentScalarFieldEnum = exports.SubscriptionPlanScalarFieldEnum = exports.VataScalarFieldEnum = exports.WeatherScalarFieldEnum = exports.ContactScalarFieldEnum = exports.ReceivablePayableTransactionScalarFieldEnum = exports.ReceivablePayableScalarFieldEnum = exports.TaskManagerScalarFieldEnum = exports.ProductScalarFieldEnum = exports.CarRentScalarFieldEnum = exports.DocumentScalarFieldEnum = exports.GoodsLossScalarFieldEnum = exports.GoodHistoryLogScalarFieldEnum = exports.GoodsIssueScalarFieldEnum = exports.GoodsStockScalarFieldEnum = exports.GoodsStockCategoryScalarFieldEnum = exports.StockBookScalarFieldEnum = exports.BrickStockSummaryScalarFieldEnum = exports.UnloadItemScalarFieldEnum = exports.UnloadScalarFieldEnum = exports.LoadInfoScalarFieldEnum = exports.RoundScalarFieldEnum = exports.CashScalarFieldEnum = exports.PaymentScalarFieldEnum = exports.LedgerScalarFieldEnum = exports.Due_CollectionScalarFieldEnum = exports.DeliveryStatusActionTimeScalarFieldEnum = exports.DeliveryScalarFieldEnum = exports.CustomerDueScalarFieldEnum = exports.CustomerScalarFieldEnum = exports.ChallanItemScalarFieldEnum = exports.ChallanScalarFieldEnum = exports.ClassAndRateScalarFieldEnum = exports.LoginLimitScalarFieldEnum = exports.LoginHistoryScalarFieldEnum = exports.UserScalarFieldEnum = exports.TransactionIsolationLevel = exports.ModelName = exports.AnyNull = exports.JsonNull = exports.DbNull = exports.NullTypes = exports.Decimal = void 0;
+exports.JsonNullValueFilter = exports.NullsOrder = exports.QueryMode = exports.JsonNullValueInput = exports.NullableJsonNullValueInput = exports.SortOrder = exports.VataBackupScalarFieldEnum = exports.ActivityLogScalarFieldEnum = exports.ApprovalRequestScalarFieldEnum = exports.DatabaseBackupScalarFieldEnum = exports.DatabaseBackupPermissionScalarFieldEnum = exports.YoutubeLinkScalarFieldEnum = exports.HelpLineScalarFieldEnum = exports.AboutUsScalarFieldEnum = exports.FaqScalarFieldEnum = exports.NotificationScalarFieldEnum = exports.NoteScalarFieldEnum = exports.SmsLogScalarFieldEnum = exports.VataSmsSettingsScalarFieldEnum = void 0;
 const runtime = __importStar(require("@prisma/client/runtime/index-browser"));
 exports.Decimal = runtime.Decimal;
 exports.NullTypes = {
@@ -78,6 +78,7 @@ exports.AnyNull = runtime.AnyNull;
 exports.ModelName = {
     User: 'User',
     LoginHistory: 'LoginHistory',
+    LoginLimit: 'LoginLimit',
     ClassAndRate: 'ClassAndRate',
     Challan: 'Challan',
     ChallanItem: 'ChallanItem',
@@ -145,6 +146,7 @@ exports.UserScalarFieldEnum = {
     id: 'id',
     name: 'name',
     username: 'username',
+    email: 'email',
     role: 'role',
     password: 'password',
     isDeleted: 'isDeleted',
@@ -152,7 +154,9 @@ exports.UserScalarFieldEnum = {
     updatedAt: 'updatedAt',
     vataId: 'vataId',
     deleteStatus: 'deleteStatus',
-    updateStatus: 'updateStatus'
+    updateStatus: 'updateStatus',
+    recoveryCode: 'recoveryCode',
+    expiryTime: 'expiryTime'
 };
 exports.LoginHistoryScalarFieldEnum = {
     id: 'id',
@@ -161,7 +165,15 @@ exports.LoginHistoryScalarFieldEnum = {
     browser: 'browser',
     ipAddress: 'ipAddress',
     userId: 'userId',
-    createdAt: 'createdAt'
+    createdAt: 'createdAt',
+    status: 'status'
+};
+exports.LoginLimitScalarFieldEnum = {
+    id: 'id',
+    userId: 'userId',
+    blockTime: 'blockTime',
+    totalTry: 'totalTry',
+    status: 'status'
 };
 exports.ClassAndRateScalarFieldEnum = {
     id: 'id',

@@ -22,14 +22,15 @@ const createPaymentService = async (req, user) => {
         ledgerId: ledgerId.id,
         paymentType: body.paymentType,
         paymentDetails: body.paymentDetails,
-        quantity: Number(body.quantity),
-        rate: Number(body.rate),
-        totalBill: Number(body.totalBill),
-        cutting: Number(body.cutting),
-        payment: Number(body.payment),
-        paymentDifference: Number(body.paymentDifference),
+        quantity: Number(body?.quantity) || 0,
+        rate: Number(body?.rate) || 0,
+        totalBill: Number(body?.totalBill) || 0,
+        cutting: Number(body?.cutting) || 0,
+        payment: Number(body?.payment) || 0,
+        paymentDifference: Number(body?.paymentDifference) || 0,
         document: file?.filename || null,
         address: body.address || null,
+        paymentDate: body.paymentDate || null,
     };
     const result = await prisma_1.prisma.payment.create({
         data: { ...data, vataId: user.vataId },
@@ -201,12 +202,12 @@ const updatePaymentService = async (user, req, approval = null, targetId = null)
         // ledgerId: ledger.id,
         paymentType: body.paymentType,
         paymentDetails: body.paymentDetails,
-        quantity: Number(body.quantity) || 0,
-        rate: Number(body.rate) || 0,
-        totalBill: Number(body.totalBill) || 0,
-        cutting: Number(body.cutting) || 0,
+        quantity: Number(body?.quantity) || 0,
+        rate: Number(body?.rate) || 0,
+        totalBill: Number(body?.totalBill) || 0,
+        cutting: Number(body?.cutting) || 0,
         payment: Number(body.payment) || 0,
-        paymentDifference: Number(body.paymentDifference) || 0,
+        paymentDifference: Number(body?.paymentDifference) || 0,
         paymentDate: body.paymentDate,
     };
     if (file?.filename) {
@@ -219,31 +220,35 @@ const updatePaymentService = async (user, req, approval = null, targetId = null)
     // 5. Update
     // ============================================
     if (user.role === "ADMIN" || user.role === "OWNER") {
-        const result = await prisma_1.prisma.payment.update({
-            where: {
-                id: id,
+        const result = await prisma_1.prisma.$transaction(async (tx) => {
+            const result = await tx.payment.update({
+                where: {
+                    id: id,
+                    vataId: user.vataId,
+                },
+                data: {
+                    ...data,
+                    updateStatus: "APPROVED",
+                },
+            });
+            await activity_service_1.ActivityService.createActivityService({
+                tx,
+                action: "UPDATE",
+                module: "PAYMENT",
+                targetId: id,
+                userId: user.userId,
                 vataId: user.vataId,
-            },
-            data: {
-                ...data,
-                updateStatus: "APPROVED",
-            },
-        });
-        await activity_service_1.ActivityService.createActivityService({
-            action: "UPDATE",
-            module: "PAYMENT",
-            targetId: id,
-            userId: user.userId,
-            vataId: user.vataId,
-            newData: {
-                ...data,
-                name: ledger.name,
-            },
-            oldData: {
-                ...existingPayment,
-                name: ledger.name,
-            },
-            referenceNumber: ledger?.name,
+                newData: {
+                    ...data,
+                    name: ledger.name,
+                },
+                oldData: {
+                    ...existingPayment,
+                    name: ledger.name,
+                },
+                referenceNumber: ledger?.name,
+            });
+            return result;
         });
         return {
             result,
@@ -313,17 +318,21 @@ const deletePaymentServie = async (user, id) => {
         throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.NOT_FOUND, "পেমেন্ট পাওয়া যায়নি।");
     }
     if (user.role === "ADMIN" || user.role === "OWNER") {
-        const result = await prisma_1.prisma.payment.update({
-            where: { id, vataId: user.vataId },
-            data: { isDeleted: true, deleteStatus: "APPROVED" },
-        });
-        await activity_service_1.ActivityService.createActivityService({
-            action: "DELETE",
-            module: "PAYMENT",
-            targetId: id,
-            userId: user.userId,
-            vataId: user.vataId,
-            referenceNumber: existingPayment?.ledger?.name,
+        const result = await prisma_1.prisma.$transaction(async (tx) => {
+            const result = await tx.payment.update({
+                where: { id, vataId: user.vataId },
+                data: { isDeleted: true, deleteStatus: "APPROVED" },
+            });
+            await activity_service_1.ActivityService.createActivityService({
+                tx,
+                action: "DELETE",
+                module: "PAYMENT",
+                targetId: id,
+                userId: user.userId,
+                vataId: user.vataId,
+                referenceNumber: existingPayment?.ledger?.name,
+            });
+            return result;
         });
         return {
             result,

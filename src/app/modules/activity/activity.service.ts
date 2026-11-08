@@ -1,3 +1,4 @@
+import { Prisma } from "../../../generated/prisma/client";
 import { ActivityAction, ModuleType } from "../../../generated/prisma/enums";
 import { paginationHelper } from "../../../helpers/paginationHelper";
 import { prisma } from "../../../helpers/prisma";
@@ -7,6 +8,7 @@ import { createMetaConfig } from "../../../utils/createMetaConfig";
 import { generateActivityDescription } from "../approval/approval.utils";
 
 type TCreateActivity = {
+  tx: Prisma.TransactionClient;
   vataId: string;
   userId: string;
   action: ActivityAction;
@@ -20,6 +22,7 @@ type TCreateActivity = {
 };
 
 const createActivityService = async ({
+  tx,
   vataId,
   userId,
   action,
@@ -37,7 +40,7 @@ const createActivityService = async ({
     referenceNumber,
   );
 
-  const result = await prisma.activityLog.create({
+  const result = await tx.activityLog.create({
     data: {
       vataId,
       userId,

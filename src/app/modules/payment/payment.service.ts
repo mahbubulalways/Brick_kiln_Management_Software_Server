@@ -26,14 +26,15 @@ const createPaymentService = async (req: Request, user: TAuthUser) => {
     ledgerId: ledgerId.id,
     paymentType: body.paymentType,
     paymentDetails: body.paymentDetails,
-    quantity: Number(body.quantity),
-    rate: Number(body.rate),
-    totalBill: Number(body.totalBill),
-    cutting: Number(body.cutting),
-    payment: Number(body.payment),
-    paymentDifference: Number(body.paymentDifference),
+    quantity: Number(body?.quantity) || 0,
+    rate: Number(body?.rate) || 0,
+    totalBill: Number(body?.totalBill) || 0,
+    cutting: Number(body?.cutting) || 0,
+    payment: Number(body?.payment) || 0,
+    paymentDifference: Number(body?.paymentDifference) || 0,
     document: file?.filename || null,
     address: body.address || null,
+    paymentDate: body.paymentDate || null,
   };
   const result = await prisma.payment.create({
     data: { ...data, vataId: user.vataId },
@@ -260,12 +261,12 @@ const updatePaymentService = async (
     // ledgerId: ledger.id,
     paymentType: body.paymentType,
     paymentDetails: body.paymentDetails,
-    quantity: Number(body.quantity) || 0,
-    rate: Number(body.rate) || 0,
-    totalBill: Number(body.totalBill) || 0,
-    cutting: Number(body.cutting) || 0,
+    quantity: Number(body?.quantity) || 0,
+    rate: Number(body?.rate) || 0,
+    totalBill: Number(body?.totalBill) || 0,
+    cutting: Number(body?.cutting) || 0,
     payment: Number(body.payment) || 0,
-    paymentDifference: Number(body.paymentDifference) || 0,
+    paymentDifference: Number(body?.paymentDifference) || 0,
     paymentDate: body.paymentDate,
   };
 
@@ -282,33 +283,40 @@ const updatePaymentService = async (
   // ============================================
 
   if (user.role === "ADMIN" || user.role === "OWNER") {
-    const result = await prisma.payment.update({
-      where: {
-        id: id as string,
-        vataId: user.vataId,
-      },
-      data: {
-        ...data,
-        updateStatus: "APPROVED",
-      },
-    });
+    const result = await prisma.$transaction(
+      async (tx: Prisma.TransactionClient) => {
+        const result = await tx.payment.update({
+          where: {
+            id: id as string,
+            vataId: user.vataId,
+          },
+          data: {
+            ...data,
+            updateStatus: "APPROVED",
+          },
+        });
 
-    await ActivityService.createActivityService({
-      action: "UPDATE",
-      module: "PAYMENT",
-      targetId: id as string,
-      userId: user.userId,
-      vataId: user.vataId,
-      newData: {
-        ...data,
-        name: ledger.name,
+        await ActivityService.createActivityService({
+          tx,
+          action: "UPDATE",
+          module: "PAYMENT",
+          targetId: id as string,
+          userId: user.userId,
+          vataId: user.vataId,
+          newData: {
+            ...data,
+            name: ledger.name,
+          },
+          oldData: {
+            ...existingPayment,
+            name: ledger.name,
+          },
+          referenceNumber: ledger?.name,
+        });
+
+        return result;
       },
-      oldData: {
-        ...existingPayment,
-        name: ledger.name,
-      },
-      referenceNumber: ledger?.name,
-    });
+    );
 
     return {
       result,
@@ -384,19 +392,26 @@ const deletePaymentServie = async (user: TAuthUser, id: string) => {
   }
 
   if (user.role === "ADMIN" || user.role === "OWNER") {
-    const result = await prisma.payment.update({
-      where: { id, vataId: user.vataId },
-      data: { isDeleted: true, deleteStatus: "APPROVED" },
-    });
+    const result = await prisma.$transaction(
+      async (tx: Prisma.TransactionClient) => {
+        const result = await tx.payment.update({
+          where: { id, vataId: user.vataId },
+          data: { isDeleted: true, deleteStatus: "APPROVED" },
+        });
 
-    await ActivityService.createActivityService({
-      action: "DELETE",
-      module: "PAYMENT",
-      targetId: id,
-      userId: user.userId,
-      vataId: user.vataId,
-      referenceNumber: existingPayment?.ledger?.name,
-    });
+        await ActivityService.createActivityService({
+          tx,
+          action: "DELETE",
+          module: "PAYMENT",
+          targetId: id,
+          userId: user.userId,
+          vataId: user.vataId,
+          referenceNumber: existingPayment?.ledger?.name,
+        });
+
+        return result;
+      },
+    );
 
     return {
       result,

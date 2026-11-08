@@ -7,3 +7,8 @@ export interface IAuth {
   };
   ip: string;
 }
+export type TResetPasswordPayload = {
+  email: string;
+  confirmPassword: string;
+  newPassword: string;
+};

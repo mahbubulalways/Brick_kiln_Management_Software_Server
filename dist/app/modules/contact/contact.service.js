@@ -109,6 +109,7 @@ const updateContactService = async (user, id, payload) => {
                 },
             });
             await activity_service_1.ActivityService.createActivityService({
+                tx,
                 action: "UPDATE",
                 module: "CONTACT",
                 targetId: id,
@@ -125,25 +126,27 @@ const updateContactService = async (user, id, payload) => {
             message: "কন্টাক্টের তথ্য সফলভাবে আপডেট করা হয়েছে।",
         };
     }
-    await prisma_1.prisma.contact.update({
-        where: {
-            id,
-        },
-        data: {
-            updateStatus: "PENDING",
-        },
-    });
-    const result = await prisma_1.prisma.approvalRequest.create({
-        data: {
-            action: "UPDATE",
-            module: "CONTACT",
-            targetId: id,
-            requestedById: user.userId,
-            vataId: user.vataId,
-            status: "PENDING",
-            oldData,
-            newData,
-        },
+    const result = await prisma_1.prisma.$transaction(async (tx) => {
+        await tx.contact.update({
+            where: {
+                id,
+            },
+            data: {
+                updateStatus: "PENDING",
+            },
+        });
+        return await tx.approvalRequest.create({
+            data: {
+                action: "UPDATE",
+                module: "CONTACT",
+                targetId: id,
+                requestedById: user.userId,
+                vataId: user.vataId,
+                status: "PENDING",
+                oldData,
+                newData,
+            },
+        });
     });
     return {
         result,
@@ -175,6 +178,7 @@ const deleteContactService = async (user, id) => {
                 },
             });
             await activity_service_1.ActivityService.createActivityService({
+                tx,
                 action: "DELETE",
                 module: "CONTACT",
                 targetId: id,
@@ -189,24 +193,26 @@ const deleteContactService = async (user, id) => {
             message: "কন্টাক্টের তথ্য সফলভাবে মুছে ফেলা হয়েছে।",
         };
     }
-    await prisma_1.prisma.contact.update({
-        where: {
-            id,
-        },
-        data: {
-            deleteStatus: "PENDING",
-        },
-    });
-    const result = await prisma_1.prisma.approvalRequest.create({
-        data: {
-            action: "DELETE",
-            module: "CONTACT",
-            targetId: id,
-            requestedById: user.userId,
-            vataId: user.vataId,
-            status: "PENDING",
-            oldData,
-        },
+    const result = await prisma_1.prisma.$transaction(async (tx) => {
+        await tx.contact.update({
+            where: {
+                id,
+            },
+            data: {
+                deleteStatus: "PENDING",
+            },
+        });
+        return await tx.approvalRequest.create({
+            data: {
+                action: "DELETE",
+                module: "CONTACT",
+                targetId: id,
+                requestedById: user.userId,
+                vataId: user.vataId,
+                status: "PENDING",
+                oldData,
+            },
+        });
     });
     return {
         result,

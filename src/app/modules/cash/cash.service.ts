@@ -128,22 +128,29 @@ const updateCashService = async (
     throw new AppError(StatusCodes.NOT_FOUND, "এই ক্যাশটি পাওয়া যায়নি।");
   }
   if (user.role === "ADMIN" || user.role === "OWNER") {
-    const result = await prisma.cash.update({
-      data: {
-        ...payload,
-        updateStatus: "APPROVED",
+    const result = await prisma.$transaction(
+      async (tx: Prisma.TransactionClient) => {
+        await tx.cash.update({
+          data: {
+            ...payload,
+            updateStatus: "APPROVED",
+          },
+          where: { id, vataId: user.vataId },
+        });
+
+        return await ActivityService.createActivityService({
+          tx,
+          action: "UPDATE",
+          module: "CASH",
+          targetId: id,
+          userId: user.userId,
+          vataId: user.vataId,
+          newData: payload,
+          oldData: cash,
+        });
       },
-      where: { id, vataId: user.vataId },
-    });
-    await ActivityService.createActivityService({
-      action: "UPDATE",
-      module: "CASH",
-      targetId: id,
-      userId: user.userId,
-      vataId: user.vataId,
-      newData: payload,
-      oldData: cash,
-    });
+    );
+
     return {
       result,
       message: "ক্যাশের তথ্য সফলভাবে আপডেট করা হয়েছে।",
@@ -200,19 +207,26 @@ const deleteCashService = async (user: TAuthUser, id: string) => {
   }
 
   if (user.role === "ADMIN" || user.role === "OWNER") {
-    const result = await prisma.cash.update({
-      data: { isDeleted: true, deleteStatus: "APPROVED" },
-      where: { id, vataId: user.vataId },
-    });
-    const cashType = cash?.type == "INCOME" ? "ক্যাশ ইন" : "ক্যাশ আউট";
-    await ActivityService.createActivityService({
-      action: "DELETE",
-      module: "CASH",
-      targetId: id,
-      userId: user.userId,
-      vataId: user.vataId,
-      referenceNumber: `${cash?.source} এর ${cash.amount} টাকা ${cashType}`,
-    });
+    const result = await prisma.$transaction(
+      async (tx: Prisma.TransactionClient) => {
+        await tx.cash.update({
+          data: { isDeleted: true, deleteStatus: "APPROVED" },
+          where: { id, vataId: user.vataId },
+        });
+
+        const cashType = cash?.type == "INCOME" ? "ক্যাশ ইন" : "ক্যাশ আউট";
+
+        return await ActivityService.createActivityService({
+          tx,
+          action: "DELETE",
+          module: "CASH",
+          targetId: id,
+          userId: user.userId,
+          vataId: user.vataId,
+          referenceNumber: `${cash?.source} এর ${cash.amount} টাকা ${cashType}`,
+        });
+      },
+    );
 
     return {
       result,

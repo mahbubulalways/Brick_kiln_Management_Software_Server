@@ -55,6 +55,7 @@ const updateCustomerService = async (user, id, data) => {
                 },
             });
             await activity_service_1.ActivityService.createActivityService({
+                tx,
                 action: "UPDATE",
                 module: "CUSTOMER",
                 targetId: id,
@@ -70,28 +71,30 @@ const updateCustomerService = async (user, id, data) => {
             message: "কাস্টমারের তথ্য সফলভাবে আপডেট করা হয়েছে।",
         };
     }
-    await prisma_1.prisma.customer.update({
-        where: {
-            vataId_customerCode: {
-                customerCode: id,
-                vataId: user.vataId,
+    const result = await prisma_1.prisma.$transaction(async (tx) => {
+        await tx.customer.update({
+            where: {
+                vataId_customerCode: {
+                    customerCode: id,
+                    vataId: user.vataId,
+                },
             },
-        },
-        data: {
-            updateStatus: "PENDING",
-        },
-    });
-    const result = await prisma_1.prisma.approvalRequest.create({
-        data: {
-            action: "UPDATE",
-            module: "CUSTOMER",
-            targetId: id,
-            requestedById: user.userId,
-            vataId: user.vataId,
-            status: "PENDING",
-            oldData,
-            newData,
-        },
+            data: {
+                updateStatus: "PENDING",
+            },
+        });
+        return await tx.approvalRequest.create({
+            data: {
+                action: "UPDATE",
+                module: "CUSTOMER",
+                targetId: id,
+                requestedById: user.userId,
+                vataId: user.vataId,
+                status: "PENDING",
+                oldData,
+                newData,
+            },
+        });
     });
     return {
         result,

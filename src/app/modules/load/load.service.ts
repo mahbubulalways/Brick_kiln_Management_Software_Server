@@ -338,6 +338,7 @@ const updateLoadInfoService = async (
       });
 
       await ActivityService.createActivityService({
+        tx,
         action: "UPDATE",
         module: "LOAD_INFO",
         targetId: id,
@@ -523,6 +524,7 @@ const deleteLoadInfoService = async (user: TAuthUser, id: string) => {
       });
 
       await ActivityService.createActivityService({
+        tx,
         action: "DELETE",
         module: "LOAD_INFO",
         targetId: id,

@@ -1,4 +1,4 @@
-import { ClassAndRate } from "../../../generated/prisma/client";
+import { ClassAndRate, Prisma } from "../../../generated/prisma/client";
 import { paginationHelper } from "../../../helpers/paginationHelper";
 import { prisma } from "../../../helpers/prisma";
 import { TQuery } from "../../../interface/query";
@@ -145,32 +145,40 @@ const updateClassAndRateService = async (
   }
 
   if (user.role === "ADMIN" || user.role === "OWNER") {
-    const result = await prisma.classAndRate.update({
-      data: {
-        ...data,
-        updateStatus: "APPROVED",
+    const result = await prisma.$transaction(
+      async (tx: Prisma.TransactionClient) => {
+        const updatedClassRate = await tx.classAndRate.update({
+          data: {
+            ...data,
+            updateStatus: "APPROVED",
+          },
+          where: {
+            vataId: user.vataId,
+            id,
+          },
+        });
+
+        await ActivityService.createActivityService({
+          tx,
+          action: "UPDATE",
+          module: "CLASS_RATE",
+          targetId: id,
+          userId: user.userId,
+          vataId: user.vataId,
+          newData: data,
+          oldData: findClassRate,
+          referenceNumber: undefined,
+        });
+
+        return updatedClassRate;
       },
-      where: {
-        vataId: user.vataId,
-        id,
-      },
-    });
-    await ActivityService.createActivityService({
-      action: "UPDATE",
-      module: "CLASS_RATE",
-      targetId: id,
-      userId: user.userId,
-      vataId: user.vataId,
-      newData: data,
-      oldData: findClassRate,
-      referenceNumber: undefined,
-    });
+    );
+
     return {
       result,
       message: "শ্রেণী ও রেট সফলভাবে আপডেট হয়েছে",
     };
   }
-
   const result = await prisma.$transaction(async (tx) => {
     await tx.classAndRate.update({
       data: {
@@ -205,22 +213,30 @@ const updateClassAndRateService = async (
 // DELETE CLASS AND RATE
 const deleteClassAndRateService = async (user: TAuthUser, id: string) => {
   if (user.role === "ADMIN" || user.role === "OWNER") {
-    const result = await prisma.classAndRate.update({
-      data: {
-        isDeleted: true,
+    const result = await prisma.$transaction(
+      async (tx: Prisma.TransactionClient) => {
+        const result = await tx.classAndRate.update({
+          data: {
+            isDeleted: true,
+          },
+          where: {
+            vataId: user.vataId,
+            id,
+          },
+        });
+
+        await ActivityService.createActivityService({
+          tx,
+          action: "DELETE",
+          module: "CLASS_RATE",
+          targetId: id,
+          userId: user.userId,
+          vataId: user.vataId,
+        });
+
+        return result;
       },
-      where: {
-        vataId: user.vataId,
-        id,
-      },
-    });
-    await ActivityService.createActivityService({
-      action: "DELETE",
-      module: "CLASS_RATE",
-      targetId: id,
-      userId: user.userId,
-      vataId: user.vataId,
-    });
+    );
 
     return {
       result,

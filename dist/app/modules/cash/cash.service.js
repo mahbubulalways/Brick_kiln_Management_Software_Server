@@ -104,21 +104,24 @@ const updateCashService = async (user, id, payload) => {
         throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.NOT_FOUND, "এই ক্যাশটি পাওয়া যায়নি।");
     }
     if (user.role === "ADMIN" || user.role === "OWNER") {
-        const result = await prisma_1.prisma.cash.update({
-            data: {
-                ...payload,
-                updateStatus: "APPROVED",
-            },
-            where: { id, vataId: user.vataId },
-        });
-        await activity_service_1.ActivityService.createActivityService({
-            action: "UPDATE",
-            module: "CASH",
-            targetId: id,
-            userId: user.userId,
-            vataId: user.vataId,
-            newData: payload,
-            oldData: cash,
+        const result = await prisma_1.prisma.$transaction(async (tx) => {
+            await tx.cash.update({
+                data: {
+                    ...payload,
+                    updateStatus: "APPROVED",
+                },
+                where: { id, vataId: user.vataId },
+            });
+            return await activity_service_1.ActivityService.createActivityService({
+                tx,
+                action: "UPDATE",
+                module: "CASH",
+                targetId: id,
+                userId: user.userId,
+                vataId: user.vataId,
+                newData: payload,
+                oldData: cash,
+            });
         });
         return {
             result,
@@ -171,18 +174,21 @@ const deleteCashService = async (user, id) => {
         throw new ApplicationError_1.AppError(http_status_codes_1.StatusCodes.NOT_FOUND, "এই ক্যাশটি পাওয়া যায়নি।");
     }
     if (user.role === "ADMIN" || user.role === "OWNER") {
-        const result = await prisma_1.prisma.cash.update({
-            data: { isDeleted: true, deleteStatus: "APPROVED" },
-            where: { id, vataId: user.vataId },
-        });
-        const cashType = cash?.type == "INCOME" ? "ক্যাশ ইন" : "ক্যাশ আউট";
-        await activity_service_1.ActivityService.createActivityService({
-            action: "DELETE",
-            module: "CASH",
-            targetId: id,
-            userId: user.userId,
-            vataId: user.vataId,
-            referenceNumber: `${cash?.source} এর ${cash.amount} টাকা ${cashType}`,
+        const result = await prisma_1.prisma.$transaction(async (tx) => {
+            await tx.cash.update({
+                data: { isDeleted: true, deleteStatus: "APPROVED" },
+                where: { id, vataId: user.vataId },
+            });
+            const cashType = cash?.type == "INCOME" ? "ক্যাশ ইন" : "ক্যাশ আউট";
+            return await activity_service_1.ActivityService.createActivityService({
+                tx,
+                action: "DELETE",
+                module: "CASH",
+                targetId: id,
+                userId: user.userId,
+                vataId: user.vataId,
+                referenceNumber: `${cash?.source} এর ${cash.amount} টাকা ${cashType}`,
+            });
         });
         return {
             result,
